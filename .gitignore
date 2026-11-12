@@ -1,0 +1,20 @@
+# Go
+/backend/bin/
+*.test
+*.out
+coverage.*
+
+# Окружение и секреты
+.env
+.env.*
+!.env.example
+
+# Flutter (на будущее)
+/mobile/build/
+/mobile/.dart_tool/
+/mobile/.flutter-plugins*
+
+# Редакторы и ОС
+.idea/
+.vscode/
+.DS_Store
