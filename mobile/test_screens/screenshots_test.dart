@@ -1,0 +1,134 @@
+// Снимки экранов демо-режима с настоящими шрифтами.
+// Запуск: flutter test test_screens  → картинки в build/screenshots/.
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:svoi/api/demo_api.dart';
+import 'package:svoi/app.dart';
+import 'package:svoi/state.dart';
+
+Future<void> _loadFonts() async {
+  final manrope = FontLoader('Manrope');
+  for (final w in [400, 600, 700, 800]) {
+    manrope.addFont(rootBundle.load('assets/fonts/Manrope-$w.ttf'));
+  }
+  await manrope.load();
+  await (FontLoader('Unbounded')..addFont(rootBundle.load('assets/fonts/Unbounded-700.ttf'))).load();
+  final flutterRoot = Platform.environment['FLUTTER_ROOT'] ?? '/opt/flutter';
+  final icons = File('$flutterRoot/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf');
+  await (FontLoader(
+    'MaterialIcons',
+  )..addFont(Future.value(ByteData.sublistView(icons.readAsBytesSync())))).load();
+}
+
+void main() {
+  const root = Key('root');
+
+  testWidgets('снимки экранов', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.runAsync(_loadFonts);
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    Directory('build/screenshots').createSync(recursive: true);
+
+    Future<void> shot(String name) async {
+      await tester.pumpAndSettle();
+      final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(root));
+      await tester.runAsync(() async {
+        final image = await boundary.toImage(pixelRatio: 2);
+        final png = await image.toByteData(format: ui.ImageByteFormat.png);
+        File('build/screenshots/$name.png').writeAsBytesSync(png!.buffer.asUint8List());
+      });
+    }
+
+    Future<void> tap(Finder f) async {
+      await tester.ensureVisible(f);
+      await tester.pumpAndSettle();
+      await tester.tap(f);
+      await tester.pumpAndSettle();
+    }
+
+    final state = AppState(DemoApi());
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: root,
+        child: SvoiApp(state: state..start()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('phone')), '9123456789');
+    await shot('01_phone');
+    await tap(find.text('Получить звонок'));
+    await tester.enterText(find.byKey(const Key('code')), '12');
+    await shot('02_code');
+    await tester.enterText(find.byKey(const Key('code')), DemoApi.demoCode);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('name')), 'Аня');
+    await tester.enterText(find.byKey(const Key('birth')), '01021995');
+    await tap(find.text('Женщина'));
+    await tester.enterText(find.byKey(const Key('city')), 'Чита');
+    await tap(find.byKey(const Key('terms')));
+    await tap(find.byKey(const Key('personal_data')));
+    await tester.drag(find.byType(SingleChildScrollView).first, const Offset(0, 300));
+    await shot('03_about');
+    await tap(find.text('Дальше'));
+
+    await tap(find.byKey(const Key('goal-family')));
+    await tap(find.byKey(const Key('goal-friendship')));
+    await tap(find.byKey(const Key('goal-hobby')));
+    await tester.drag(find.byType(SingleChildScrollView).first, const Offset(0, 500));
+    await shot('04_goals');
+    await tap(find.text('Дальше'));
+
+    for (final id in [
+      'fitness.strength.yoga',
+      'society.inner.meditation',
+      'society.inner.self_development',
+    ]) {
+      await tester.enterText(
+        find.byKey(const Key('interest-search')),
+        id.split('.').last == 'yoga'
+            ? 'йога'
+            : id.endsWith('meditation')
+            ? 'медитац'
+            : 'саморазв',
+      );
+      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      await tap(find.byKey(Key('result-$id')));
+    }
+    await tester.enterText(find.byKey(const Key('interest-search')), '');
+    await tester.pumpAndSettle(const Duration(milliseconds: 300));
+    final list = find.descendant(of: find.byType(CustomScrollView), matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(find.text('Общество и духовность'), 300, scrollable: list);
+    await tap(find.text('Общество и духовность'));
+    await tester.scrollUntilVisible(find.text('Духовные практики'), 200, scrollable: list);
+    await shot('05_interests');
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('chip-fitness.strength.yoga')),
+      -500,
+      scrollable: list,
+    );
+    await tap(find.byKey(const Key('chip-fitness.strength.yoga')));
+    await tap(find.text('Увлечён всерьёз'));
+    await tap(find.text('Ищу партнёра'));
+    await shot('06_interest_sheet');
+    await tap(find.text('Готово'));
+    await tap(find.text('Готово — к людям'));
+
+    await shot('07_feed');
+    await tap(find.byKey(const Key('like')));
+    await shot('08_match');
+    await tap(find.text('Смотреть дальше'));
+    await tap(find.text('Профиль'));
+    await shot('09_profile');
+  });
+}
