@@ -138,4 +138,58 @@ class HttpApi extends Api {
     final j = await _call('POST', '/v1/users/$userId/report', body: {'reason': reason, 'comment': comment});
     return j['urgent'] as bool? ?? false;
   }
+
+  @override
+  Future<NearbyVisibility> visibility() async =>
+      NearbyVisibility.fromJson(await _call('GET', '/v1/nearby/visibility'));
+
+  @override
+  Future<NearbyVisibility> setVisibility({
+    required String mode,
+    int hours = 0,
+    int radiusM = 1000,
+    bool verifiedOnly = false,
+    bool hideFromContacts = false,
+  }) async => NearbyVisibility.fromJson(
+    await _call(
+      'PUT',
+      '/v1/nearby/visibility',
+      body: {
+        'mode': mode,
+        'hours': hours,
+        'radius_m': radiusM,
+        'verified_only': verifiedOnly,
+        'hide_from_contacts': hideFromContacts,
+      },
+    ),
+  );
+
+  @override
+  Future<void> disappear() => _call('POST', '/v1/nearby/disappear');
+
+  @override
+  Future<List<Zone>> zones() async =>
+      _items(await _call('GET', '/v1/nearby/zones')).map(Zone.fromJson).toList();
+
+  @override
+  Future<Zone> addZone(String name, double lat, double lon, int radiusM) async => Zone.fromJson(
+    await _call(
+      'POST',
+      '/v1/nearby/zones',
+      body: {'name': name, 'lat': lat, 'lon': lon, 'radius_m': radiusM},
+    ),
+  );
+
+  @override
+  Future<void> deleteZone(String id) => _call('DELETE', '/v1/nearby/zones/$id');
+
+  @override
+  Future<LocationStatus> updateLocation(double lat, double lon, {bool mocked = false}) async =>
+      LocationStatus.fromJson(
+        await _call('POST', '/v1/nearby/location', body: {'lat': lat, 'lon': lon, 'mocked': mocked}),
+      );
+
+  @override
+  Future<List<FeedCard>> radar(String goal) async =>
+      _items(await _call('GET', '/v1/nearby/radar', query: {'goal': goal})).map(FeedCard.fromJson).toList();
 }

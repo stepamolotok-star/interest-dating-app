@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  geolocator: ^14.1.2
   http: ^1.6.0
   material_ui: ^1.1.0
   shared_preferences: ^2.5.6

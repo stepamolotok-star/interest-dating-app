@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api/api.dart';
+import 'location.dart';
 import 'models.dart';
 
 /// Где человек сейчас: вход, шаги регистрации или основное приложение.
@@ -9,9 +10,13 @@ enum Stage { loading, phone, code, about, goals, interests, home }
 
 /// Состояние приложения: сессия, шаг регистрации и данные профиля.
 class AppState extends ChangeNotifier {
-  AppState(this.api);
+  AppState(this.api, {LocationSource? location})
+    : location = location ?? (api.isDemo ? const FixedLocation() : DeviceLocation());
 
   final Api api;
+
+  /// Откуда брать геопозицию для «Рядом». В демо — фиксированная точка.
+  final LocationSource location;
 
   static const _tokenKey = 'session_token';
 

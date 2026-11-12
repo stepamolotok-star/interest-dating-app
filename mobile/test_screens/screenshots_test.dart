@@ -159,5 +159,17 @@ void main() {
     await shot('13_matches');
     await tap(find.text('Профиль'));
     await shot('14_profile');
+
+    await tap(find.text('Рядом'));
+    await shot('15_nearby_intro');
+    await tap(find.byKey(const Key('become-visible')));
+    await tap(find.byKey(const Key('hours-3')));
+    await shot('16_visibility');
+    await tap(find.text('Включить видимость'));
+    await shot('17_radar');
+    await tap(find.byKey(const Key('nearby-settings')));
+    await tap(find.byKey(const Key('add-zone')));
+    await tap(find.text('Сохранить зону'));
+    await shot('18_nearby_settings');
   });
 }

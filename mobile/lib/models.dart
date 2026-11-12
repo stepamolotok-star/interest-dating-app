@@ -309,3 +309,77 @@ class Match {
   /// Переписка ещё не началась (служебные сообщения не в счёт).
   bool get isNew => lastMessage == null || lastMessage!.isSystem;
 }
+
+/// Настройки видимости в «Рядом».
+class NearbyVisibility {
+  const NearbyVisibility({
+    this.mode = 'off',
+    this.visibleUntil,
+    this.radiusM = 1000,
+    this.verifiedOnly = false,
+    this.hideFromContacts = false,
+    this.active = false,
+  });
+
+  factory NearbyVisibility.fromJson(Map<String, dynamic> j) => NearbyVisibility(
+    mode: j['mode'] as String? ?? 'off',
+    visibleUntil: j['visible_until'] == null ? null : DateTime.parse(j['visible_until'] as String).toLocal(),
+    radiusM: j['radius_m'] as int? ?? 1000,
+    verifiedOnly: j['verified_only'] as bool? ?? false,
+    hideFromContacts: j['hide_from_contacts'] as bool? ?? false,
+    active: j['active'] as bool? ?? false,
+  );
+
+  /// off — невидим; foreground — пока открыто приложение; timed — на несколько часов;
+  /// background — и в фоне (появится вместе с фоновой геолокацией).
+  final String mode;
+  final DateTime? visibleUntil;
+  final int radiusM;
+
+  /// Показываться только тем, кто подтвердил возраст или фото.
+  final bool verifiedOnly;
+
+  /// Не показываться людям из своей телефонной книги.
+  final bool hideFromContacts;
+
+  /// Видим прямо сейчас (для timed — пока не истекло время).
+  final bool active;
+}
+
+/// Личная зона: здесь человека не видно в «Рядом».
+class Zone {
+  const Zone({
+    required this.id,
+    required this.name,
+    required this.lat,
+    required this.lon,
+    required this.radiusM,
+  });
+
+  factory Zone.fromJson(Map<String, dynamic> j) => Zone(
+    id: j['id'] as String,
+    name: j['name'] as String? ?? '',
+    lat: (j['lat'] as num).toDouble(),
+    lon: (j['lon'] as num).toDouble(),
+    radiusM: j['radius_m'] as int? ?? 500,
+  );
+
+  final String id;
+  final String name;
+  final double lat;
+  final double lon;
+  final int radiusM;
+}
+
+/// Ответ на отправку геопозиции: видно ли сейчас человека и почему нет.
+class LocationStatus {
+  const LocationStatus(this.visible, [this.reason = '']);
+
+  factory LocationStatus.fromJson(Map<String, dynamic> j) =>
+      LocationStatus(j['visible'] as bool? ?? false, j['reason'] as String? ?? '');
+
+  final bool visible;
+
+  /// visibility_off | private_zone
+  final String reason;
+}

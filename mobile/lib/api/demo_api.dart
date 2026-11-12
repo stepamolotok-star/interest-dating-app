@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -30,6 +31,11 @@ class DemoApi extends Api {
   /// Задержка ответа собеседника в демо.
   static const replyDelay = Duration(seconds: 2);
   static const _myId = 'demo-me';
+
+  NearbyVisibility _visibility = const NearbyVisibility();
+  final _zones = <Zone>[];
+  ({double lat, double lon})? _position;
+  int _nextZoneId = 1;
 
   @override
   bool get isDemo => true;
@@ -370,6 +376,136 @@ class DemoApi extends Api {
     _needUser();
     _seen.add(userId);
   }
+
+  bool get _visibleNow =>
+      _visibility.mode == 'foreground' ||
+      _visibility.mode == 'background' ||
+      (_visibility.mode == 'timed' && (_visibility.visibleUntil?.isAfter(DateTime.now()) ?? false));
+
+  @override
+  Future<NearbyVisibility> visibility() async {
+    _needUser();
+    final v = _visibility;
+    return NearbyVisibility(
+      mode: v.mode,
+      visibleUntil: v.visibleUntil,
+      radiusM: v.radiusM,
+      verifiedOnly: v.verifiedOnly,
+      hideFromContacts: v.hideFromContacts,
+      active: _visibleNow,
+    );
+  }
+
+  @override
+  Future<NearbyVisibility> setVisibility({
+    required String mode,
+    int hours = 0,
+    int radiusM = 1000,
+    bool verifiedOnly = false,
+    bool hideFromContacts = false,
+  }) async {
+    _needUser();
+    await _pause();
+    if (mode == 'timed' && (hours < 1 || hours > 12)) throw const ApiException(400, 'от 1 до 12 часов');
+    _visibility = NearbyVisibility(
+      mode: mode,
+      visibleUntil: mode == 'timed' ? DateTime.now().add(Duration(hours: hours)) : null,
+      radiusM: radiusM,
+      verifiedOnly: verifiedOnly,
+      hideFromContacts: hideFromContacts,
+    );
+    if (mode == 'off') _position = null;
+    return visibility();
+  }
+
+  @override
+  Future<void> disappear() async {
+    _needUser();
+    _visibility = NearbyVisibility(radiusM: _visibility.radiusM);
+    _position = null;
+  }
+
+  @override
+  Future<List<Zone>> zones() async {
+    _needUser();
+    return List.of(_zones);
+  }
+
+  @override
+  Future<Zone> addZone(String name, double lat, double lon, int radiusM) async {
+    _needUser();
+    await _pause();
+    if (name.trim().isEmpty || name.length > 30) {
+      throw const ApiException(400, 'название от 1 до 30 символов');
+    }
+    if (_zones.length >= 10) throw const ApiException(400, 'не больше 10 личных зон');
+    final z = Zone(id: 'zone-${_nextZoneId++}', name: name.trim(), lat: lat, lon: lon, radiusM: radiusM);
+    _zones.add(z);
+    return z;
+  }
+
+  @override
+  Future<void> deleteZone(String id) async {
+    _needUser();
+    _zones.removeWhere((z) => z.id == id);
+  }
+
+  @override
+  Future<LocationStatus> updateLocation(double lat, double lon, {bool mocked = false}) async {
+    _needUser();
+    if (mocked) {
+      throw const ApiException(403, 'похоже на подмену геопозиции — режим «Рядом» недоступен в течение часа');
+    }
+    if (!_visibleNow) {
+      _position = null;
+      return const LocationStatus(false, 'visibility_off');
+    }
+    if (_zones.any((z) => distanceM(lat, lon, z.lat, z.lon) <= z.radiusM)) {
+      _position = null;
+      return const LocationStatus(false, 'private_zone');
+    }
+    _position = (lat: lat, lon: lon);
+    return const LocationStatus(true);
+  }
+
+  @override
+  Future<List<FeedCard>> radar(String goal) async {
+    _needUser();
+    await _pause();
+    if (!_visibleNow) {
+      throw const ApiException(
+        403,
+        'чтобы видеть людей рядом, включите свою видимость: видеть других может только тот, кто виден сам',
+      );
+    }
+    if (_position == null) {
+      throw const ApiException(409, 'нет свежей геопозиции — откройте приложение с включённой геолокацией');
+    }
+    const buckets = ['до 500 м', 'до 1 км', 'до 1 км', '1–3 км', '3–10 км', '1–3 км'];
+    const bucketMax = [500, 1000, 1000, 3000, 10000, 3000];
+    final cards = await feed(goal);
+    return [
+      for (final (i, c) in cards.indexed)
+        if (bucketMax[i % buckets.length] <= math.max(_visibility.radiusM, 1000) || i == 0)
+          FeedCard(
+            userId: c.userId,
+            ageRange: c.ageRange,
+            goal: c.goal,
+            score: c.score,
+            explanation: c.explanation,
+            shared: c.shared,
+            otherInterests: c.otherInterests,
+            photoVerified: c.photoVerified,
+            ageVerified: c.ageVerified,
+            about: c.about,
+            prompts: c.prompts,
+            habits: c.habits,
+            diet: c.diet,
+            // «Без обязательств» ближе «до 1 км» не показываем — как на сервере.
+            distance: goal == 'casual' && i % buckets.length == 0 ? 'до 1 км' : buckets[i % buckets.length],
+          ),
+    ];
+  }
 }
 
 class _Node {
@@ -387,6 +523,17 @@ bool hasContacts(String text) => RegExp(
   r'\+?[78][\s(-]*\d{3}[\s)-]*\d{3}[\s-]*\d{2}[\s-]*\d{2})',
   caseSensitive: false,
 ).hasMatch(text);
+
+/// Расстояние по поверхности Земли в метрах.
+double distanceM(double lat1, double lon1, double lat2, double lon2) {
+  const r = 6371000.0;
+  double rad(double d) => d * math.pi / 180;
+  final dLat = rad(lat2 - lat1), dLon = rad(lon2 - lon1);
+  final a =
+      math.pow(math.sin(dLat / 2), 2) +
+      math.cos(rad(lat1)) * math.cos(rad(lat2)) * math.pow(math.sin(dLon / 2), 2);
+  return 2 * r * math.asin(math.sqrt(a));
+}
 
 String _norm(String s) => s.toLowerCase().replaceAll('ё', 'е').trim();
 

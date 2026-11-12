@@ -114,4 +114,40 @@ void main() {
     final api = HttpApi('https://api.test', client: MockClient((_) => throw http.ClientException('offline')));
     await expectLater(api.me(), throwsA(isA<ApiException>().having((e) => e.status, 'status', 0)));
   });
+
+  test('«Рядом»: видимость на время и радар с интервалом расстояния', () async {
+    final seen = <String>[];
+    final api = HttpApi(
+      'https://api.test',
+      client: MockClient((req) async {
+        seen.add('${req.method} ${req.url.path} ${req.body}');
+        if (req.url.path == '/v1/nearby/radar') {
+          return json({
+            'items': [
+              {
+                'user_id': 'u3',
+                'goal': 'hobby',
+                'explanation': '1 общий интерес: эндуро',
+                'distance': 'до 1 км',
+              },
+            ],
+          });
+        }
+        return json({
+          'mode': 'timed',
+          'visible_until': '2026-11-12T15:00:00Z',
+          'radius_m': 3000,
+          'verified_only': true,
+          'hide_from_contacts': false,
+          'active': true,
+        });
+      }),
+    );
+    final v = await api.setVisibility(mode: 'timed', hours: 3, radiusM: 3000, verifiedOnly: true);
+    expect(v.active, isTrue);
+    expect(v.visibleUntil!.isUtc, isFalse, reason: 'время показываем в местном поясе');
+    expect(seen.single, contains('"hours":3'));
+    final cards = await api.radar('hobby');
+    expect(cards.single.distance, 'до 1 км');
+  });
 }

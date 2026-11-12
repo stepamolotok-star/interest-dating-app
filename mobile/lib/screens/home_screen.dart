@@ -1,10 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../app.dart';
-import '../theme.dart';
 import '../widgets/common.dart';
 import 'conversations_tabs.dart';
 import 'feed_tab.dart';
+import 'nearby_tab.dart';
 import 'profile_tab.dart';
 
 /// Основное приложение: пять вкладок внизу.
@@ -51,13 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final fresh = AppScope.of(context).newMatches.length;
     final tabs = [
       FeedTab(onMatched: _onMatched),
-      const _Soon(
-        icon: Icons.radar,
-        title: 'Рядом',
-        text:
-            'Покажем людей с общими интересами поблизости — только если вы оба включили видимость. '
-            'Точного места никто не увидит, только «до 1 км» и т. п.',
-      ),
+      NearbyTab(active: _tab == 1, onMatched: _onMatched),
       const MatchesTab(),
       const ChatsTab(),
       const ProfileTab(),
@@ -94,40 +88,6 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Профиль',
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _Soon extends StatelessWidget {
-  const _Soon({required this.icon, required this.title, required this.text});
-
-  final IconData icon;
-  final String title;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 44, color: AppColors.accent),
-              const SizedBox(height: 12),
-              Text(title, style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 8),
-              Text(text, style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
-              const SizedBox(height: 12),
-              const Text(
-                'Скоро',
-                style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.accent),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

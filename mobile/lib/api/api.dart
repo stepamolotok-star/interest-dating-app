@@ -56,6 +56,25 @@ abstract class Api {
   /// Возвращает true, если жалоба срочная и модератор посмотрит её первой.
   Future<bool> report(String userId, String reason, {String comment = ''});
 
+  Future<NearbyVisibility> visibility();
+  Future<NearbyVisibility> setVisibility({
+    required String mode,
+    int hours = 0,
+    int radiusM = 1000,
+    bool verifiedOnly = false,
+    bool hideFromContacts = false,
+  });
+
+  /// «Исчезнуть»: видимость выключается сразу и везде.
+  Future<void> disappear();
+  Future<List<Zone>> zones();
+  Future<Zone> addZone(String name, double lat, double lon, int radiusM);
+  Future<void> deleteZone(String id);
+  Future<LocationStatus> updateLocation(double lat, double lon, {bool mocked = false});
+
+  /// Люди рядом с общими интересами; у каждой карточки заполнено [FeedCard.distance].
+  Future<List<FeedCard>> radar(String goal);
+
   /// Демо-режим: подсказка с кодом и фальшивые люди в ленте.
   bool get isDemo => false;
 }
