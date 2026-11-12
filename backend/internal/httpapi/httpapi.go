@@ -12,6 +12,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/nearby"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 )
 
@@ -23,6 +24,7 @@ type Deps struct {
 	Profile *profile.Service
 	Feed    *feed.Service
 	Chat    *chat.Service
+	Nearby  *nearby.Service
 	Log     *slog.Logger
 }
 
@@ -33,12 +35,13 @@ type Server struct {
 	profile *profile.Service
 	feed    *feed.Service
 	chat    *chat.Service
+	nearby  *nearby.Service
 	log     *slog.Logger
 }
 
 // New возвращает готовый http.Handler.
 func New(d Deps) http.Handler {
-	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, log: d.Log}
+	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, log: d.Log}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.health)
 	mux.HandleFunc("GET /v1/interests/categories", s.categories)
@@ -48,6 +51,9 @@ func New(d Deps) http.Handler {
 		s.registerAuth(mux)
 		if s.profile != nil {
 			s.registerProfile(mux)
+		}
+		if s.nearby != nil {
+			s.registerNearby(mux)
 		}
 	}
 	return s.logging(mux)

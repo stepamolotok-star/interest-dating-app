@@ -68,6 +68,7 @@ type Card struct {
 	Diet          string                    `json:"diet,omitempty"`
 	Languages     []profile.Language        `json:"languages,omitempty"`
 	Zodiac        string                    `json:"zodiac,omitempty"`
+	Distance      string                    `json:"distance,omitempty"` // только в «Рядом»: «до 1 км»
 }
 
 // candidate — всё, что загружено о человеке.
@@ -89,6 +90,19 @@ func (s *Service) Feed(ctx context.Context, viewerID string, goal matching.Goal,
 	if limit <= 0 || limit > 50 {
 		limit = DefaultLimit
 	}
+	return s.rank(ctx, viewerID, goal, limit, nil, nil)
+}
+
+// Rank — то же, что лента, но среди заданных людей (например, тех, кто
+// рядом). prefs, если задан, заменяет фильтры смотрящего (шаблон поиска).
+func (s *Service) Rank(ctx context.Context, viewerID string, goal matching.Goal, ids []string, prefs *matching.Prefs) ([]Card, error) {
+	if len(ids) == 0 {
+		return []Card{}, nil
+	}
+	return s.rank(ctx, viewerID, goal, len(ids), ids, prefs)
+}
+
+func (s *Service) rank(ctx context.Context, viewerID string, goal matching.Goal, limit int, only []string, prefs *matching.Prefs) ([]Card, error) {
 	now := s.now()
 	viewers, err := s.load(ctx, []string{viewerID}, now)
 	if err != nil {
@@ -101,14 +115,26 @@ func (s *Service) Feed(ctx context.Context, viewerID string, goal matching.Goal,
 	if !hasGoal(v.mp, goal) {
 		return nil, ErrGoalNotActive
 	}
+	if prefs != nil {
+		v.mp.Prefs[goal] = *prefs
+	}
 
+	// $3 — город (для ленты) или NULL; $7 — список людей (для «Рядом») или NULL.
+	var city *string
+	var idsFilter []string
+	if only == nil {
+		city = &v.city
+	} else {
+		idsFilter = only
+	}
 	rows, err := s.DB.Query(ctx, `
 		SELECT u.id FROM users u
 		JOIN profiles p ON p.user_id = u.id
 		JOIN user_goals g ON g.user_id = u.id AND g.goal = $2 AND g.active
 		LEFT JOIN visibility_settings vs ON vs.user_id = u.id
 		WHERE u.id <> $1 AND u.deleted_at IS NULL
-		  AND lower(p.city) = lower($3)
+		  AND ($3::text IS NULL OR lower(p.city) = lower($3))
+		  AND ($7::uuid[] IS NULL OR u.id = ANY($7::uuid[]))
 		  AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker = $1 AND b.blocked = u.id) OR (b.blocker = u.id AND b.blocked = $1))
 		  AND NOT EXISTS (SELECT 1 FROM interests_expressed e WHERE e.from_user = $1 AND e.to_user = u.id AND e.goal = $2 AND e.expires_at > $4)
 		  AND NOT EXISTS (SELECT 1 FROM skips sk WHERE sk.viewer = $1 AND sk.target = u.id AND sk.goal = $2 AND sk.created_at > $5)
@@ -118,7 +144,7 @@ func (s *Service) Feed(ctx context.Context, viewerID string, goal matching.Goal,
 		      SELECT 1 FROM contact_hashes ch, users me
 		      WHERE me.id = $1 AND ch.user_id = u.id AND ch.phone_hash = digest(me.phone_e164, 'sha256')))
 		ORDER BY u.last_active_at DESC
-		LIMIT $6`, viewerID, goal, v.city, now, now.Add(-SkipCooldown), CandidatePool)
+		LIMIT $6`, viewerID, goal, city, now, now.Add(-SkipCooldown), CandidatePool, idsFilter)
 	if err != nil {
 		return nil, err
 	}

@@ -140,7 +140,11 @@
    "id": "fitness.strength.yoga",
    "parent": "fitness.strength",
    "name": "Йога",
-   "synonyms": []
+   "synonyms": [
+    "асаны",
+    "хатха-йога",
+    "практика йоги"
+   ]
   },
   {
    "id": "fitness.strength.crossfit",
@@ -1165,7 +1169,7 @@
   {
    "id": "society.inner",
    "parent": "society",
-   "name": "Внутренний мир",
+   "name": "Внутренний мир и развитие",
    "synonyms": []
   },
   {
@@ -1173,7 +1177,9 @@
    "parent": "society.inner",
    "name": "Медитация",
    "synonyms": [
-    "осознанность"
+    "осознанность",
+    "майндфулнес",
+    "випассана"
    ]
   },
   {
@@ -1337,6 +1343,54 @@
    "parent": "family.parents",
    "name": "Семейный отдых",
    "synonyms": []
+  },
+  {
+   "id": "society.inner.self_development",
+   "parent": "society.inner",
+   "name": "Саморазвитие",
+   "synonyms": [
+    "личностный рост",
+    "развитие себя",
+    "личная эффективность",
+    "самосовершенствование"
+   ]
+  },
+  {
+   "id": "society.inner.spiritual",
+   "parent": "society.inner",
+   "name": "Духовные практики",
+   "synonyms": [
+    "духовное развитие",
+    "духовность",
+    "духовный рост"
+   ]
+  },
+  {
+   "id": "society.inner.breathwork",
+   "parent": "society.inner",
+   "name": "Дыхательные практики",
+   "synonyms": [
+    "дыхание",
+    "пранаяма"
+   ]
+  },
+  {
+   "id": "society.inner.qigong",
+   "parent": "society.inner",
+   "name": "Цигун и тайцзи",
+   "synonyms": [
+    "цигун",
+    "тайцзи",
+    "тай-чи"
+   ]
+  },
+  {
+   "id": "society.inner.retreats",
+   "parent": "society.inner",
+   "name": "Ретриты",
+   "synonyms": [
+    "ретрит"
+   ]
   }
  ]
 }

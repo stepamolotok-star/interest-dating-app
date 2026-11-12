@@ -22,16 +22,18 @@
 
 ## Как запустить сервер локально
 
-Нужны Go 1.24+ и Docker.
+Нужны Go 1.25+ и Docker.
 
 ```bash
 docker compose up -d          # PostgreSQL и Redis
 cd backend
 export DATABASE_URL=postgres://app:app@localhost:5432/app
+export REDIS_URL=redis://localhost:6379/0
 go run ./cmd/api              # сервер на http://localhost:8080, миграции применятся сами
 
-# тесты; с базой — ещё и тесты входа (база будет очищена!)
-TEST_DATABASE_URL=postgres://app:app@localhost:5432/app_test go test -p 1 ./...
+# тесты; с базой и Redis — все (тестовые база и Redis будут очищены!)
+TEST_DATABASE_URL=postgres://app:app@localhost:5432/app_test \
+TEST_REDIS_URL=redis://localhost:6379/15 go test -p 1 ./...
 ```
 
 Проверка: `curl http://localhost:8080/healthz`,
@@ -62,6 +64,19 @@ TEST_DATABASE_URL=postgres://app:app@localhost:5432/app_test go test -p 1 ./...
 | POST | `/v1/matches/{id}/end` | «Разорвать совпадение» — доступ закрывается сразу для обоих |
 | POST | `/v1/users/{id}/block` | Блокировка: взаимная невидимость и разрыв совпадений |
 | POST | `/v1/users/{id}/report` | Жалоба; угрозы, преследование, слежка — срочные |
+
+### Режим «Рядом» (нужен `REDIS_URL`)
+
+| Метод | Путь | Что делает |
+| --- | --- | --- |
+| GET/PUT | `/v1/nearby/visibility` | Видимость: `off`, `foreground`, `background`, `timed` (`hours` 1–12), радиус 300/1000/3000/10000 м, «только проверенным», «скрыть от контактов» |
+| POST | `/v1/nearby/disappear` | «Исчезнуть» — мгновенно везде |
+| GET/POST | `/v1/nearby/zones` | Личные зоны (от 500 м), внутри человек невидим |
+| DELETE | `/v1/nearby/zones/{id}` | Удалить зону |
+| POST | `/v1/nearby/location` | `{lat, lon, mocked}` → координаты сразу превращаются в ячейку ~150 м на 10 минут |
+| GET | `/v1/nearby/radar?goal=` | Люди рядом: анонимные карточки с интервалом расстояния |
+| GET/POST | `/v1/me/templates` | Шаблоны поиска с уведомлениями: порог оценки, лимит в день, тихие часы |
+| DELETE | `/v1/me/templates/{id}` | Удалить шаблон |
 
 Цели: `family` (серьёзные отношения и семья), `romance`, `casual`, `friendship`,
 `hobby`, `talk`, `travel`, `likeminded`. Про детей — привычки `has_kids`

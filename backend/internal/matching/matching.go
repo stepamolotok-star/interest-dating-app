@@ -294,7 +294,7 @@ type SharedInterest struct {
 type Result struct {
 	Score       int // 0–100
 	Shared      []SharedInterest
-	Explanation string // «5 общих интересов, включая бонсай и эндуро»
+	Explanation string // «3 общих интереса: бонсай, эндуро, садоводство»
 	Icebreaker  string // подсказка для первого сообщения
 }
 
@@ -405,14 +405,22 @@ func (s Scorer) shared(v, c Profile) []SharedInterest {
 
 func explain(shared []SharedInterest) string {
 	n := len(shared)
-	switch n {
-	case 0:
+	if n == 0 {
 		return "Похожие увлечения"
-	case 1:
-		return "Общий интерес: " + lowerFirst(shared[0].Name)
 	}
-	return fmt.Sprintf("%d %s, включая %s и %s", n, plural(n, "общий интерес", "общих интереса", "общих интересов"),
-		lowerFirst(shared[0].Name), lowerFirst(shared[1].Name))
+	// Формат с двоеточием: названия не нужно склонять («включая йога» — ошибка).
+	names := make([]string, 0, 3)
+	for i, sh := range shared {
+		if i == 3 {
+			break
+		}
+		names = append(names, lowerFirst(sh.Name))
+	}
+	more := ""
+	if n > 3 {
+		more = " и другие"
+	}
+	return fmt.Sprintf("%d %s: %s%s", n, plural(n, "общий интерес", "общих интереса", "общих интересов"), strings.Join(names, ", "), more)
 }
 
 func icebreaker(shared []SharedInterest) string {

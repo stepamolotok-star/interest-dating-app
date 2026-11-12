@@ -6,6 +6,7 @@
 //	APP_ENV       dev | prod (по умолчанию dev)
 //	DATABASE_URL  строка подключения к PostgreSQL; без неё вход отключён
 //	AUTH_SECRET   ключ HMAC для кодов входа; в prod обязателен
+//	REDIS_URL     адрес Redis (redis://localhost:6379/0); без него «Рядом» отключён
 package main
 
 import (
@@ -19,12 +20,14 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/httpapi"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/nearby"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 	"github.com/stepamolotok-star/interest-dating-app/backend/migrations"
 )
@@ -66,6 +69,20 @@ func run(log *slog.Logger) error {
 		deps.Profile = prof
 		deps.Feed = &feed.Service{DB: db, Catalog: cat}
 		deps.Chat = &chat.Service{DB: db, Catalog: cat}
+
+		if rurl := os.Getenv("REDIS_URL"); rurl != "" {
+			opt, err := redis.ParseURL(rurl)
+			if err != nil {
+				return err
+			}
+			rdb := redis.NewClient(opt)
+			defer rdb.Close()
+			nb := &nearby.Service{DB: db, Redis: rdb, Feed: deps.Feed, Push: nearby.LogPusher{Log: log}}
+			deps.Nearby = nb
+			go notifyLoop(ctx, nb, log)
+		} else {
+			log.Warn("REDIS_URL не задан — режим «Рядом» отключён")
+		}
 
 		secret := os.Getenv("AUTH_SECRET")
 		if secret == "" {
@@ -113,6 +130,24 @@ func run(log *slog.Logger) error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	return srv.Shutdown(shutdownCtx)
+}
+
+// notifyLoop раз в минуту рассылает уведомления о подходящих людях рядом.
+func notifyLoop(ctx context.Context, nb *nearby.Service, log *slog.Logger) {
+	t := time.NewTicker(time.Minute)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+			if n, err := nb.RunNotifications(ctx); err != nil {
+				log.Error("уведомления «Рядом»", "err", err)
+			} else if n > 0 {
+				log.Info("уведомления «Рядом» отправлены", "count", n)
+			}
+		}
+	}
 }
 
 func envOr(key, def string) string {

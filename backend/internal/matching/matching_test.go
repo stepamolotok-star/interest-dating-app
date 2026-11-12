@@ -165,7 +165,7 @@ func TestExplanationAndIcebreaker(t *testing.T) {
 	v := person("v", []Goal{Hobby}, "home.garden.bonsai", "transport.moto.enduro", "home.garden.gardening")
 	c := person("c", []Goal{Hobby}, "transport.moto.enduro", "home.garden.bonsai", "home.garden.gardening")
 	r := s.Score(v, c, Hobby)
-	if !strings.HasPrefix(r.Explanation, "3 общих интереса, включая бонсай") {
+	if r.Explanation != "3 общих интереса: бонсай, эндуро, садоводство" {
 		t.Fatalf("объяснение: %q", r.Explanation)
 	}
 	if !strings.Contains(r.Icebreaker, "бонсай") {
