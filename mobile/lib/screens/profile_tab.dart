@@ -8,6 +8,7 @@ import '../widgets/common.dart';
 import '../widgets/safety.dart' show confirm;
 import 'goals_screen.dart';
 import 'interests_screen.dart';
+import 'profile_edit_screen.dart';
 
 /// Профиль: кто я, цели, интересы, поддержка проекта и выход.
 class ProfileTab extends StatelessWidget {
@@ -39,6 +40,7 @@ class ProfileTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
+          const _ProfileSummary(),
           _Section(
             title: 'Цели',
             onEdit: () => _open(context, const GoalsScreen()),
@@ -255,6 +257,90 @@ class _HideFromContactsState extends State<_HideFromContacts> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Анкета в профиле: «о себе» и ответы на вопросы, кнопка «Изменить».
+class _ProfileSummary extends StatefulWidget {
+  const _ProfileSummary();
+
+  @override
+  State<_ProfileSummary> createState() => _ProfileSummaryState();
+}
+
+class _ProfileSummaryState extends State<_ProfileSummary> {
+  ProfileFields? _f;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(_load);
+  }
+
+  Future<void> _load() async {
+    try {
+      final f = await AppScope.read(context).api.profile();
+      if (mounted) setState(() => _f = f);
+    } catch (_) {
+      // Не загрузилось — покажем приглашение заполнить, сохранение всё равно сверит с сервером.
+      if (mounted) setState(() => _f = ProfileFields());
+    }
+  }
+
+  Future<void> _edit() async {
+    final saved = await Navigator.of(context)
+        .push<bool>(MaterialPageRoute(builder: (_) => const ProfileEditScreen()));
+    if (saved == true) await _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final f = _f;
+    final t = Theme.of(context).textTheme;
+    final empty = f == null || (f.about.isEmpty && f.prompts.isEmpty);
+    return _Section(
+      title: 'Анкета',
+      onEdit: _edit,
+      child: f == null
+          ? const SizedBox(height: 24)
+          : empty
+          ? Material(
+              color: AppColors.accentTint,
+              borderRadius: BorderRadius.circular(16),
+              child: InkWell(
+                key: const Key('fill-profile'),
+                borderRadius: BorderRadius.circular(16),
+                onTap: _edit,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.edit_note, color: AppColors.accent),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Расскажите о себе и ответьте на пару вопросов — без этого карточка в ленте почти пустая.',
+                          style: t.bodyMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (f.about.isNotEmpty)
+                  Text(f.about, style: t.bodyLarge, maxLines: 3, overflow: TextOverflow.ellipsis),
+                for (final p in f.prompts) ...[
+                  const SizedBox(height: 8),
+                  Text(p.question, style: t.bodySmall?.copyWith(fontWeight: FontWeight.w700)),
+                  Text(p.answer, style: t.bodyMedium),
+                ],
+              ],
+            ),
     );
   }
 }

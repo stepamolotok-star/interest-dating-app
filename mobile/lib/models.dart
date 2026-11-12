@@ -394,3 +394,70 @@ class ContactsStatus {
   final int count;
   final bool hide;
 }
+
+/// Анкета: то, что человек рассказывает о себе. Кто что видит — в [FieldVisibility].
+class ProfileFields {
+  ProfileFields({
+    this.about = '',
+    List<Prompt>? prompts,
+    this.heightCm,
+    this.weightKg,
+    this.bodyType = '',
+    Map<String, String>? habits,
+    this.diet = '',
+    this.religion = '',
+    this.religionForMatching = false,
+    this.showZodiac = false,
+    List<Map<String, dynamic>>? languages,
+  }) : prompts = prompts ?? [],
+       habits = habits ?? {},
+       languages = languages ?? [];
+
+  factory ProfileFields.fromJson(Map<String, dynamic> j) => ProfileFields(
+    about: j['about'] as String? ?? '',
+    prompts: ((j['prompts'] as List?) ?? const [])
+        .map((e) => Prompt.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    heightCm: j['height_cm'] as int?,
+    weightKg: j['weight_kg'] as int?,
+    bodyType: j['body_type'] as String? ?? '',
+    habits: ((j['habits'] as Map?) ?? const {}).cast<String, String>(),
+    diet: j['diet'] as String? ?? '',
+    religion: j['religion'] as String? ?? '',
+    religionForMatching: j['religion_for_matching'] as bool? ?? false,
+    showZodiac: j['show_zodiac'] as bool? ?? false,
+    languages: ((j['languages'] as List?) ?? const []).cast<Map<String, dynamic>>(),
+  );
+
+  String about;
+  List<Prompt> prompts;
+  int? heightCm;
+  int? weightKg;
+  String bodyType;
+  Map<String, String> habits;
+  String diet;
+  String religion;
+  bool religionForMatching;
+  bool showZodiac;
+
+  /// Языки пока не редактируются в приложении, но сохраняются как есть.
+  List<Map<String, dynamic>> languages;
+
+  Map<String, dynamic> toJson() => {
+    'about': about,
+    'prompts': [
+      for (final p in prompts) {'question': p.question, 'answer': p.answer},
+    ],
+    'height_cm': heightCm,
+    'weight_kg': weightKg,
+    'body_type': bodyType,
+    'habits': habits,
+    'diet': diet,
+    'religion': religion,
+    'religion_for_matching': religionForMatching,
+    'show_zodiac': showZodiac,
+    'languages': languages,
+  };
+
+  ProfileFields copy() => ProfileFields.fromJson(toJson());
+}

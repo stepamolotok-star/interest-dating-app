@@ -37,6 +37,19 @@ class DemoApi extends Api {
   ({double lat, double lon})? _position;
   int _nextZoneId = 1;
   ContactsStatus _contacts = const ContactsStatus();
+  ProfileFields _profile = ProfileFields();
+  bool _specialConsent = false;
+  final _fieldVisibility = <String, String>{
+    'about': 'anonymous',
+    'prompts': 'anonymous',
+    'habits': 'anonymous',
+    'diet': 'anonymous',
+    'languages': 'anonymous',
+    'height': 'matching_only',
+    'weight': 'matching_only',
+    'body_type': 'matching_only',
+    'religion': 'hidden',
+  };
 
   @override
   bool get isDemo => true;
@@ -526,6 +539,40 @@ class DemoApi extends Api {
   Future<void> clearContacts() async {
     _needUser();
     _contacts = const ContactsStatus();
+  }
+
+  @override
+  Future<ProfileFields> profile() async {
+    _needUser();
+    return _profile.copy();
+  }
+
+  @override
+  Future<void> updateProfile(ProfileFields fields, {bool grantSpecial = false}) async {
+    _needUser();
+    await _pause();
+    if (fields.about.length > 500) throw const ApiException(400, 'не длиннее 500 символов', field: 'about');
+    if (fields.religion.isNotEmpty && !grantSpecial && !_specialConsent) {
+      throw const ApiException(
+        403,
+        'чтобы указать религию, нужно отдельное согласие на обработку таких данных',
+      );
+    }
+    if (grantSpecial) _specialConsent = true;
+    if (fields.religion.isEmpty) _specialConsent = false;
+    _profile = fields.copy();
+  }
+
+  @override
+  Future<Map<String, String>> fieldVisibility() async {
+    _needUser();
+    return Map.of(_fieldVisibility);
+  }
+
+  @override
+  Future<void> setFieldVisibility(Map<String, String> changes) async {
+    _needUser();
+    _fieldVisibility.addAll(changes);
   }
 }
 

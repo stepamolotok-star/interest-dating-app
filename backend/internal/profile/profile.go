@@ -53,6 +53,12 @@ var HabitValues = map[string][]string{
 // Diets — допустимые типы питания.
 var Diets = []string{"any", "vegetarian", "vegan", "pescatarian", "halal", "kosher", "healthy", "keto", "raw", "fasting"}
 
+// BodyTypes — допустимое телосложение.
+var BodyTypes = []string{"slim", "athletic", "average", "dense", "large"}
+
+// Religions — допустимые значения религии (особая категория, ст. 10 152-ФЗ).
+var Religions = []string{"orthodox", "christian", "islam", "buddhism", "judaism", "other", "none"}
+
 // Ошибки.
 var (
 	ErrNotFound           = errors.New("профиль не найден")
@@ -103,8 +109,11 @@ func (f Fields) Validate() error {
 		return invalid("prompts", "не больше трёх подсказок")
 	}
 	for _, p := range f.Prompts {
-		if strings.TrimSpace(p.Question) == "" || utf8.RuneCountInString(p.Answer) > 150 {
-			return invalid("prompts", "ответ не длиннее 150 символов")
+		if strings.TrimSpace(p.Question) == "" || utf8.RuneCountInString(p.Question) > 100 {
+			return invalid("prompts", "вопрос от 1 до 100 символов")
+		}
+		if strings.TrimSpace(p.Answer) == "" || utf8.RuneCountInString(p.Answer) > 150 {
+			return invalid("prompts", "ответ от 1 до 150 символов")
 		}
 	}
 	if f.HeightCm != nil && (*f.HeightCm < 120 || *f.HeightCm > 230) {
@@ -118,6 +127,12 @@ func (f Fields) Validate() error {
 		if !ok || !slices.Contains(allowed, v) {
 			return invalid("habits", fmt.Sprintf("недопустимое значение %s=%s", k, v))
 		}
+	}
+	if f.BodyType != "" && !slices.Contains(BodyTypes, f.BodyType) {
+		return invalid("body_type", "неизвестное телосложение")
+	}
+	if f.Religion != "" && !slices.Contains(Religions, f.Religion) {
+		return invalid("religion", "неизвестное значение")
 	}
 	if f.Diet != "" && !slices.Contains(Diets, f.Diet) {
 		return invalid("diet", "неизвестный тип питания")
@@ -209,7 +224,13 @@ func (s *Service) Update(ctx context.Context, userID string, f Fields, grantSpec
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck
 
-	if f.Religion != "" {
+	if f.Religion == "" {
+		// Религию убрали — согласие на её обработку больше не нужно, отзываем.
+		if _, err := tx.Exec(ctx, `UPDATE consents SET revoked_at = now()
+			WHERE user_id = $1 AND kind = 'special_category' AND revoked_at IS NULL`, userID); err != nil {
+			return err
+		}
+	} else {
 		if grantSpecial {
 			if _, err := tx.Exec(ctx, `INSERT INTO consents (user_id, kind, doc_version) VALUES ($1, 'special_category', $2)`, userID, docVersion); err != nil {
 				return err

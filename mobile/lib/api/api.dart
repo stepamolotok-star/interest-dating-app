@@ -83,6 +83,16 @@ abstract class Api {
   /// Выключает скрытие и удаляет загруженные хэши.
   Future<void> clearContacts();
 
+  Future<ProfileFields> profile();
+
+  /// Сохраняет анкету. [grantSpecial] — человек только что дал отдельное согласие
+  /// на обработку религиозных убеждений (ст. 10 152-ФЗ).
+  Future<void> updateProfile(ProfileFields fields, {bool grantSpecial = false});
+
+  /// Кто видит поле: anonymous | after_match | matching_only | hidden.
+  Future<Map<String, String>> fieldVisibility();
+  Future<void> setFieldVisibility(Map<String, String> changes);
+
   /// Демо-режим: подсказка с кодом и фальшивые люди в ленте.
   bool get isDemo => false;
 }

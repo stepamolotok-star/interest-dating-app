@@ -160,6 +160,30 @@ void main() {
     await tap(find.text('Профиль'));
     await shot('14_profile');
 
+    await tap(find.byKey(const Key('fill-profile')));
+    await tester.enterText(
+      find.byKey(const Key('about')),
+      'Йога по утрам, по выходным — походы и костёр. Ищу компанию на Кодар.',
+    );
+    await tap(find.byKey(const Key('add-prompt')));
+    await tap(find.text('Чему могу научить'));
+    await tester.enterText(
+      find.byKey(const Key('prompt-answer')),
+      'Стоять на голове и ставить палатку под дождём',
+    );
+    await tap(find.text('Готово'));
+    await shot('14b_profile_edit');
+    final form = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(find.byKey(const Key('habit-smoking-no')), 250, scrollable: form);
+    await tap(find.byKey(const Key('habit-smoking-no')));
+    await tap(find.byKey(const Key('habit-alcohol-sometimes')));
+    await tap(find.byKey(const Key('habit-sport-regular')));
+    await tap(find.byKey(const Key('habit-chronotype-lark')));
+    await shot('14c_profile_edit_habits');
+    await tap(find.text('Сохранить'));
+    await tester.pump(const Duration(seconds: 5));
+    await shot('14d_profile_filled');
+
     await tap(find.text('Рядом'));
     await shot('15_nearby_intro');
     await tap(find.byKey(const Key('become-visible')));

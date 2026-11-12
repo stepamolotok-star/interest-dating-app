@@ -203,4 +203,25 @@ class HttpApi extends Api {
 
   @override
   Future<void> clearContacts() => _call('DELETE', '/v1/me/contacts');
+
+  @override
+  Future<ProfileFields> profile() async => ProfileFields.fromJson(await _call('GET', '/v1/me/profile'));
+
+  @override
+  Future<void> updateProfile(ProfileFields fields, {bool grantSpecial = false}) => _call(
+    'PUT',
+    '/v1/me/profile',
+    body: {
+      ...fields.toJson(),
+      'consents': {'special_category': grantSpecial},
+    },
+  );
+
+  @override
+  Future<Map<String, String>> fieldVisibility() async =>
+      ((await _call('GET', '/v1/me/visibility')) as Map<String, dynamic>).cast<String, String>();
+
+  @override
+  Future<void> setFieldVisibility(Map<String, String> changes) =>
+      _call('PUT', '/v1/me/visibility', body: changes);
 }

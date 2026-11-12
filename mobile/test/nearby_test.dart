@@ -1,37 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:svoi/api/demo_api.dart';
 import 'package:svoi/app.dart';
-import 'package:svoi/models.dart';
 import 'package:svoi/state.dart';
+
+import 'helpers.dart';
 
 /// «Рядом» в демо-режиме: включить видимость, увидеть людей с интервалом расстояния,
 /// исчезнуть, личная зона прячет и самого человека, и людей вокруг.
 void main() {
-  Future<AppState> registered() async {
-    final api = DemoApi();
-    await api.verify('+79123456789', DemoApi.demoCode);
-    await api.register(
-      Registration(
-        name: 'Аня',
-        birthDate: DateTime(1995, 2, 1),
-        gender: 'female',
-        city: 'Чита',
-        terms: true,
-        personalData: true,
-      ),
-    );
-    await api.setGoals(const [GoalSetting('friendship')]);
-    await api.setInterests([
-      MyInterest(id: 'fitness.strength.yoga'),
-      MyInterest(id: 'society.inner.meditation'),
-      MyInterest(id: 'society.inner.self_development'),
-    ]);
-    SharedPreferences.setMockInitialValues({'session_token': api.token!});
-    return AppState(api);
-  }
-
   testWidgets('видимость, радар, «Исчезнуть» и личная зона', (tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 3;
