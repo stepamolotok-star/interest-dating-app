@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/matching"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
@@ -26,6 +27,14 @@ func (s *Server) registerProfile(mux *http.ServeMux) {
 		h("GET /v1/feed", s.getFeed)
 		h("POST /v1/feed/{user_id}/interest", s.postInterest)
 		h("POST /v1/feed/{user_id}/skip", s.postSkip)
+	}
+	if s.chat != nil {
+		h("GET /v1/matches", s.getMatches)
+		h("GET /v1/matches/{id}/messages", s.getMessages)
+		h("POST /v1/matches/{id}/messages", s.postMessage)
+		h("POST /v1/matches/{id}/end", s.postEnd)
+		h("POST /v1/users/{id}/block", s.postBlock)
+		h("POST /v1/users/{id}/report", s.postReport)
 	}
 }
 
@@ -158,10 +167,56 @@ func (s *Server) respond(w http.ResponseWriter, v any, err error) {
 	case errors.Is(err, profile.ErrNeedVerification), errors.Is(err, profile.ErrNeedSpecialConsent),
 		errors.Is(err, feed.ErrGoalNotActive):
 		writeError(w, http.StatusForbidden, err.Error())
-	case errors.Is(err, profile.ErrNotFound), errors.Is(err, feed.ErrNotAvailable):
+	case errors.Is(err, chat.ErrContactsInHello):
+		writeError(w, http.StatusUnprocessableEntity, err.Error())
+	case errors.Is(err, chat.ErrEmpty), errors.Is(err, chat.ErrTooLong), errors.Is(err, chat.ErrBadReason):
+		writeError(w, http.StatusBadRequest, err.Error())
+	case errors.Is(err, profile.ErrNotFound), errors.Is(err, feed.ErrNotAvailable), errors.Is(err, chat.ErrNotFound):
 		writeError(w, http.StatusNotFound, err.Error())
 	default:
 		s.log.Error("ошибка запроса", "err", err)
 		writeError(w, http.StatusInternalServerError, "что-то пошло не так, попробуйте ещё раз")
 	}
+}
+
+func (s *Server) getMatches(w http.ResponseWriter, r *http.Request) {
+	items, err := s.chat.Matches(r.Context(), uid(r))
+	s.respond(w, map[string]any{"items": items}, err)
+}
+
+func (s *Server) getMessages(w http.ResponseWriter, r *http.Request) {
+	before, _ := strconv.ParseInt(r.URL.Query().Get("before"), 10, 64)
+	items, err := s.chat.Messages(r.Context(), uid(r), r.PathValue("id"), before)
+	s.respond(w, map[string]any{"items": items}, err)
+}
+
+func (s *Server) postMessage(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Body string `json:"body"`
+	}
+	if !decode(w, r, &req) {
+		return
+	}
+	m, err := s.chat.Send(r.Context(), uid(r), r.PathValue("id"), req.Body)
+	s.respond(w, m, err)
+}
+
+func (s *Server) postEnd(w http.ResponseWriter, r *http.Request) {
+	s.respond(w, nil, s.chat.End(r.Context(), uid(r), r.PathValue("id")))
+}
+
+func (s *Server) postBlock(w http.ResponseWriter, r *http.Request) {
+	s.respond(w, nil, s.chat.Block(r.Context(), uid(r), r.PathValue("id")))
+}
+
+func (s *Server) postReport(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Reason  string `json:"reason"`
+		Comment string `json:"comment"`
+	}
+	if !decode(w, r, &req) {
+		return
+	}
+	urgent, err := s.chat.Report(r.Context(), uid(r), r.PathValue("id"), req.Reason, req.Comment)
+	s.respond(w, map[string]bool{"accepted": true, "urgent": urgent}, err)
 }

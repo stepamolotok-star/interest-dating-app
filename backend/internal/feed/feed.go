@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"time"
 
@@ -202,6 +203,9 @@ type InterestResult struct {
 // Interest — «Интересно». Если вторая сторона уже нажала «Интересно»,
 // создаётся совпадение. Иначе вторая сторона ничего не узнает.
 func (s *Service) Interest(ctx context.Context, viewerID, targetID string, goal matching.Goal, interestID string) (InterestResult, error) {
+	if !validUUID(targetID) {
+		return InterestResult{}, ErrNotAvailable
+	}
 	now := s.now()
 	people, err := s.load(ctx, []string{viewerID, targetID}, now)
 	if err != nil {
@@ -283,7 +287,7 @@ func (s *Service) Interest(ctx context.Context, viewerID, targetID string, goal 
 
 // Skip — «Пропустить»: человек не появится в ленте 30 дней.
 func (s *Service) Skip(ctx context.Context, viewerID, targetID string, goal matching.Goal) error {
-	if viewerID == targetID || !goal.Valid() {
+	if viewerID == targetID || !goal.Valid() || !validUUID(targetID) {
 		return ErrNotAvailable
 	}
 	_, err := s.DB.Exec(ctx, `INSERT INTO skips (viewer, target, goal, created_at) VALUES ($1, $2, $3, $4)
@@ -526,3 +530,7 @@ func order(a, b string) (string, string) {
 	}
 	return b, a
 }
+
+var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+
+func validUUID(s string) bool { return uuidPattern.MatchString(s) }

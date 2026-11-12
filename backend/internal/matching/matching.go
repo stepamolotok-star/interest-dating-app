@@ -21,8 +21,9 @@ import (
 type Goal string
 
 const (
-	Romance    Goal = "romance"
-	Casual     Goal = "casual" // «Без обязательств»
+	Family     Goal = "family"  // «Серьёзные отношения и семья»
+	Romance    Goal = "romance" // «Романтика»: свидания без долгих планов
+	Casual     Goal = "casual"  // «Без обязательств»
 	Friendship Goal = "friendship"
 	Hobby      Goal = "hobby"
 	Talk       Goal = "talk"
@@ -31,7 +32,7 @@ const (
 )
 
 // AllowsPhysical — можно ли в этой цели фильтровать по росту и весу.
-func (g Goal) AllowsPhysical() bool { return g == Romance || g == Casual }
+func (g Goal) AllowsPhysical() bool { return g == Family || g == Romance || g == Casual }
 
 // Level — уровень вовлечённости в увлечение.
 type Level string
@@ -89,7 +90,7 @@ type Prefs struct {
 }
 
 // ErrPhysicalNotAllowed — рост и вес можно задавать только в романтических целях.
-var ErrPhysicalNotAllowed = errors.New("matching: физические параметры доступны только в целях «Романтика» и «Без обязательств»")
+var ErrPhysicalNotAllowed = errors.New("matching: физические параметры доступны только в целях «Серьёзные отношения и семья», «Романтика» и «Без обязательств»")
 
 // Validate проверяет, что фильтры допустимы для цели.
 func (p Prefs) Validate(g Goal) error {
@@ -448,7 +449,7 @@ func lowerFirst(s string) string {
 }
 
 // AllGoals — все цели знакомства.
-var AllGoals = []Goal{Romance, Casual, Friendship, Hobby, Talk, Travel, LikeMinded}
+var AllGoals = []Goal{Family, Romance, Casual, Friendship, Hobby, Talk, Travel, LikeMinded}
 
 // Valid — известна ли цель.
 func (g Goal) Valid() bool { return slices.Contains(AllGoals, g) }

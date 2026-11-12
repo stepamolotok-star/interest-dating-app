@@ -22,6 +22,7 @@ import (
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/httpapi"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
@@ -64,6 +65,7 @@ func run(log *slog.Logger) error {
 		}
 		deps.Profile = prof
 		deps.Feed = &feed.Service{DB: db, Catalog: cat}
+		deps.Chat = &chat.Service{DB: db, Catalog: cat}
 
 		secret := os.Getenv("AUTH_SECRET")
 		if secret == "" {

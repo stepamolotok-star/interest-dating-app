@@ -46,7 +46,8 @@ var HabitValues = map[string][]string{
 	"sport":      {"no", "sometimes", "regular"},
 	"chronotype": {"lark", "owl"},
 	"pets":       {"has", "wants", "no"},
-	"kids":       {"has", "wants", "no"},
+	"has_kids":   {"yes", "no"},
+	"wants_kids": {"yes", "no", "unsure"},
 }
 
 // Diets — допустимые типы питания.

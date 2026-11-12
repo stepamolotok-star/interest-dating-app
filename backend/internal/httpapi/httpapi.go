@@ -10,6 +10,7 @@ import (
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 )
@@ -21,6 +22,7 @@ type Deps struct {
 	Auth    *auth.Service
 	Profile *profile.Service
 	Feed    *feed.Service
+	Chat    *chat.Service
 	Log     *slog.Logger
 }
 
@@ -30,12 +32,13 @@ type Server struct {
 	auth    *auth.Service
 	profile *profile.Service
 	feed    *feed.Service
+	chat    *chat.Service
 	log     *slog.Logger
 }
 
 // New возвращает готовый http.Handler.
 func New(d Deps) http.Handler {
-	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, log: d.Log}
+	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, log: d.Log}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.health)
 	mux.HandleFunc("GET /v1/interests/categories", s.categories)
