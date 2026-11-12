@@ -22,6 +22,21 @@ class AppState extends ChangeNotifier {
   List<GoalSetting> goals = [];
   List<MyInterest> interests = [];
 
+  /// Взаимные интересы; null — ещё не загружали.
+  List<Match>? matches;
+
+  /// Совпадения, где ещё никто не написал.
+  List<Match> get newMatches => [
+    for (final m in matches ?? const <Match>[])
+      if (m.isNew) m,
+  ];
+
+  /// Начатые переписки.
+  List<Match> get chats => [
+    for (final m in matches ?? const <Match>[])
+      if (!m.isNew) m,
+  ];
+
   /// Цели, по которым сейчас ищем.
   List<String> get activeGoals => [
     for (final g in goals)
@@ -96,6 +111,17 @@ class AppState extends ChangeNotifier {
     _go(Stage.home);
   }
 
+  Future<void> loadMatches() async {
+    matches = await api.matches();
+    notifyListeners();
+  }
+
+  /// Убирает переписку из списков сразу, не дожидаясь перезагрузки.
+  void forgetMatch(String matchId) {
+    matches?.removeWhere((m) => m.matchId == matchId);
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     try {
       await api.logout();
@@ -106,6 +132,7 @@ class AppState extends ChangeNotifier {
     me = null;
     goals = [];
     interests = [];
+    matches = null;
     _go(Stage.phone);
   }
 

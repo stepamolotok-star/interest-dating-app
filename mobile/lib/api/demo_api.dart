@@ -22,6 +22,14 @@ class DemoApi extends Api {
   List<MyInterest> _interests = [];
   final _seen = <String>{};
   int _likes = 0;
+  final _matches = <Match>[];
+  final _messages = <String, List<Message>>{};
+  final _cards = <String, FeedCard>{};
+  int _nextMessageId = 1;
+
+  /// Задержка ответа собеседника в демо.
+  static const replyDelay = Duration(seconds: 2);
+  static const _myId = 'demo-me';
 
   @override
   bool get isDemo => true;
@@ -110,7 +118,7 @@ class DemoApi extends Api {
     if (now.month < r.birthDate.month || (now.month == r.birthDate.month && now.day < r.birthDate.day)) {
       age--;
     }
-    return Me(userId: 'demo-me', name: r.name, city: r.city, age: age);
+    return Me(userId: _myId, name: r.name, city: r.city, age: age);
   }
 
   @override
@@ -202,7 +210,7 @@ class DemoApi extends Api {
           }(),
       ];
       cards.add(
-        FeedCard(
+        _cards[id] = FeedCard(
           userId: id,
           ageRange: person.ageRange,
           goal: goal,
@@ -231,7 +239,130 @@ class DemoApi extends Api {
     _likes++;
     // В демо каждый второй интерес взаимный — чтобы увидеть экран совпадения.
     final matched = _likes.isOdd;
-    return InterestResult(matched, matched ? 'match-$userId' : '');
+    if (!matched) return const InterestResult(false, '');
+    final p = int.parse(userId.split('-').last);
+    final person = _people[p];
+    final card = _cards[userId];
+    final matchId = 'match-$userId';
+    _matches.insert(
+      0,
+      Match(
+        matchId: matchId,
+        goal: goal,
+        createdAt: DateTime.now(),
+        other: Person(
+          userId: userId,
+          name: person.name,
+          age: person.age,
+          about: person.about,
+          prompts: person.prompts,
+          interests: [...?card?.shared.map((s) => s.name), ...person.extraInterests],
+        ),
+      ),
+    );
+    _messages[matchId] = [];
+    return InterestResult(true, matchId);
+  }
+
+  @override
+  Future<List<Match>> matches() async {
+    _needUser();
+    await _pause();
+    final out = [
+      for (final m in _matches)
+        Match(
+          matchId: m.matchId,
+          goal: m.goal,
+          createdAt: m.createdAt,
+          other: m.other,
+          lastMessage: _messages[m.matchId]!.lastOrNull,
+        ),
+    ];
+    DateTime last(Match m) => m.lastMessage?.createdAt ?? m.createdAt;
+    out.sort((a, b) => last(b).compareTo(last(a)));
+    return out;
+  }
+
+  List<Message> _chat(String matchId) {
+    final list = _messages[matchId];
+    if (list == null) throw const ApiException(404, 'переписка не найдена или закрыта');
+    return list;
+  }
+
+  @override
+  Future<List<Message>> messages(String matchId, {int? before}) async {
+    _needUser();
+    final list = _chat(matchId);
+    return list.reversed.where((m) => before == null || m.id < before).take(50).toList();
+  }
+
+  @override
+  Future<Message> send(String matchId, String body) async {
+    _needUser();
+    final list = _chat(matchId);
+    final text = body.trim();
+    if (text.isEmpty) throw const ApiException(400, 'пустое сообщение');
+    if (list.isEmpty && hasContacts(text)) {
+      throw const ApiException(
+        422,
+        'в первом сообщении нельзя оставлять ссылки и контакты — так часто действуют мошенники. '
+        'Познакомьтесь сначала здесь',
+      );
+    }
+    final m = Message(
+      id: _nextMessageId++,
+      sender: _myId,
+      kind: 'text',
+      body: text,
+      createdAt: DateTime.now(),
+    );
+    list.add(m);
+    // Собеседник отвечает на первое сообщение — чтобы в демо было с кем поговорить.
+    if (list.where((x) => x.sender == _myId).length == 1) {
+      final match = _matches.firstWhere((x) => x.matchId == matchId);
+      final person = _people[int.parse(match.other.userId.split('-').last)];
+      final topic = match.other.interests.isEmpty ? 'это' : match.other.interests.first.toLowerCase();
+      Future<void>.delayed(replyDelay, () {
+        if (!_messages.containsKey(matchId)) return;
+        list.add(
+          Message(
+            id: _nextMessageId++,
+            sender: match.other.userId,
+            kind: 'text',
+            body:
+                'Привет! ${person.female ? 'Рада' : 'Рад'}, что совпали. Про $topic могу говорить часами. '
+                'А ты как к этому пришёл(ла)?',
+            createdAt: DateTime.now(),
+          ),
+        );
+      });
+    }
+    return m;
+  }
+
+  @override
+  Future<void> endMatch(String matchId) async {
+    _needUser();
+    _chat(matchId);
+    _matches.removeWhere((m) => m.matchId == matchId);
+    _messages.remove(matchId);
+  }
+
+  @override
+  Future<void> block(String userId) async {
+    _needUser();
+    for (final m in _matches.where((m) => m.other.userId == userId).toList()) {
+      _matches.remove(m);
+      _messages.remove(m.matchId);
+    }
+    _seen.add(userId);
+  }
+
+  @override
+  Future<bool> report(String userId, String reason, {String comment = ''}) async {
+    _needUser();
+    await _pause();
+    return const {'threat', 'harassment', 'stalking', 'minor'}.contains(reason);
   }
 
   @override
@@ -248,6 +379,14 @@ class _Node {
   final String name;
   final List<String> synonyms;
 }
+
+/// Упрощённая проверка на ссылки и контакты — как на сервере (chat.HasContacts).
+bool hasContacts(String text) => RegExp(
+  r'(https?://|www\.|t\.me/|wa\.me/|vk\.com/|@[a-z0-9_]{4,}|\b[a-z0-9-]+\.(ru|com|me|org|net)\b|'
+  r'телег|\btg\b|whatsapp|ватсап|вотсап|вацап|вайбер|viber|инстаграм|instagram|'
+  r'\+?[78][\s(-]*\d{3}[\s)-]*\d{3}[\s-]*\d{2}[\s-]*\d{2})',
+  caseSensitive: false,
+).hasMatch(text);
 
 String _norm(String s) => s.toLowerCase().replaceAll('ё', 'е').trim();
 
@@ -269,36 +408,50 @@ String _plural(int n, String one, String few, String many) {
 
 class _Person {
   const _Person(
+    this.name,
+    this.age,
     this.ageRange,
     this.shared,
     this.other,
     this.about, {
+    this.female = false,
     this.verified = false,
     this.prompts = const [],
     this.habits = const {},
     this.diet = '',
+    this.extraInterests = const [],
   });
+  final String name;
+  final int age;
   final String ageRange;
   final int shared;
   final int other;
   final String about;
+  final bool female;
   final bool verified;
   final List<Prompt> prompts;
   final Map<String, String> habits;
   final String diet;
+  final List<String> extraInterests;
 }
 
 const _people = [
   _Person(
+    'Марина',
+    27,
     '25–29',
     3,
     6,
     'Люблю выбираться за город на выходных и пробовать новое.',
+    female: true,
     verified: true,
     prompts: [Prompt('Идеальная суббота', 'Утром поход, вечером настолки с друзьями')],
     habits: {'smoking': 'no', 'sport': 'regular'},
+    extraInterests: ['Походы', 'Настольные игры'],
   ),
   _Person(
+    'Денис',
+    32,
     '30–34',
     2,
     9,
@@ -306,35 +459,50 @@ const _people = [
     prompts: [Prompt('Чему могу научить', 'Паять и чинить старую технику')],
     habits: {'smoking': 'no', 'chronotype': 'owl'},
     diet: 'vegetarian',
+    extraInterests: ['Электроника', 'Велосипед'],
   ),
   _Person(
+    'Ольга',
+    26,
     '25–29',
     4,
     3,
     'Ищу компанию для путешествий и долгих разговоров.',
+    female: true,
     verified: true,
     habits: {'alcohol': 'sometimes'},
+    extraInterests: ['Путешествия'],
   ),
   _Person(
+    'Сергей',
+    37,
     '35–39',
     1,
     12,
     'Спокойный, домашний, но легко соглашаюсь на авантюры.',
     prompts: [Prompt('Лучший совет, который я получал', 'Не откладывать на понедельник')],
+    extraInterests: ['Рыбалка', 'Кулинария'],
   ),
   _Person(
+    'Вика',
+    21,
     '20–24',
     2,
     5,
     'Студентка, рисую и хожу на йогу. Хочу найти своих людей.',
+    female: true,
     verified: true,
     habits: {'smoking': 'no', 'sport': 'sometimes'},
+    extraInterests: ['Рисование'],
   ),
   _Person(
+    'Андрей',
+    42,
     '40–44',
     3,
     7,
     'Двое детей, собака и дача. Ищу друзей семьями.',
     habits: {'has_kids': 'yes', 'pets': 'has'},
+    extraInterests: ['Дача', 'Собаки'],
   ),
 ];

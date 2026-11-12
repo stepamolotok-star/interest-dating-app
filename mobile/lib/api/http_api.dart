@@ -113,4 +113,29 @@ class HttpApi extends Api {
   @override
   Future<void> skip(String userId, String goal) =>
       _call('POST', '/v1/feed/$userId/skip', body: {'goal': goal});
+
+  @override
+  Future<List<Match>> matches() async =>
+      _items(await _call('GET', '/v1/matches')).map(Match.fromJson).toList();
+
+  @override
+  Future<List<Message>> messages(String matchId, {int? before}) async => _items(
+    await _call('GET', '/v1/matches/$matchId/messages', query: before == null ? null : {'before': '$before'}),
+  ).map(Message.fromJson).toList();
+
+  @override
+  Future<Message> send(String matchId, String body) async =>
+      Message.fromJson(await _call('POST', '/v1/matches/$matchId/messages', body: {'body': body}));
+
+  @override
+  Future<void> endMatch(String matchId) => _call('POST', '/v1/matches/$matchId/end');
+
+  @override
+  Future<void> block(String userId) => _call('POST', '/v1/users/$userId/block');
+
+  @override
+  Future<bool> report(String userId, String reason, {String comment = ''}) async {
+    final j = await _call('POST', '/v1/users/$userId/report', body: {'reason': reason, 'comment': comment});
+    return j['urgent'] as bool? ?? false;
+  }
 }

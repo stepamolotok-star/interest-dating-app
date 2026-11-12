@@ -45,6 +45,17 @@ abstract class Api {
   Future<InterestResult> expressInterest(String userId, String goal, {String? interestId});
   Future<void> skip(String userId, String goal);
 
+  Future<List<Match>> matches();
+
+  /// Сообщения от новых к старым, страницами; [before] — id самого старого из уже загруженных.
+  Future<List<Message>> messages(String matchId, {int? before});
+  Future<Message> send(String matchId, String body);
+  Future<void> endMatch(String matchId);
+  Future<void> block(String userId);
+
+  /// Возвращает true, если жалоба срочная и модератор посмотрит её первой.
+  Future<bool> report(String userId, String reason, {String comment = ''});
+
   /// Демо-режим: подсказка с кодом и фальшивые люди в ленте.
   bool get isDemo => false;
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 
 import '../app.dart';
@@ -8,9 +10,10 @@ import 'match_screen.dart';
 
 /// Лента: анонимные карточки по выбранной цели, по одной за раз.
 class FeedTab extends StatefulWidget {
-  const FeedTab({super.key, required this.onOpenChats});
+  const FeedTab({super.key, required this.onMatched});
 
-  final VoidCallback onOpenChats;
+  /// Взаимный интерес: id совпадения и хочет ли человек сразу написать.
+  final Future<void> Function(String matchId, bool write) onMatched;
 
   @override
   State<FeedTab> createState() => _FeedTabState();
@@ -22,6 +25,24 @@ class _FeedTabState extends State<FeedTab> {
   bool _loading = false;
   Object? _error;
   bool _acting = false;
+
+  /// Короткая подсказка над карточкой. Не снекбар — он закрывал бы кнопки.
+  String? _notice;
+  Timer? _noticeTimer;
+
+  @override
+  void dispose() {
+    _noticeTimer?.cancel();
+    super.dispose();
+  }
+
+  void _notify(String text) {
+    _noticeTimer?.cancel();
+    setState(() => _notice = text);
+    _noticeTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _notice = null);
+    });
+  }
 
   @override
   void didChangeDependencies() {
@@ -75,9 +96,9 @@ class _FeedTabState extends State<FeedTab> {
         if (res.matched) {
           final write = await Navigator.of(context)
               .push<bool>(MaterialPageRoute(fullscreenDialog: true, builder: (_) => MatchScreen(card: card)));
-          if (write == true) widget.onOpenChats();
+          unawaited(widget.onMatched(res.matchId, write == true));
         } else {
-          showInfo(context, 'Отметили. Если интерес взаимный — сразу сообщим');
+          _notify('Отметили. Если интерес взаимный — сразу сообщим');
         }
       } else {
         await api.skip(card.userId, card.goal);
@@ -122,6 +143,30 @@ class _FeedTabState extends State<FeedTab> {
               padding: EdgeInsets.fromLTRB(20, 4, 20, 4),
               child: DemoBanner(text: 'Демо-режим: люди ненастоящие, каждый второй интерес — взаимный.'),
             ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            child: _notice == null
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check_circle_outline, size: 16, color: AppColors.accent),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            _notice!,
+                            style: const TextStyle(
+                              color: AppColors.accent,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
           Expanded(child: _body()),
         ],
       ),

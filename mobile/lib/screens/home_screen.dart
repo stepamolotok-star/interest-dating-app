@@ -1,6 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../app.dart';
 import '../theme.dart';
+import '../widgets/common.dart';
+import 'conversations_tabs.dart';
 import 'feed_tab.dart';
 import 'profile_tab.dart';
 
@@ -16,9 +19,38 @@ class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(_loadMatches);
+  }
+
+  Future<void> _loadMatches() async {
+    try {
+      await AppScope.read(context).loadMatches();
+    } catch (e) {
+      if (mounted && (_tab == 2 || _tab == 3)) showError(context, e);
+    }
+  }
+
+  void _select(int i) {
+    setState(() => _tab = i);
+    if (i == 2 || i == 3) _loadMatches();
+  }
+
+  /// После взаимного интереса в ленте: обновить списки и, если просили, открыть переписку.
+  Future<void> _onMatched(String matchId, bool write) async {
+    await _loadMatches();
+    if (!mounted || !write) return;
+    final match = AppScope.read(context).matches?.where((m) => m.matchId == matchId).firstOrNull;
+    setState(() => _tab = 3);
+    if (match != null) await openChat(context, match);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final fresh = AppScope.of(context).newMatches.length;
     final tabs = [
-      FeedTab(onOpenChats: () => setState(() => _tab = 3)),
+      FeedTab(onMatched: _onMatched),
       const _Soon(
         icon: Icons.radar,
         title: 'Рядом',
@@ -26,43 +58,37 @@ class _HomeScreenState extends State<HomeScreen> {
             'Покажем людей с общими интересами поблизости — только если вы оба включили видимость. '
             'Точного места никто не увидит, только «до 1 км» и т. п.',
       ),
-      const _Soon(
-        icon: Icons.favorite_border,
-        title: 'Совпадения',
-        text: 'Здесь будут все взаимные интересы.',
-      ),
-      const _Soon(
-        icon: Icons.chat_bubble_outline,
-        title: 'Чаты',
-        text:
-            'Переписка с теми, с кем интерес взаимный. В первом сообщении — без ссылок и контактов, '
-            'это защищает от спама.',
-      ),
+      const MatchesTab(),
+      const ChatsTab(),
       const ProfileTab(),
     ];
     return Scaffold(
       body: IndexedStack(index: _tab, children: tabs),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: const [
-          NavigationDestination(
+        onDestinationSelected: _select,
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.style_outlined),
             selectedIcon: Icon(Icons.style),
             label: 'Лента',
           ),
-          NavigationDestination(icon: Icon(Icons.radar), label: 'Рядом'),
+          const NavigationDestination(icon: Icon(Icons.radar), label: 'Рядом'),
           NavigationDestination(
-            icon: Icon(Icons.favorite_border),
-            selectedIcon: Icon(Icons.favorite),
+            icon: Badge(
+              isLabelVisible: fresh > 0,
+              label: Text('$fresh'),
+              child: const Icon(Icons.favorite_border),
+            ),
+            selectedIcon: const Icon(Icons.favorite),
             label: 'Совпадения',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.chat_bubble_outline),
             selectedIcon: Icon(Icons.chat_bubble),
             label: 'Чаты',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
             label: 'Профиль',
@@ -73,7 +99,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/// Заглушка вкладки, которая появится в следующих версиях.
 class _Soon extends StatelessWidget {
   const _Soon({required this.icon, required this.title, required this.text});
 

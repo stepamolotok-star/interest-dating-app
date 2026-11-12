@@ -39,8 +39,9 @@ var (
 	ErrBadReason       = errors.New("неизвестная причина жалобы")
 )
 
-// ReportReasons — допустимые причины жалобы (срочные: угрозы, преследование, слежка).
-var ReportReasons = []string{"threat", "harassment", "stalking", "fake", "spam", "paid_services", "explicit", "other"}
+// ReportReasons — допустимые причины жалобы (срочные: угрозы, преследование, слежка,
+// подозрение, что человек несовершеннолетний).
+var ReportReasons = []string{"threat", "harassment", "stalking", "minor", "fake", "spam", "paid_services", "explicit", "other"}
 
 // Service — чат и безопасность.
 type Service struct {
@@ -95,7 +96,7 @@ func (s *Service) Matches(ctx context.Context, userID string) ([]MatchSummary, e
 	if err != nil {
 		return nil, err
 	}
-	var out []MatchSummary
+	out := []MatchSummary{}
 	for rows.Next() {
 		var ms MatchSummary
 		if err := rows.Scan(&ms.MatchID, &ms.Goal, &ms.CreatedAt, &ms.Other.UserID); err != nil {

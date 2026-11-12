@@ -190,6 +190,9 @@ func TestBlockAndReport(t *testing.T) {
 	if err != nil || !urgent {
 		t.Fatalf("преследование — срочная жалоба: %v %v", urgent, err)
 	}
+	if urgent, err = e.chat.Report(ctx, anna, igor, "minor", "Пишет, что ему 15"); err != nil || !urgent {
+		t.Fatalf("жалоба на несовершеннолетнего должна быть срочной: %v %v", urgent, err)
+	}
 	if urgent, err = e.chat.Report(ctx, anna, igor, "spam", ""); err != nil || urgent {
 		t.Fatalf("спам — обычная: %v %v", urgent, err)
 	}

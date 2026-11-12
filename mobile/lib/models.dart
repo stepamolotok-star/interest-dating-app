@@ -221,3 +221,91 @@ class InterestResult {
   final bool matched;
   final String matchId;
 }
+
+/// Собеседник после взаимного интереса: имя, возраст, о себе, интересы.
+class Person {
+  const Person({
+    required this.userId,
+    required this.name,
+    required this.age,
+    this.about = '',
+    this.prompts = const [],
+    this.interests = const [],
+  });
+
+  factory Person.fromJson(Map<String, dynamic> j) => Person(
+    userId: j['user_id'] as String,
+    name: j['name'] as String? ?? '',
+    age: j['age'] as int? ?? 0,
+    about: j['about'] as String? ?? '',
+    prompts: ((j['prompts'] as List?) ?? const [])
+        .map((e) => Prompt.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    interests: ((j['interests'] as List?) ?? const []).cast<String>(),
+  );
+
+  final String userId;
+  final String name;
+  final int age;
+  final String about;
+  final List<Prompt> prompts;
+  final List<String> interests;
+}
+
+class Message {
+  const Message({
+    required this.id,
+    required this.sender,
+    required this.kind,
+    required this.body,
+    required this.createdAt,
+  });
+
+  factory Message.fromJson(Map<String, dynamic> j) => Message(
+    id: j['id'] as int,
+    sender: j['sender'] as String? ?? '',
+    kind: j['kind'] as String? ?? 'text',
+    body: j['body'] as String? ?? '',
+    createdAt: DateTime.parse(j['created_at'] as String).toLocal(),
+  );
+
+  final int id;
+  final String sender;
+
+  /// text — обычное сообщение, system — служебное («Вы совпали…»).
+  final String kind;
+  final String body;
+  final DateTime createdAt;
+
+  bool get isSystem => kind == 'system';
+}
+
+/// Взаимный интерес: с кем, по какой цели и последнее сообщение.
+class Match {
+  const Match({
+    required this.matchId,
+    required this.goal,
+    required this.createdAt,
+    required this.other,
+    this.lastMessage,
+  });
+
+  factory Match.fromJson(Map<String, dynamic> j) => Match(
+    matchId: j['match_id'] as String,
+    goal: j['goal'] as String? ?? '',
+    createdAt: DateTime.parse(j['created_at'] as String).toLocal(),
+    other: Person.fromJson(j['other'] as Map<String, dynamic>),
+    lastMessage: j['last_message'] == null
+        ? null
+        : Message.fromJson(j['last_message'] as Map<String, dynamic>),
+  );
+
+  final String matchId;
+  final String goal;
+  final DateTime createdAt;
+  final Person other;
+  final Message? lastMessage;
+
+  /// Переписка ещё не началась (служебные сообщения не в счёт).
+  bool get isNew => lastMessage == null || lastMessage!.isSystem;
+}

@@ -127,8 +127,37 @@ void main() {
     await shot('07_feed');
     await tap(find.byKey(const Key('like')));
     await shot('08_match');
+    await tap(find.byKey(const Key('write')));
+    await shot('09_chat_hello');
+    await tap(find.byKey(const Key('use-hint')));
+    await tap(find.byKey(const Key('send')));
+    await tester.pump(DemoApi.replyDelay + const Duration(seconds: 3));
+    await tester.enterText(
+      find.byKey(const Key('message')),
+      'С универа! Давай как-нибудь сходим на занятие вместе?',
+    );
+    await tester.pump();
+    await tap(find.byKey(const Key('send')));
+    await shot('10_chat');
+    await tap(find.byKey(const Key('chat-menu')));
+    await tap(find.text('Пожаловаться'));
+    await tap(find.byKey(const Key('reason-minor')));
+    await shot('11_report');
+    Navigator.of(tester.element(find.text('Отправить жалобу'))).pop(); // закрыть, не отправляя
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Назад'));
+    await tester.pumpAndSettle();
+    await shot('12_chats');
+
+    // Ещё одно совпадение — чтобы во вкладке «Совпадения» было кого показать.
+    await tap(find.text('Лента'));
+    await tap(find.byKey(const Key('skip')));
+    await tap(find.byKey(const Key('like')));
+    await tap(find.byKey(const Key('like')));
     await tap(find.text('Смотреть дальше'));
+    await tap(find.text('Совпадения'));
+    await shot('13_matches');
     await tap(find.text('Профиль'));
-    await shot('09_profile');
+    await shot('14_profile');
   });
 }

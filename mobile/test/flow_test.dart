@@ -110,7 +110,43 @@ void main() {
     expect(find.text('Это взаимно!'), findsOneWidget);
     expect(find.textContaining('Спросите, как началось увлечение'), findsOneWidget);
     await tapKey(tester, 'write');
-    expect(find.textContaining('Переписка с теми'), findsOneWidget);
+
+    // Переписка: подсказка для первого сообщения, контакты в первом сообщении нельзя.
+    expect(find.text('Марина, 27'), findsWidgets);
+    await tester.enterText(find.byKey(const Key('message')), 'Привет, пиши в телегу');
+    await tester.pump();
+    await tester.pump();
+    await tapKey(tester, 'send');
+    expect(find.textContaining('нельзя оставлять ссылки и контакты'), findsOneWidget);
+    await tapKey(tester, 'use-hint');
+    expect(find.textContaining('У нас общий интерес'), findsWidgets);
+    await tapKey(tester, 'send');
+    expect(find.textContaining('С чего у тебя всё началось?'), findsOneWidget);
+
+    // Собеседник в демо отвечает, ответ приходит при следующем опросе.
+    await tester.pump(DemoApi.replyDelay + const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('могу говорить часами'), findsOneWidget);
+
+    // Назад — переписка в «Чатах», а «Совпадения» пусты.
+    await tester.tap(find.byTooltip('Назад'));
+    await tester.pumpAndSettle();
+    expect(find.text('Марина'), findsOneWidget);
+    expect(find.textContaining('могу говорить часами'), findsOneWidget);
+    await tapText(tester, 'Совпадения');
+    expect(find.text('Новых совпадений нет'), findsOneWidget);
+
+    // Жалоба «несовершеннолетний» — срочная, с блокировкой переписка исчезает.
+    await tapText(tester, 'Чаты');
+    await tapText(tester, 'Марина');
+    await tapKey(tester, 'chat-menu');
+    await tapText(tester, 'Пожаловаться');
+    await tapKey(tester, 'reason-minor');
+    await tapText(tester, 'Отправить жалобу');
+    expect(find.textContaining('в первую очередь'), findsOneWidget);
+    expect(find.text('Переписок пока нет'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5)); // ждём, пока уйдёт уведомление о жалобе
+    await tester.pumpAndSettle();
 
     // Профиль: имя, возраст, цели и интересы.
     await tapText(tester, 'Профиль');
