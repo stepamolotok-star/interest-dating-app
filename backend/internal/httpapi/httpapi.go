@@ -1,5 +1,4 @@
-// Package httpapi — HTTP-слой сервера. Пока только каталог интересов;
-// профили, лента и «Рядом» появятся вместе с хранилищем.
+// Package httpapi — HTTP-слой сервера: каталог интересов, вход и регистрация.
 package httpapi
 
 import (
@@ -9,23 +8,35 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
 )
 
+// Deps — зависимости HTTP-слоя. Auth может быть nil (тогда вход отключён).
+type Deps struct {
+	Catalog *catalog.Catalog
+	Auth    *auth.Service
+	Log     *slog.Logger
+}
+
 // Server собирает обработчики.
 type Server struct {
-	cat *catalog.Catalog
-	log *slog.Logger
+	cat  *catalog.Catalog
+	auth *auth.Service
+	log  *slog.Logger
 }
 
 // New возвращает готовый http.Handler.
-func New(cat *catalog.Catalog, log *slog.Logger) http.Handler {
-	s := &Server{cat: cat, log: log}
+func New(d Deps) http.Handler {
+	s := &Server{cat: d.Catalog, auth: d.Auth, log: d.Log}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.health)
 	mux.HandleFunc("GET /v1/interests/categories", s.categories)
 	mux.HandleFunc("GET /v1/interests/search", s.search)
 	mux.HandleFunc("GET /v1/interests/{id}/children", s.children)
+	if s.auth != nil {
+		s.registerAuth(mux)
+	}
 	return s.logging(mux)
 }
 

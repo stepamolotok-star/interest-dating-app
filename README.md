@@ -27,12 +27,30 @@
 ```bash
 docker compose up -d          # PostgreSQL и Redis
 cd backend
-go test ./...                 # тесты
-go run ./cmd/api              # сервер на http://localhost:8080
+export DATABASE_URL=postgres://app:app@localhost:5432/app
+go run ./cmd/api              # сервер на http://localhost:8080, миграции применятся сами
+
+# тесты; с базой — ещё и тесты входа (база будет очищена!)
+TEST_DATABASE_URL=postgres://app:app@localhost:5432/app_test go test -p 1 ./...
 ```
 
 Проверка: `curl http://localhost:8080/healthz`,
 поиск по каталогу: `curl "http://localhost:8080/v1/interests/search?q=мото"`.
+
+## API (готово)
+
+| Метод | Путь | Что делает |
+| --- | --- | --- |
+| GET | `/v1/interests/categories` | Категории каталога |
+| GET | `/v1/interests/{id}/children` | Подкатегории и увлечения |
+| GET | `/v1/interests/search?q=` | Поиск увлечений с синонимами |
+| POST | `/v1/auth/start` | `{phone, method}` — звонок-сброс (по умолчанию) или `sms` |
+| POST | `/v1/auth/verify` | `{phone, code}` → `{token, registered}` |
+| POST | `/v1/auth/register` | Имя, дата рождения, пол, город, согласия (нужен токен) |
+| POST | `/v1/auth/logout` | Выход |
+| GET | `/v1/me` | Свой аккаунт |
+
+В режиме разработки (`APP_ENV=dev`) никто не звонит: код пишется в лог сервера.
 
 ## Принципы, которые нельзя нарушать в коде
 

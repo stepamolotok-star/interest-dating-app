@@ -18,7 +18,7 @@ func newServer(t *testing.T) *httptest.Server {
 	if err != nil {
 		t.Fatal(err)
 	}
-	srv := httptest.NewServer(New(cat, slog.New(slog.NewTextHandler(io.Discard, nil))))
+	srv := httptest.NewServer(New(Deps{Catalog: cat, Log: slog.New(slog.NewTextHandler(io.Discard, nil))}))
 	t.Cleanup(srv.Close)
 	return srv
 }

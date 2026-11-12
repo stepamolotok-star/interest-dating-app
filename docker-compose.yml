@@ -11,7 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./backend/migrations:/docker-entrypoint-initdb.d:ro
+    # Миграции применяет сам сервер при запуске (таблица schema_migrations).
 
   redis:
     image: redis:7
