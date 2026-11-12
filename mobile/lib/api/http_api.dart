@@ -224,4 +224,11 @@ class HttpApi extends Api {
   @override
   Future<void> setFieldVisibility(Map<String, String> changes) =>
       _call('PUT', '/v1/me/visibility', body: changes);
+
+  @override
+  Future<GoalPrefs> prefs(String goal) async => GoalPrefs.fromJson(await _call('GET', '/v1/me/prefs/$goal'));
+
+  @override
+  Future<void> setPrefs(String goal, GoalPrefs prefs) =>
+      _call('PUT', '/v1/me/prefs/$goal', body: prefs.toJson());
 }

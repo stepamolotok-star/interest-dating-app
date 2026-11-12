@@ -6,6 +6,7 @@ import '../app.dart';
 import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import 'filters_screen.dart';
 import 'match_screen.dart';
 
 /// Лента: анонимные карточки по выбранной цели, по одной за раз.
@@ -25,6 +26,16 @@ class _FeedTabState extends State<FeedTab> {
   bool _loading = false;
   Object? _error;
   bool _acting = false;
+  int _filterCount = 0;
+
+  Future<void> _openFilters() async {
+    final changed = await Navigator.of(context)
+        .push<bool>(MaterialPageRoute(builder: (_) => FiltersScreen(goal: _goal!)));
+    if (changed == true && mounted) {
+      setState(() => _cards = []);
+      await _load();
+    }
+  }
 
   /// Короткая подсказка над карточкой. Не снекбар — он закрывал бы кнопки.
   String? _notice;
@@ -65,9 +76,14 @@ class _FeedTabState extends State<FeedTab> {
       _error = null;
     });
     try {
-      final cards = await AppScope.read(context).api.feed(goal);
+      final api = AppScope.read(context).api;
+      final cards = await api.feed(goal);
+      final prefs = await api.prefs(goal);
       if (!mounted || goal != _goal) return;
-      setState(() => _cards = cards);
+      setState(() {
+        _cards = cards;
+        _filterCount = prefs.count;
+      });
     } catch (e) {
       if (mounted) setState(() => _error = e);
     } finally {
@@ -121,8 +137,22 @@ class _FeedTabState extends State<FeedTab> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: Text('Свои', style: Theme.of(context).textTheme.headlineSmall),
+            padding: const EdgeInsets.fromLTRB(20, 4, 8, 0),
+            child: Row(
+              children: [
+                Expanded(child: Text('Свои', style: Theme.of(context).textTheme.headlineSmall)),
+                IconButton(
+                  key: const Key('filters'),
+                  tooltip: 'Фильтры',
+                  onPressed: _goal == null ? null : _openFilters,
+                  icon: Badge(
+                    isLabelVisible: _filterCount > 0,
+                    label: Text('$_filterCount'),
+                    child: const Icon(Icons.tune),
+                  ),
+                ),
+              ],
+            ),
           ),
           SizedBox(
             height: 52,
@@ -275,7 +305,7 @@ class PersonCard extends StatelessWidget {
     final habits = [
       for (final MapEntry(:key, :value) in card.habits.entries) ?habitLabels[key]?[value],
       ?dietLabels[card.diet],
-      if (card.zodiac.isNotEmpty) card.zodiac,
+      ?zodiacLabels[card.zodiac],
     ];
     return Container(
       padding: const EdgeInsets.all(20),

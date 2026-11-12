@@ -39,6 +39,7 @@ class DemoApi extends Api {
   ContactsStatus _contacts = const ContactsStatus();
   ProfileFields _profile = ProfileFields();
   bool _specialConsent = false;
+  final _prefs = <String, Map<String, dynamic>>{};
   final _fieldVisibility = <String, String>{
     'about': 'anonymous',
     'prompts': 'anonymous',
@@ -221,6 +222,11 @@ class DemoApi extends Api {
       if (_seen.contains(id)) continue;
       // Общие интересы: часть моих, сдвинутая на номер человека, чтобы у всех были разные.
       final count = mine.isEmpty ? 0 : (person.shared).clamp(1, mine.length);
+      // Из фильтров демо учитывает пол, «только проверенных» и минимум общих интересов.
+      final prefs = GoalPrefs.fromJson(_prefs[goal] ?? const {});
+      if (prefs.genders.isNotEmpty && !prefs.genders.contains(person.female ? 'female' : 'male')) continue;
+      if (prefs.verifiedOnly && !person.verified) continue;
+      if (count < prefs.minShared) continue;
       final shared = <SharedInterest>[
         for (var k = 0; k < count; k++)
           () {
@@ -573,6 +579,23 @@ class DemoApi extends Api {
   Future<void> setFieldVisibility(Map<String, String> changes) async {
     _needUser();
     _fieldVisibility.addAll(changes);
+  }
+
+  @override
+  Future<GoalPrefs> prefs(String goal) async {
+    _needUser();
+    return GoalPrefs.fromJson(_prefs[goal] ?? const {});
+  }
+
+  @override
+  Future<void> setPrefs(String goal, GoalPrefs prefs) async {
+    _needUser();
+    await _pause();
+    const physical = {'family', 'romance', 'casual'};
+    if (!physical.contains(goal) && (!prefs.height.isEmpty || !prefs.weight.isEmpty)) {
+      throw const ApiException(400, 'рост и вес можно задавать только в романтических целях');
+    }
+    _prefs[goal] = prefs.toJson();
   }
 }
 

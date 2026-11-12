@@ -93,6 +93,9 @@ abstract class Api {
   Future<Map<String, String>> fieldVisibility();
   Future<void> setFieldVisibility(Map<String, String> changes);
 
+  Future<GoalPrefs> prefs(String goal);
+  Future<void> setPrefs(String goal, GoalPrefs prefs);
+
   /// Демо-режим: подсказка с кодом и фальшивые люди в ленте.
   bool get isDemo => false;
 }

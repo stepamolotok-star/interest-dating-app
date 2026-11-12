@@ -90,7 +90,7 @@ type Prefs struct {
 }
 
 // ErrPhysicalNotAllowed — рост и вес можно задавать только в романтических целях.
-var ErrPhysicalNotAllowed = errors.New("matching: физические параметры доступны только в целях «Серьёзные отношения и семья», «Романтика» и «Без обязательств»")
+var ErrPhysicalNotAllowed = errors.New("рост и вес можно задавать только в целях «Серьёзные отношения и семья», «Романтика» и «Без обязательств»")
 
 // Validate проверяет, что фильтры допустимы для цели.
 func (p Prefs) Validate(g Goal) error {
@@ -98,7 +98,7 @@ func (p Prefs) Validate(g Goal) error {
 		return ErrPhysicalNotAllowed
 	}
 	if !p.Age.IsZero() && (p.Age.Min < 18 || (p.Age.Max != 0 && p.Age.Max < p.Age.Min)) {
-		return fmt.Errorf("matching: некорректный возраст %d–%d", p.Age.Min, p.Age.Max)
+		return fmt.Errorf("некорректный возраст %d–%d", p.Age.Min, p.Age.Max)
 	}
 	return nil
 }

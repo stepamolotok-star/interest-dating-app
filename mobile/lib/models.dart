@@ -421,12 +421,12 @@ class ProfileFields {
     heightCm: j['height_cm'] as int?,
     weightKg: j['weight_kg'] as int?,
     bodyType: j['body_type'] as String? ?? '',
-    habits: ((j['habits'] as Map?) ?? const {}).cast<String, String>(),
+    habits: Map.of(((j['habits'] as Map?) ?? const {}).cast<String, String>()),
     diet: j['diet'] as String? ?? '',
     religion: j['religion'] as String? ?? '',
     religionForMatching: j['religion_for_matching'] as bool? ?? false,
     showZodiac: j['show_zodiac'] as bool? ?? false,
-    languages: ((j['languages'] as List?) ?? const []).cast<Map<String, dynamic>>(),
+    languages: List.of(((j['languages'] as List?) ?? const []).cast<Map<String, dynamic>>()),
   );
 
   String about;
@@ -460,4 +460,137 @@ class ProfileFields {
   };
 
   ProfileFields copy() => ProfileFields.fromJson(toJson());
+}
+
+/// Диапазон «от–до»; 0 — граница не задана.
+class IntRange {
+  const IntRange([this.min = 0, this.max = 0]);
+
+  factory IntRange.fromJson(Object? j) {
+    final m = (j as Map?) ?? const {};
+    return IntRange(m['min'] as int? ?? 0, m['max'] as int? ?? 0);
+  }
+
+  final int min;
+  final int max;
+
+  bool get isEmpty => min == 0 && max == 0;
+
+  Map<String, dynamic> toJson() => {if (min > 0) 'min': min, if (max > 0) 'max': max};
+}
+
+/// Фильтры поиска для одной цели. Флаги *Required: «обязательно» вместо «желательно».
+class GoalPrefs {
+  GoalPrefs({
+    this.age = const IntRange(),
+    List<String>? genders,
+    this.verifiedOnly = false,
+    this.minShared = 0,
+    List<String>? interests,
+    this.interestsRequired = false,
+    this.height = const IntRange(),
+    this.heightRequired = false,
+    this.weight = const IntRange(),
+    this.weightRequired = false,
+    Map<String, List<String>>? habits,
+    this.habitsRequired = false,
+    List<String>? diets,
+    this.dietRequired = false,
+    List<String>? zodiacs,
+    this.zodiacRequired = false,
+    List<String>? religions,
+    this.religionRequired = false,
+  }) : genders = genders ?? [],
+       interests = interests ?? [],
+       habits = habits ?? {},
+       diets = diets ?? [],
+       zodiacs = zodiacs ?? [],
+       religions = religions ?? [];
+
+  factory GoalPrefs.fromJson(Map<String, dynamic> j) {
+    List<String> list(String k) => List.of(((j[k] as List?) ?? const []).cast<String>());
+    return GoalPrefs(
+      age: IntRange.fromJson(j['age']),
+      genders: list('genders'),
+      verifiedOnly: j['verified_only'] as bool? ?? false,
+      minShared: j['min_shared'] as int? ?? 0,
+      interests: list('interests'),
+      interestsRequired: j['interests_required'] as bool? ?? false,
+      height: IntRange.fromJson(j['height']),
+      heightRequired: j['height_required'] as bool? ?? false,
+      weight: IntRange.fromJson(j['weight']),
+      weightRequired: j['weight_required'] as bool? ?? false,
+      habits: {
+        for (final MapEntry(:key, :value) in ((j['habits'] as Map?) ?? const {}).entries)
+          key as String: List.of((value as List).cast<String>()),
+      },
+      habitsRequired: j['habits_required'] as bool? ?? false,
+      diets: list('diets'),
+      dietRequired: j['diet_required'] as bool? ?? false,
+      zodiacs: list('zodiacs'),
+      zodiacRequired: j['zodiac_required'] as bool? ?? false,
+      religions: list('religions'),
+      religionRequired: j['religion_required'] as bool? ?? false,
+    );
+  }
+
+  IntRange age;
+  List<String> genders;
+  bool verifiedOnly;
+  int minShared;
+
+  /// Конкретные интересы пока не настраиваются в приложении, но сохраняются.
+  List<String> interests;
+  bool interestsRequired;
+  IntRange height;
+  bool heightRequired;
+  IntRange weight;
+  bool weightRequired;
+  Map<String, List<String>> habits;
+  bool habitsRequired;
+  List<String> diets;
+  bool dietRequired;
+  List<String> zodiacs;
+  bool zodiacRequired;
+  List<String> religions;
+  bool religionRequired;
+
+  Map<String, dynamic> toJson() => {
+    'age': age.toJson(),
+    if (genders.isNotEmpty) 'genders': genders,
+    if (verifiedOnly) 'verified_only': true,
+    if (minShared > 0) 'min_shared': minShared,
+    if (interests.isNotEmpty) 'interests': interests,
+    if (interestsRequired) 'interests_required': true,
+    'height': height.toJson(),
+    if (heightRequired) 'height_required': true,
+    'weight': weight.toJson(),
+    if (weightRequired) 'weight_required': true,
+    if (habits.isNotEmpty)
+      'habits': {
+        for (final e in habits.entries)
+          if (e.value.isNotEmpty) e.key: e.value,
+      },
+    if (habitsRequired) 'habits_required': true,
+    if (diets.isNotEmpty) 'diets': diets,
+    if (dietRequired) 'diet_required': true,
+    if (zodiacs.isNotEmpty) 'zodiacs': zodiacs,
+    if (zodiacRequired) 'zodiac_required': true,
+    if (religions.isNotEmpty) 'religions': religions,
+    if (religionRequired) 'religion_required': true,
+  };
+
+  /// Сколько фильтров задано — для значка на кнопке.
+  int get count => [
+    !age.isEmpty,
+    genders.isNotEmpty,
+    verifiedOnly,
+    minShared > 0,
+    !height.isEmpty,
+    !weight.isEmpty,
+    habits.values.any((v) => v.isNotEmpty),
+    diets.isNotEmpty,
+    zodiacs.isNotEmpty,
+    religions.isNotEmpty,
+  ].where((x) => x).length;
 }

@@ -195,5 +195,22 @@ void main() {
     await tap(find.byKey(const Key('add-zone')));
     await tap(find.text('Сохранить зону'));
     await shot('18_nearby_settings');
+
+    await tester.tap(find.byTooltip('Назад'));
+    await tester.pumpAndSettle();
+    await tap(find.text('Лента'));
+    await tap(find.byKey(const Key('filters')));
+    await tap(find.byKey(const Key('gender-male')));
+    await tap(find.byKey(const Key('min-shared-2')));
+    final filters = find.byType(Scrollable).first;
+    await tester.drag(filters, const Offset(0, 2000));
+    await tester.pumpAndSettle();
+    await shot('19_filters');
+    await tester.scrollUntilVisible(find.byKey(const Key('habit-smoking-no')), 250, scrollable: filters);
+    await tap(find.byKey(const Key('habit-smoking-no')));
+    await tap(find.byKey(const Key('required-Привычки')));
+    await tester.drag(filters, const Offset(0, 180));
+    await tester.pumpAndSettle();
+    await shot('20_filters_more');
   });
 }

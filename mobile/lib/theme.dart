@@ -260,3 +260,18 @@ const fieldVisibilityLabels = {
   'matching_only': 'Только для подбора',
   'hidden': 'Никто',
 };
+
+const zodiacLabels = {
+  'aries': 'Овен',
+  'taurus': 'Телец',
+  'gemini': 'Близнецы',
+  'cancer': 'Рак',
+  'leo': 'Лев',
+  'virgo': 'Дева',
+  'libra': 'Весы',
+  'scorpio': 'Скорпион',
+  'sagittarius': 'Стрелец',
+  'capricorn': 'Козерог',
+  'aquarius': 'Водолей',
+  'pisces': 'Рыбы',
+};
