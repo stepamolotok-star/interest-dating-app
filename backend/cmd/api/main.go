@@ -22,7 +22,9 @@ import (
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/httpapi"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 	"github.com/stepamolotok-star/interest-dating-app/backend/migrations"
 )
 
@@ -56,6 +58,12 @@ func run(log *slog.Logger) error {
 			return err
 		}
 		log.Info("миграции применены", "new", applied)
+		prof := &profile.Service{DB: db, Catalog: cat}
+		if err := prof.SyncCatalog(ctx); err != nil {
+			return err
+		}
+		deps.Profile = prof
+		deps.Feed = &feed.Service{DB: db, Catalog: cat}
 
 		secret := os.Getenv("AUTH_SECRET")
 		if secret == "" {

@@ -52,7 +52,10 @@ type UserInterest struct {
 }
 
 // Range — диапазон «от–до» включительно; нулевой диапазон — «не задан».
-type Range struct{ Min, Max int }
+type Range struct {
+	Min int `json:"min,omitempty"`
+	Max int `json:"max,omitempty"`
+}
 
 func (r Range) IsZero() bool        { return r.Min == 0 && r.Max == 0 }
 func (r Range) Contains(v int) bool { return v >= r.Min && (r.Max == 0 || v <= r.Max) }
@@ -60,29 +63,29 @@ func (r Range) Contains(v int) bool { return v >= r.Min && (r.Max == 0 || v <= r
 // Prefs — «портрет» искомого человека для одной цели. Флаги *Required
 // переключают критерий между «обязательно» и «желательно».
 type Prefs struct {
-	Age          Range    // всегда обязательный
-	Genders      []string // обязательный, если задан
-	VerifiedOnly bool     // только с проверенным фото
-	MinShared    int      // минимум точно совпадающих интересов, обязательный
+	Age          Range    `json:"age"`                     // всегда обязательный
+	Genders      []string `json:"genders,omitempty"`       // обязательный, если задан
+	VerifiedOnly bool     `json:"verified_only,omitempty"` // только с проверенным фото
+	MinShared    int      `json:"min_shared,omitempty"`    // минимум точно совпадающих интересов
 
-	Interests         []string
-	InterestsRequired bool
+	Interests         []string `json:"interests,omitempty"`
+	InterestsRequired bool     `json:"interests_required,omitempty"`
 
-	Height         Range
-	HeightRequired bool
-	Weight         Range
-	WeightRequired bool
+	Height         Range `json:"height"`
+	HeightRequired bool  `json:"height_required,omitempty"`
+	Weight         Range `json:"weight"`
+	WeightRequired bool  `json:"weight_required,omitempty"`
 
-	Habits         map[string][]string // {"smoking": ["no"]}
-	HabitsRequired bool
+	Habits         map[string][]string `json:"habits,omitempty"` // {"smoking": ["no"]}
+	HabitsRequired bool                `json:"habits_required,omitempty"`
 
-	Diets          []string
-	DietRequired   bool
-	Zodiacs        []string
-	ZodiacRequired bool
+	Diets          []string `json:"diets,omitempty"`
+	DietRequired   bool     `json:"diet_required,omitempty"`
+	Zodiacs        []string `json:"zodiacs,omitempty"`
+	ZodiacRequired bool     `json:"zodiac_required,omitempty"`
 
-	Religions        []string // учитываются только у тех, кто разрешил
-	ReligionRequired bool
+	Religions        []string `json:"religions,omitempty"` // учитываются только у тех, кто разрешил
+	ReligionRequired bool     `json:"religion_required,omitempty"`
 }
 
 // ErrPhysicalNotAllowed — рост и вес можно задавать только в романтических целях.
@@ -281,9 +284,9 @@ type Scorer struct {
 
 // SharedInterest — точно совпавший интерес.
 type SharedInterest struct {
-	ID   string
-	Name string
-	Rare bool
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Rare bool   `json:"rare"`
 }
 
 // Result — оценка для карточки кандидата.
@@ -442,4 +445,15 @@ func lowerFirst(s string) string {
 		return s
 	}
 	return strings.ToLower(string(r)) + s[size:]
+}
+
+// AllGoals — все цели знакомства.
+var AllGoals = []Goal{Romance, Casual, Friendship, Hobby, Talk, Travel, LikeMinded}
+
+// Valid — известна ли цель.
+func (g Goal) Valid() bool { return slices.Contains(AllGoals, g) }
+
+// ValidLevel — известен ли уровень вовлечённости.
+func ValidLevel(l Level) bool {
+	return l == Curious || l == Doing || l == Serious || l == Pro || l == WantToLearn
 }

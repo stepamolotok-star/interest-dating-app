@@ -1,4 +1,4 @@
-// Package httpapi — HTTP-слой сервера: каталог интересов, вход и регистрация.
+// Package httpapi — HTTP-слой сервера: каталог, вход, профиль и лента.
 package httpapi
 
 import (
@@ -10,25 +10,32 @@ import (
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 )
 
-// Deps — зависимости HTTP-слоя. Auth может быть nil (тогда вход отключён).
+// Deps — зависимости HTTP-слоя. Auth может быть nil (тогда вход, профиль
+// и лента отключены).
 type Deps struct {
 	Catalog *catalog.Catalog
 	Auth    *auth.Service
+	Profile *profile.Service
+	Feed    *feed.Service
 	Log     *slog.Logger
 }
 
 // Server собирает обработчики.
 type Server struct {
-	cat  *catalog.Catalog
-	auth *auth.Service
-	log  *slog.Logger
+	cat     *catalog.Catalog
+	auth    *auth.Service
+	profile *profile.Service
+	feed    *feed.Service
+	log     *slog.Logger
 }
 
 // New возвращает готовый http.Handler.
 func New(d Deps) http.Handler {
-	s := &Server{cat: d.Catalog, auth: d.Auth, log: d.Log}
+	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, log: d.Log}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.health)
 	mux.HandleFunc("GET /v1/interests/categories", s.categories)
@@ -36,6 +43,9 @@ func New(d Deps) http.Handler {
 	mux.HandleFunc("GET /v1/interests/{id}/children", s.children)
 	if s.auth != nil {
 		s.registerAuth(mux)
+		if s.profile != nil {
+			s.registerProfile(mux)
+		}
 	}
 	return s.logging(mux)
 }

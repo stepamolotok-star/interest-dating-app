@@ -49,6 +49,14 @@ TEST_DATABASE_URL=postgres://app:app@localhost:5432/app_test go test -p 1 ./...
 | POST | `/v1/auth/register` | Имя, дата рождения, пол, город, согласия (нужен токен) |
 | POST | `/v1/auth/logout` | Выход |
 | GET | `/v1/me` | Свой аккаунт |
+| GET/PUT | `/v1/me/profile` | Поля профиля; религия — только с `consents.special_category` |
+| GET/PUT | `/v1/me/visibility` | Видимость полей: `anonymous`, `after_match`, `matching_only`, `hidden` |
+| GET/PUT | `/v1/me/interests` | Увлечения с уровнем и «ищу партнёра» |
+| GET/PUT | `/v1/me/goals` | Цели; «Без обязательств» — только с Госуслугами и проверкой фото |
+| GET/PUT | `/v1/me/prefs/{goal}` | Фильтры «обязательно / желательно» для цели |
+| GET | `/v1/feed?goal=` | Лента анонимных карточек, лучшие сверху |
+| POST | `/v1/feed/{user_id}/interest` | «Интересно» (можно отметить общий интерес); взаимно → совпадение |
+| POST | `/v1/feed/{user_id}/skip` | «Пропустить» на 30 дней |
 
 В режиме разработки (`APP_ENV=dev`) никто не звонит: код пишется в лог сервера.
 
