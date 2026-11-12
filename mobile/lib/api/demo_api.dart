@@ -36,6 +36,7 @@ class DemoApi extends Api {
   final _zones = <Zone>[];
   ({double lat, double lon})? _position;
   int _nextZoneId = 1;
+  ContactsStatus _contacts = const ContactsStatus();
 
   @override
   bool get isDemo => true;
@@ -505,6 +506,26 @@ class DemoApi extends Api {
             distance: goal == 'casual' && i % buckets.length == 0 ? 'до 1 км' : buckets[i % buckets.length],
           ),
     ];
+  }
+
+  @override
+  Future<ContactsStatus> contactsStatus() async {
+    _needUser();
+    return _contacts;
+  }
+
+  @override
+  Future<ContactsStatus> uploadContacts(List<String> hashes) async {
+    _needUser();
+    await _pause();
+    if (hashes.length > 5000) throw const ApiException(400, 'не больше 5000 номеров');
+    return _contacts = ContactsStatus(count: hashes.toSet().length, hide: true);
+  }
+
+  @override
+  Future<void> clearContacts() async {
+    _needUser();
+    _contacts = const ContactsStatus();
   }
 }
 

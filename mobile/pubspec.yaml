@@ -7,8 +7,10 @@ environment:
   sdk: ^3.14.0
 
 dependencies:
+  crypto: ^3.0.8
   flutter:
     sdk: flutter
+  flutter_contacts: ^2.6.0
   geolocator: ^14.1.2
   http: ^1.6.0
   material_ui: ^1.1.0

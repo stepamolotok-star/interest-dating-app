@@ -126,11 +126,10 @@ func (s *Service) GetVisibility(ctx context.Context, userID string) (Visibility,
 
 // SetVisibilityInput — что можно поменять.
 type SetVisibilityInput struct {
-	Mode             string `json:"mode"`
-	Hours            int    `json:"hours"` // для ModeTimed: от 1 до 12
-	RadiusM          int    `json:"radius_m"`
-	VerifiedOnly     bool   `json:"verified_only"`
-	HideFromContacts bool   `json:"hide_from_contacts"`
+	Mode         string `json:"mode"`
+	Hours        int    `json:"hours"` // для ModeTimed: от 1 до 12
+	RadiusM      int    `json:"radius_m"`
+	VerifiedOnly bool   `json:"verified_only"`
 }
 
 // SetVisibility меняет видимость. Выключение сразу убирает человека из «Рядом».
@@ -153,10 +152,11 @@ func (s *Service) SetVisibility(ctx context.Context, userID string, in SetVisibi
 	if in.RadiusM != 300 && in.RadiusM != 1000 && in.RadiusM != 3000 && in.RadiusM != 10000 {
 		return Visibility{}, &ValidationError{"radius_m", "радиус: 300, 1000, 3000 или 10000 м"}
 	}
-	_, err := s.DB.Exec(ctx, `INSERT INTO visibility_settings (user_id, mode, visible_until, radius_m, verified_only, hide_from_contacts)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		ON CONFLICT (user_id) DO UPDATE SET mode = $2, visible_until = $3, radius_m = $4, verified_only = $5, hide_from_contacts = $6`,
-		userID, in.Mode, until, in.RadiusM, in.VerifiedOnly, in.HideFromContacts)
+	// hide_from_contacts здесь не трогаем: он включается вместе с загрузкой контактов (пакет contacts).
+	_, err := s.DB.Exec(ctx, `INSERT INTO visibility_settings (user_id, mode, visible_until, radius_m, verified_only)
+		VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (user_id) DO UPDATE SET mode = $2, visible_until = $3, radius_m = $4, verified_only = $5`,
+		userID, in.Mode, until, in.RadiusM, in.VerifiedOnly)
 	if err != nil {
 		return Visibility{}, err
 	}

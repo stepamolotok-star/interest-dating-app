@@ -25,6 +25,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/httpapi"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/nearby"
@@ -98,6 +99,15 @@ func run(log *slog.Logger) error {
 		}
 		dev := auth.DevProvider{Log: log}
 		deps.Auth = &auth.Service{DB: db, Caller: dev, SMS: dev, Secret: []byte(secret)}
+		// Отдельный секрет: AUTH_SECRET можно менять, а ключи контактов без исходных хэшей не пересчитать.
+		contactsSecret := envOr("CONTACTS_SECRET", secret)
+		deps.Auth.ContactsSecret = []byte(contactsSecret)
+		deps.Contacts = &contacts.Service{DB: db, Secret: []byte(contactsSecret)}
+		if n, err := deps.Contacts.Backfill(ctx); err != nil {
+			return err
+		} else if n > 0 {
+			log.Info("досчитаны ключи номеров", "users", n)
+		}
 	} else {
 		log.Warn("DATABASE_URL не задан — вход и регистрация отключены")
 	}

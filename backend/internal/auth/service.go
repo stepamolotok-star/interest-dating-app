@@ -18,6 +18,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
 )
 
 // Параметры входа.
@@ -71,7 +73,9 @@ type Service struct {
 	Caller Caller
 	SMS    SMSSender
 	Secret []byte
-	Now    func() time.Time
+	// ContactsSecret — секрет для ключа номера («скрыть от контактов»); пустой — берётся Secret.
+	ContactsSecret []byte
+	Now            func() time.Time
 }
 
 func (s *Service) now() time.Time {
@@ -296,9 +300,9 @@ func (s *Service) Register(ctx context.Context, token string, r Registration) (s
 
 	var userID string
 	err = tx.QueryRow(ctx, `
-		INSERT INTO users (phone_e164, birth_date, gender) VALUES ($1, $2, $3)
+		INSERT INTO users (phone_e164, birth_date, gender, phone_key) VALUES ($1, $2, $3, $4)
 		ON CONFLICT (phone_e164) DO NOTHING
-		RETURNING id`, phone, r.BirthDate, r.Gender).Scan(&userID)
+		RETURNING id`, phone, r.BirthDate, r.Gender, contacts.PhoneKey(s.contactsSecret(), phone)).Scan(&userID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return "", ErrAlreadyRegistered
 	}
@@ -355,6 +359,14 @@ func Age(birth, now time.Time) int {
 		years--
 	}
 	return years
+}
+
+// contactsSecret — ключ для phone_key; должен совпадать с contacts.Service.Secret.
+func (s *Service) contactsSecret() []byte {
+	if len(s.ContactsSecret) > 0 {
+		return s.ContactsSecret
+	}
+	return s.Secret
 }
 
 func (s *Service) codeHash(phone, code string) []byte {

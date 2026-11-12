@@ -81,4 +81,31 @@ void main() {
     expect(find.text('Личная зона — вас не видно'), findsOneWidget);
     expect(find.text('до 500 м'), findsNothing);
   });
+
+  testWidgets('«Скрыть меня от контактов» включается и выключается', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final state = await tester.runAsync(registered);
+    await tester.pumpWidget(SvoiApp(state: state!..start()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Профиль'));
+    await tester.pumpAndSettle();
+    final toggle = find.byKey(const Key('hide-from-contacts'));
+    await tester.ensureVisible(toggle);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Скрыть'));
+    await tester.pumpAndSettle();
+    // В демо-контактах два российских мобильных и один иностранный номер.
+    expect(find.textContaining('Номеров учтено: 2'), findsOneWidget);
+    expect((await state.api.contactsStatus()).hide, isTrue);
+
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect((await state.api.contactsStatus()).hide, isFalse);
+  });
 }

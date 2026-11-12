@@ -75,6 +75,14 @@ abstract class Api {
   /// Люди рядом с общими интересами; у каждой карточки заполнено [FeedCard.distance].
   Future<List<FeedCard>> radar(String goal);
 
+  Future<ContactsStatus> contactsStatus();
+
+  /// Заменяет список контактов (SHA-256 номеров в hex) и включает скрытие от них.
+  Future<ContactsStatus> uploadContacts(List<String> hashes);
+
+  /// Выключает скрытие и удаляет загруженные хэши.
+  Future<void> clearContacts();
+
   /// Демо-режим: подсказка с кодом и фальшивые люди в ленте.
   bool get isDemo => false;
 }

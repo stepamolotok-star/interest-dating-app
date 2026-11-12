@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api/api.dart';
+import 'contacts.dart';
 import 'location.dart';
 import 'models.dart';
 
@@ -10,13 +11,17 @@ enum Stage { loading, phone, code, about, goals, interests, home }
 
 /// Состояние приложения: сессия, шаг регистрации и данные профиля.
 class AppState extends ChangeNotifier {
-  AppState(this.api, {LocationSource? location})
-    : location = location ?? (api.isDemo ? const FixedLocation() : DeviceLocation());
+  AppState(this.api, {LocationSource? location, ContactsSource? contacts})
+    : location = location ?? (api.isDemo ? const FixedLocation() : DeviceLocation()),
+      contacts = contacts ?? (api.isDemo ? const DemoContacts() : DeviceContacts());
 
   final Api api;
 
   /// Откуда брать геопозицию для «Рядом». В демо — фиксированная точка.
   final LocationSource location;
+
+  /// Записная книжка для «скрыть меня от контактов». В демо — выдуманные номера.
+  final ContactsSource contacts;
 
   static const _tokenKey = 'session_token';
 

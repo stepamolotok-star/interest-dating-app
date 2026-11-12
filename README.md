@@ -36,6 +36,10 @@ TEST_DATABASE_URL=postgres://app:app@localhost:5432/app_test \
 TEST_REDIS_URL=redis://localhost:6379/15 go test -p 1 ./...
 ```
 
+Секреты: `AUTH_SECRET` — для кодов входа, `CONTACTS_SECRET` — для хешей контактов (если не задан,
+берётся `AUTH_SECRET`). `CONTACTS_SECRET` нельзя менять после запуска: загруженные контакты
+перестанут совпадать, пересчитать их не из чего.
+
 Проверка: `curl http://localhost:8080/healthz`,
 поиск по каталогу: `curl "http://localhost:8080/v1/interests/search?q=мото"`.
 
@@ -52,6 +56,7 @@ TEST_REDIS_URL=redis://localhost:6379/15 go test -p 1 ./...
 | POST | `/v1/auth/logout` | Выход |
 | GET | `/v1/me` | Свой аккаунт |
 | GET/PUT | `/v1/me/profile` | Поля профиля; религия — только с `consents.special_category` |
+| GET/PUT/DELETE | `/v1/me/contacts` | «Скрыть меня от контактов»: `PUT {"hashes": [SHA-256 номеров +79…]}` включает, `DELETE` выключает и удаляет всё |
 | GET/PUT | `/v1/me/visibility` | Видимость полей: `anonymous`, `after_match`, `matching_only`, `hidden` |
 | GET/PUT | `/v1/me/interests` | Увлечения с уровнем и «ищу партнёра» |
 | GET/PUT | `/v1/me/goals` | Цели; «Без обязательств» — только с Госуслугами и проверкой фото |
@@ -69,7 +74,7 @@ TEST_REDIS_URL=redis://localhost:6379/15 go test -p 1 ./...
 
 | Метод | Путь | Что делает |
 | --- | --- | --- |
-| GET/PUT | `/v1/nearby/visibility` | Видимость: `off`, `foreground`, `background`, `timed` (`hours` 1–12), радиус 300/1000/3000/10000 м, «только проверенным», «скрыть от контактов» |
+| GET/PUT | `/v1/nearby/visibility` | Видимость: `off`, `foreground`, `background`, `timed` (`hours` 1–12), радиус 300/1000/3000/10000 м, «только проверенным» |
 | POST | `/v1/nearby/disappear` | «Исчезнуть» — мгновенно везде |
 | GET/POST | `/v1/nearby/zones` | Личные зоны (от 500 м), внутри человек невидим |
 | DELETE | `/v1/nearby/zones/{id}` | Удалить зону |

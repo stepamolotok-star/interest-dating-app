@@ -175,3 +175,12 @@ func decode(w http.ResponseWriter, r *http.Request, v any) bool {
 	}
 	return true
 }
+
+// decodeLarge — как decode, но лимит размера тела задаёт вызывающий.
+func decodeLarge(w http.ResponseWriter, r *http.Request, v any) bool {
+	if err := json.NewDecoder(r.Body).Decode(v); err != nil {
+		writeError(w, http.StatusBadRequest, "некорректный JSON или слишком большой запрос")
+		return false
+	}
+	return true
+}

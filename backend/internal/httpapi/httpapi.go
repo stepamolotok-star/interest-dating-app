@@ -11,6 +11,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/nearby"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
@@ -19,29 +20,31 @@ import (
 // Deps — зависимости HTTP-слоя. Auth может быть nil (тогда вход, профиль
 // и лента отключены).
 type Deps struct {
-	Catalog *catalog.Catalog
-	Auth    *auth.Service
-	Profile *profile.Service
-	Feed    *feed.Service
-	Chat    *chat.Service
-	Nearby  *nearby.Service
-	Log     *slog.Logger
+	Catalog  *catalog.Catalog
+	Auth     *auth.Service
+	Profile  *profile.Service
+	Feed     *feed.Service
+	Chat     *chat.Service
+	Nearby   *nearby.Service
+	Contacts *contacts.Service
+	Log      *slog.Logger
 }
 
 // Server собирает обработчики.
 type Server struct {
-	cat     *catalog.Catalog
-	auth    *auth.Service
-	profile *profile.Service
-	feed    *feed.Service
-	chat    *chat.Service
-	nearby  *nearby.Service
-	log     *slog.Logger
+	cat      *catalog.Catalog
+	auth     *auth.Service
+	profile  *profile.Service
+	feed     *feed.Service
+	chat     *chat.Service
+	nearby   *nearby.Service
+	contacts *contacts.Service
+	log      *slog.Logger
 }
 
 // New возвращает готовый http.Handler.
 func New(d Deps) http.Handler {
-	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, log: d.Log}
+	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, contacts: d.Contacts, log: d.Log}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.health)
 	mux.HandleFunc("GET /v1/interests/categories", s.categories)
@@ -54,6 +57,9 @@ func New(d Deps) http.Handler {
 		}
 		if s.nearby != nil {
 			s.registerNearby(mux)
+		}
+		if s.contacts != nil {
+			s.registerContacts(mux)
 		}
 	}
 	return s.logging(mux)

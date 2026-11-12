@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSContactsUsageDescription</key>
+	<string>Чтобы скрыть вас от людей из вашей записной книжки. Имена и номера не отправляются — только их хеши.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Чтобы показать людей с общими интересами поблизости. Точное место никто не увидит — только «до 1 км» и т. п.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>

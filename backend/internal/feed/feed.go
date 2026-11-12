@@ -142,7 +142,7 @@ func (s *Service) rank(ctx context.Context, viewerID string, goal matching.Goal,
 		                  AND ((m.user_a = $1 AND m.user_b = u.id) OR (m.user_a = u.id AND m.user_b = $1)))
 		  AND NOT (coalesce(vs.hide_from_contacts, false) AND EXISTS (
 		      SELECT 1 FROM contact_hashes ch, users me
-		      WHERE me.id = $1 AND ch.user_id = u.id AND ch.phone_hash = digest(me.phone_e164, 'sha256')))
+		      WHERE me.id = $1 AND ch.user_id = u.id AND ch.phone_hash = me.phone_key))
 		ORDER BY u.last_active_at DESC
 		LIMIT $6`, viewerID, goal, city, now, now.Add(-SkipCooldown), CandidatePool, idsFilter)
 	if err != nil {

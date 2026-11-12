@@ -192,4 +192,15 @@ class HttpApi extends Api {
   @override
   Future<List<FeedCard>> radar(String goal) async =>
       _items(await _call('GET', '/v1/nearby/radar', query: {'goal': goal})).map(FeedCard.fromJson).toList();
+
+  @override
+  Future<ContactsStatus> contactsStatus() async =>
+      ContactsStatus.fromJson(await _call('GET', '/v1/me/contacts'));
+
+  @override
+  Future<ContactsStatus> uploadContacts(List<String> hashes) async =>
+      ContactsStatus.fromJson(await _call('PUT', '/v1/me/contacts', body: {'hashes': hashes}));
+
+  @override
+  Future<void> clearContacts() => _call('DELETE', '/v1/me/contacts');
 }

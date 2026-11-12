@@ -155,6 +155,7 @@ void main() {
     expect(state.interests.firstWhere((i) => i.id == 'fitness.strength.yoga').level, 'pro');
     expect(state.interests.firstWhere((i) => i.id == 'fitness.strength.yoga').seekingPartner, isTrue);
 
+    await tester.scrollUntilVisible(find.text('Выйти'), 300, scrollable: find.byType(Scrollable).last);
     await tapText(tester, 'Выйти');
     expect(find.text('Найди своих людей по интересам'), findsOneWidget);
   });

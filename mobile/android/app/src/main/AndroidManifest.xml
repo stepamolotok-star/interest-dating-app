@@ -3,6 +3,8 @@
     <!-- «Рядом»: только пока приложение открыто. Сервер округляет позицию до ~150 м. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- «Скрыть меня от контактов»: читаем только номера, на сервер уходят их хеши. -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
     <application
         android:label="Свои"
         android:name="${applicationName}"

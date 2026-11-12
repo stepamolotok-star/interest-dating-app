@@ -2,14 +2,17 @@ package feed
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"os"
+	"slices"
 	"testing"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/matching"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 	"github.com/stepamolotok-star/interest-dating-app/backend/migrations"
@@ -282,5 +285,64 @@ func TestAgeRangeAndZodiac(t *testing.T) {
 		Zodiac(time.Date(1990, 12, 25, 0, 0, 0, 0, time.UTC)) != "capricorn" ||
 		Zodiac(time.Date(1990, 1, 10, 0, 0, 0, 0, time.UTC)) != "capricorn" {
 		t.Error("Zodiac")
+	}
+}
+
+func TestHideFromContacts(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	anna := e.user(t, person{goals: []matching.Goal{matching.Friendship}, interests: []string{bonsai}})
+	igor := e.user(t, person{gender: "male", goals: []matching.Goal{matching.Friendship}, interests: []string{bonsai}})
+	c := &contacts.Service{DB: e.db, Secret: []byte("test-secret")}
+	if _, err := c.Backfill(ctx); err != nil {
+		t.Fatal(err)
+	}
+	var annaPhone string
+	if err := e.db.QueryRow(ctx, `SELECT phone_e164 FROM users WHERE id = $1`, anna).Scan(&annaPhone); err != nil {
+		t.Fatal(err)
+	}
+	sees := func(viewer, target string) bool {
+		t.Helper()
+		cards, err := e.feed.Feed(ctx, viewer, matching.Friendship, 20)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return slices.Contains(ids(cards), target)
+	}
+	if !sees(anna, igor) {
+		t.Fatal("до загрузки контактов Анна должна видеть Игоря")
+	}
+
+	// Игорь прячется от своей записной книжки, где есть Анна.
+	other := hex.EncodeToString(contacts.PhoneHash("+79990000000"))
+	st, err := c.Upload(ctx, igor, []string{hex.EncodeToString(contacts.PhoneHash(annaPhone)), other, other}, "test")
+	if err != nil || st.Count != 2 || !st.Hide {
+		t.Fatalf("загрузка: %+v %v", st, err)
+	}
+	if sees(anna, igor) {
+		t.Fatal("Анна в контактах Игоря — не должна его видеть")
+	}
+	if !sees(igor, anna) {
+		t.Fatal("скрытие одностороннее: Игорь видит Анну")
+	}
+
+	// В базе нет ни номера, ни голого SHA-256 — только HMAC.
+	var raw int
+	if err := e.db.QueryRow(ctx, `SELECT count(*) FROM contact_hashes WHERE phone_hash = $1`,
+		contacts.PhoneHash(annaPhone)).Scan(&raw); err != nil || raw != 0 {
+		t.Fatalf("голый хэш номера не должен храниться: %d %v", raw, err)
+	}
+
+	if err := c.Clear(ctx, igor); err != nil {
+		t.Fatal(err)
+	}
+	if !sees(anna, igor) {
+		t.Fatal("после отключения Анна снова видит Игоря")
+	}
+	if st, _ := c.Get(ctx, igor); st.Count != 0 || st.Hide {
+		t.Fatalf("после отключения всё удалено: %+v", st)
+	}
+	if _, err := c.Upload(ctx, igor, []string{"не-хэш"}, "test"); err == nil {
+		t.Fatal("мусор вместо хэша должен отклоняться")
 	}
 }

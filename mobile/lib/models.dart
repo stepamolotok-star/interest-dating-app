@@ -383,3 +383,14 @@ class LocationStatus {
   /// visibility_off | private_zone
   final String reason;
 }
+
+/// «Скрыть меня от контактов»: включено ли и сколько номеров учтено.
+class ContactsStatus {
+  const ContactsStatus({this.count = 0, this.hide = false});
+
+  factory ContactsStatus.fromJson(Map<String, dynamic> j) =>
+      ContactsStatus(count: j['count'] as int? ?? 0, hide: j['hide'] as bool? ?? false);
+
+  final int count;
+  final bool hide;
+}
