@@ -315,6 +315,7 @@ type Interest struct {
 	Name           string         `json:"name,omitempty"`
 	Level          matching.Level `json:"level"`
 	SeekingPartner bool           `json:"seeking_partner"`
+	Kind           string         `json:"kind,omitempty"` // catalog.KindFan — без степени увлечённости
 }
 
 // SetInterests заменяет список увлечений. Только конкретные увлечения
@@ -324,7 +325,7 @@ func (s *Service) SetInterests(ctx context.Context, userID string, items []Inter
 		return invalid("items", "от 1 до 50 увлечений")
 	}
 	seen := map[string]bool{}
-	for _, it := range items {
+	for i, it := range items {
 		n, ok := s.Catalog.Get(it.ID)
 		if !ok || n.Depth != 2 {
 			return invalid("items", "неизвестное увлечение "+it.ID)
@@ -333,7 +334,10 @@ func (s *Service) SetInterests(ctx context.Context, userID string, items []Inter
 			return invalid("items", "повтор "+it.ID)
 		}
 		seen[it.ID] = true
-		if !matching.ValidLevel(it.Level) {
+		if n.IsFan() {
+			// «Слушаю рок» — без степени увлечённости, храним нейтральный уровень.
+			items[i].Level = matching.Curious
+		} else if !matching.ValidLevel(it.Level) {
 			return invalid("items", "неизвестный уровень у "+it.ID)
 		}
 	}
@@ -387,7 +391,9 @@ func (s *Service) Interests(ctx context.Context, userID string) ([]Interest, err
 		if err := rows.Scan(&it.ID, &it.Level, &it.SeekingPartner); err != nil {
 			return nil, err
 		}
-		it.Name = s.Catalog.Name(it.ID)
+		if n, ok := s.Catalog.Get(it.ID); ok {
+			it.Name, it.Kind = n.Name, n.Kind
+		}
 		out = append(out, it)
 	}
 	return out, rows.Err()

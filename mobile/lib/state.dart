@@ -10,9 +10,10 @@ import 'code_autofill.dart';
 import 'contacts.dart';
 import 'location.dart';
 import 'models.dart';
+import 'widgets/profile_blocks.dart' show profileCompletion;
 
 /// Где человек сейчас: вход, шаги регистрации или основное приложение.
-enum Stage { loading, phone, code, about, goals, interests, home }
+enum Stage { loading, phone, code, about, goals, interests, profile, home }
 
 /// Состояние приложения: сессия, шаг регистрации и данные профиля.
 class AppState extends ChangeNotifier {
@@ -43,12 +44,19 @@ class AppState extends ChangeNotifier {
 
   static const _tokenKey = 'session_token';
 
+  /// Человек прошёл (или пропустил) шаги интересов и анкеты. Пока нет —
+  /// при входе возвращаем к ним; потом только напоминаем.
+  static const _onboardedKey = 'onboarding_done';
+
   Stage stage = Stage.loading;
   String phone = '';
   Challenge? challenge;
   Me? me;
   List<GoalSetting> goals = [];
   List<MyInterest> interests = [];
+
+  /// Анкета; null — ещё не загружали или не загрузилась.
+  ProfileFields? profile;
 
   /// Взаимные интересы; null — ещё не загружали.
   List<Match>? matches;
@@ -99,8 +107,44 @@ class AppState extends ChangeNotifier {
     me = await api.me();
     goals = await api.goals();
     interests = await api.interests();
+    await loadProfile();
     if (activeGoals.isEmpty) return _go(Stage.goals);
-    if (interests.isEmpty) return _go(Stage.interests);
+    final prefs = await SharedPreferences.getInstance();
+    final p = profile;
+    // Вход на новом телефоне: если интересы и анкета уже есть, шаги не повторяем.
+    final done =
+        (prefs.getBool(_onboardedKey) ?? false) ||
+        (interests.isNotEmpty && p != null && profileCompletion(p) > 0);
+    if (!done) {
+      return _go(interests.isEmpty ? Stage.interests : Stage.profile);
+    }
+    _go(Stage.home);
+  }
+
+  /// Загружает анкету для напоминаний и профиля. Ошибку не пробрасываем: это не главное.
+  Future<void> loadProfile() async {
+    try {
+      profile = await api.profile();
+      notifyListeners();
+    } on ApiException {
+      // Без анкеты просто не покажем процент заполненности.
+    }
+  }
+
+  void setProfile(ProfileFields f) {
+    profile = f;
+    notifyListeners();
+  }
+
+  /// Интересы пропущены при регистрации — дальше к анкете.
+  void skipInterests() => _go(Stage.profile);
+
+  void backToInterests() => _go(Stage.interests);
+
+  /// Анкета сохранена или пропущена — регистрация закончена.
+  Future<void> finishOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_onboardedKey, true);
     _go(Stage.home);
   }
 
@@ -161,14 +205,15 @@ class AppState extends ChangeNotifier {
     final next = [for (final id in ids) GoalSetting(id)];
     await api.setGoals(next);
     goals = next;
-    if (interests.isEmpty) return _go(Stage.interests);
+    if (stage == Stage.goals) return _go(Stage.interests);
     notifyListeners();
   }
 
   Future<void> saveInterests(List<MyInterest> items) async {
     await api.setInterests(items);
     interests = await api.interests();
-    _go(Stage.home);
+    if (stage == Stage.interests) return _go(Stage.profile);
+    notifyListeners();
   }
 
   Future<void> loadMatches() async {
@@ -192,6 +237,7 @@ class AppState extends ChangeNotifier {
     me = null;
     goals = [];
     interests = [];
+    profile = null;
     matches = null;
     _go(Stage.phone);
   }
@@ -200,5 +246,6 @@ class AppState extends ChangeNotifier {
     api.token = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
+    await prefs.remove(_onboardedKey);
   }
 }

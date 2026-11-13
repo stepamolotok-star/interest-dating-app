@@ -26,7 +26,13 @@ class _InterestsScreenState extends State<InterestsScreen> {
   late final Api _api = AppScope.read(context).api;
   late final Map<String, MyInterest> _selected = {
     for (final i in AppScope.read(context).interests)
-      i.id: MyInterest(id: i.id, name: i.name, level: i.level, seekingPartner: i.seekingPartner),
+      i.id: MyInterest(
+        id: i.id,
+        name: i.name,
+        level: i.level,
+        seekingPartner: i.seekingPartner,
+        kind: i.kind,
+      ),
   };
   final _query = TextEditingController();
 
@@ -90,7 +96,7 @@ class _InterestsScreenState extends State<InterestsScreen> {
       showInfo(context, 'Не больше $maxInterests интересов — оставьте самые важные');
       return;
     }
-    final i = MyInterest(id: n.id, name: n.name);
+    final i = MyInterest(id: n.id, name: n.name, kind: n.kind, level: n.kind == 'fan' ? 'curious' : 'doing');
     setState(() => _selected[n.id] = i);
     await _edit(i, isNew: true);
   }
@@ -118,12 +124,12 @@ class _InterestsScreenState extends State<InterestsScreen> {
       onBack: widget.onboarding ? null : () => Navigator.of(context).pop(),
       scrollable: false,
       title: 'Ваши интересы',
-      subtitle: 'По ним подбираем людей. У каждого интереса можно указать, насколько вы им увлечены.',
+      subtitle: 'По ним подбираем людей. Где уместно, можно указать, насколько вы увлечены.',
       button: BusyButton(
         label: n < minInterests
             ? 'Выберите ещё ${minInterests - n}'
             : widget.onboarding
-            ? 'Готово — к людям'
+            ? 'Дальше'
             : 'Сохранить',
         onPressed: n < minInterests
             ? null
@@ -132,6 +138,7 @@ class _InterestsScreenState extends State<InterestsScreen> {
                 if (!widget.onboarding && context.mounted) Navigator.of(context).pop();
               },
       ),
+      secondary: widget.onboarding ? _SkipInterests(selected: _selected.values.toList()) : null,
       child: CustomScrollView(
         // Строим с запасом за краем экрана, чтобы при быстрой прокрутке не собирать плитки на лету.
         scrollCacheExtent: const ScrollCacheExtent.pixels(800),
@@ -241,10 +248,11 @@ class _SelectedChip extends StatelessWidget {
                         text: interest.name,
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
-                      TextSpan(
-                        text: '  ·  ${levels[interest.level] ?? ''}'.toLowerCase(),
-                        style: const TextStyle(fontSize: 12),
-                      ),
+                      if (!interest.isFan)
+                        TextSpan(
+                          text: '  ·  ${levels[interest.level] ?? ''}'.toLowerCase(),
+                          style: const TextStyle(fontSize: 12),
+                        ),
                     ],
                   ),
                   style: const TextStyle(color: AppColors.accent),
@@ -451,6 +459,48 @@ class _SearchResults extends StatelessWidget {
   }
 }
 
+/// «Пропустить» при регистрации: предупреждаем, что без интересов подбор почти случайный.
+/// Уже отмеченные (даже если их меньше трёх) сохраняем.
+class _SkipInterests extends StatelessWidget {
+  const _SkipInterests({required this.selected});
+
+  final List<MyInterest> selected;
+
+  Future<void> _skip(BuildContext context) async {
+    final state = AppScope.read(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Пропустить интересы?'),
+        content: const Text(
+          'Мы подбираем людей по интересам — без них лента будет почти случайной. '
+          'Лучше выбрать хотя бы три. Добавить их можно потом в профиле.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Пропустить')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Выбрать')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      if (selected.isNotEmpty) await state.api.setInterests(selected);
+      state.interests = await state.api.interests();
+    } catch (e) {
+      if (context.mounted) showError(context, e);
+      return;
+    }
+    state.skipInterests();
+  }
+
+  @override
+  Widget build(BuildContext context) => TextButton(
+    key: const Key('skip-interests'),
+    onPressed: () => _skip(context),
+    child: const Text('Пропустить, выберу потом', style: TextStyle(color: AppColors.muted)),
+  );
+}
+
 class _InterestSheet extends StatefulWidget {
   const _InterestSheet({
     required this.interest,
@@ -482,33 +532,36 @@ class _InterestSheetState extends State<_InterestSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(i.name, style: Theme.of(context).textTheme.headlineSmall),
-            if (widget.isNew) ...[
+            if (widget.isNew && !i.isFan) ...[
               const SizedBox(height: 4),
               Text(
                 'Отметьте, насколько увлечены, — так подбор точнее. Изменить можно в любой момент.',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
-            const SizedBox(height: 16),
-            Text('Насколько увлечены', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final MapEntry(key: id, value: label) in levels.entries)
-                  ChoiceChip(
-                    label: Text(label),
-                    selected: i.level == id,
-                    showCheckmark: false,
-                    selectedColor: AppColors.accentTint,
-                    onSelected: (_) {
-                      setState(() => i.level = id);
-                      widget.onChanged();
-                    },
-                  ),
-              ],
-            ),
+            // «Слушаю рок», «кошки»: степень увлечённости тут не к месту.
+            if (!i.isFan) ...[
+              const SizedBox(height: 16),
+              Text('Насколько увлечены', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final MapEntry(key: id, value: label) in levels.entries)
+                    ChoiceChip(
+                      label: Text(label),
+                      selected: i.level == id,
+                      showCheckmark: false,
+                      selectedColor: AppColors.accentTint,
+                      onSelected: (_) {
+                        setState(() => i.level = id);
+                        widget.onChanged();
+                      },
+                    ),
+                ],
+              ),
+            ],
             const SizedBox(height: 12),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
@@ -517,8 +570,15 @@ class _InterestSheetState extends State<_InterestSheet> {
                 setState(() => i.seekingPartner = v);
                 widget.onChanged();
               },
-              title: const Text('Ищу партнёра', style: TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: const Text('Такие совпадения поднимем выше в ленте'),
+              title: Text(
+                i.isFan ? 'Ищу компанию' : 'Ищу партнёра',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              subtitle: Text(
+                i.isFan
+                    ? 'С кем сходить, обсудить, разделить — таких поднимем выше в ленте'
+                    : 'Такие совпадения поднимем выше в ленте',
+              ),
             ),
             const SizedBox(height: 8),
             Row(

@@ -86,3 +86,15 @@ func ids(nodes []Node) []string {
 	}
 	return out
 }
+
+func TestFanKindInherited(t *testing.T) {
+	c, err := Default()
+	if err != nil {
+		t.Fatal(err)
+	}
+	rock, _ := c.Get("music.listen.rock")
+	guitar, _ := c.Get("music.play.guitar")
+	if !rock.IsFan() || guitar.IsFan() {
+		t.Fatalf("rock fan=%v, guitar fan=%v", rock.IsFan(), guitar.IsFan())
+	}
+}

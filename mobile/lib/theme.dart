@@ -136,7 +136,7 @@ ThemeData buildTheme() {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.ink,
+        backgroundColor: AppColors.accent,
         foregroundColor: Colors.white,
         disabledBackgroundColor: AppColors.line,
         minimumSize: const Size.fromHeight(54),

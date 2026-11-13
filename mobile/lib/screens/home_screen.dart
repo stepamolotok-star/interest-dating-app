@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../app.dart';
 import '../widgets/common.dart';
+import '../widgets/profile_blocks.dart';
 import 'conversations_tabs.dart';
 import 'feed_tab.dart';
 import 'nearby_tab.dart';
@@ -48,7 +49,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final fresh = AppScope.of(context).newMatches.length;
+    final state = AppScope.of(context);
+    final fresh = state.newMatches.length;
+    // Точка на «Профиле»: не выбраны интересы или анкета почти пустая.
+    final profile = state.profile;
+    final todo = state.interests.isEmpty || (profile != null && profileCompletion(profile) < 40);
     final tabs = [
       FeedTab(onMatched: _onMatched),
       NearbyTab(active: _tab == 1, onMatched: _onMatched),
@@ -86,9 +91,9 @@ class _HomeScreenState extends State<HomeScreen> {
               selectedIcon: Icon(Icons.chat_bubble),
               label: 'Чаты',
             ),
-            const NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
+            NavigationDestination(
+              icon: Badge(isLabelVisible: todo, child: const Icon(Icons.person_outline)),
+              selectedIcon: const Icon(Icons.person),
               label: 'Профиль',
             ),
           ],

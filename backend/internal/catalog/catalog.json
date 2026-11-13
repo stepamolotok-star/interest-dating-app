@@ -1,5 +1,5 @@
 {
- "version": 2,
+ "version": 3,
  "nodes": [
   {
    "id": "sport_team",
@@ -975,7 +975,8 @@
    "id": "transport.rail",
    "parent": "transport",
    "name": "Рельсы",
-   "synonyms": []
+   "synonyms": [],
+   "kind": "fan"
   },
   {
    "id": "transport.rail.railways",
@@ -1514,7 +1515,8 @@
    "id": "home.house",
    "parent": "home",
    "name": "Дом и быт",
-   "synonyms": []
+   "synonyms": [],
+   "kind": "fan"
   },
   {
    "id": "home.house.interior",
@@ -1984,7 +1986,8 @@
    "id": "music.listen",
    "parent": "music",
    "name": "Слушаю",
-   "synonyms": []
+   "synonyms": [],
+   "kind": "fan"
   },
   {
    "id": "music.listen.rock",
@@ -2097,7 +2100,8 @@
    "id": "screen_books.cinema",
    "parent": "screen_books",
    "name": "Кино и сериалы",
-   "synonyms": []
+   "synonyms": [],
+   "kind": "fan"
   },
   {
    "id": "screen_books.cinema.movies",
@@ -2165,7 +2169,8 @@
    "id": "screen_books.books",
    "parent": "screen_books",
    "name": "Книги",
-   "synonyms": []
+   "synonyms": [],
+   "kind": "fan"
   },
   {
    "id": "screen_books.books.fiction",
@@ -2231,7 +2236,8 @@
    "id": "screen_books.stage",
    "parent": "screen_books",
    "name": "Сцена",
-   "synonyms": []
+   "synonyms": [],
+   "kind": "fan"
   },
   {
    "id": "screen_books.stage.theatre",
@@ -2367,7 +2373,8 @@
    "id": "food.tasting",
    "parent": "food",
    "name": "Пробую",
-   "synonyms": []
+   "synonyms": [],
+   "kind": "fan"
   },
   {
    "id": "food.tasting.coffee",
@@ -2535,7 +2542,8 @@
    "id": "travel.where",
    "parent": "travel",
    "name": "Куда",
-   "synonyms": []
+   "synonyms": [],
+   "kind": "fan"
   },
   {
    "id": "travel.where.russia",
@@ -2821,7 +2829,8 @@
    "id": "animals.pets",
    "parent": "animals",
    "name": "Питомцы",
-   "synonyms": []
+   "synonyms": [],
+   "kind": "fan"
   },
   {
    "id": "animals.pets.dogs",
@@ -3213,7 +3222,8 @@
    "id": "collecting.items",
    "parent": "collecting",
    "name": "Что собираю",
-   "synonyms": []
+   "synonyms": [],
+   "kind": "fan"
   },
   {
    "id": "collecting.items.coins",
@@ -3323,7 +3333,8 @@
    "id": "style.look",
    "parent": "style",
    "name": "Образ",
-   "synonyms": []
+   "synonyms": [],
+   "kind": "fan"
   },
   {
    "id": "style.look.fashion",
@@ -3557,7 +3568,8 @@
    "id": "family.parents",
    "parent": "family",
    "name": "Родительство",
-   "synonyms": []
+   "synonyms": [],
+   "kind": "fan"
   },
   {
    "id": "family.parents.young_parents",

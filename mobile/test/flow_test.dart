@@ -6,6 +6,8 @@ import 'package:svoi/app.dart';
 import 'package:svoi/code_autofill.dart';
 import 'package:svoi/state.dart';
 
+import 'helpers.dart';
+
 /// Весь путь нового человека в демо-режиме: телефон → код → о себе → цели →
 /// интересы → лента → взаимный интерес → профиль.
 void main() {
@@ -14,6 +16,7 @@ void main() {
   Future<void> tapText(WidgetTester tester, String text) async {
     final f = find.text(text);
     await tester.ensureVisible(f);
+    await tester.pumpAndSettle();
     await tester.tap(f);
     await tester.pumpAndSettle();
   }
@@ -122,6 +125,11 @@ void main() {
     await tapKey(tester, 'chip-society.inner.self_development');
     expect(find.text('Убрать'), findsOneWidget);
     await tapText(tester, 'Готово');
+    await tapText(tester, 'Дальше');
+
+    // Анкета — одним экраном, всё необязательно.
+    expect(find.text('Немного о себе'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('about')), 'Йога по утрам, книги по вечерам');
     await tapText(tester, 'Готово — к людям');
 
     // Лента: анонимная карточка с объяснением совпадения.
@@ -181,11 +189,12 @@ void main() {
     // Профиль: имя, возраст, цели и интересы.
     await tapText(tester, 'Профиль');
     expect(find.textContaining('Аня, '), findsOneWidget);
+    await reveal(tester, find.text('Йога'));
     expect(find.text('Йога'), findsOneWidget);
     expect(state.interests.firstWhere((i) => i.id == 'fitness.strength.yoga').level, 'pro');
     expect(state.interests.firstWhere((i) => i.id == 'fitness.strength.yoga').seekingPartner, isTrue);
 
-    await tester.scrollUntilVisible(find.text('Выйти'), 300, scrollable: find.byType(Scrollable).last);
+    await reveal(tester, find.text('Выйти'));
     await tapText(tester, 'Выйти');
     expect(find.text('Найди своих людей по интересам'), findsOneWidget);
   });

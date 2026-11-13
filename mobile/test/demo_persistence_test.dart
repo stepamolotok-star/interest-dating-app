@@ -30,6 +30,8 @@ void main() {
       MyInterest(id: 'fitness.strength.yoga'),
       MyInterest(id: 'society.inner.meditation'),
     ]);
+    expect(first.stage, Stage.profile);
+    await first.finishOnboarding();
     final card = (await first.api.feed('friendship')).first;
     final res = await first.api.expressInterest(card.userId, 'friendship');
     expect(res.matched, isTrue);

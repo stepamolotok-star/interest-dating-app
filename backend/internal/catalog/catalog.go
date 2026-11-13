@@ -22,7 +22,18 @@ type Node struct {
 	Name     string   `json:"name"`
 	Synonyms []string `json:"synonyms,omitempty"`
 	Depth    int      `json:"depth"` // 0 — категория, 1 — подкатегория, 2 — увлечение
+
+	// Kind — вид увлечения. KindFan — то, чем наслаждаются, а не занимаются
+	// (слушаю рок, смотрю кино, кошки): у таких нет степени увлечённости.
+	// Задаётся на подкатегории и наследуется увлечениями.
+	Kind string `json:"kind,omitempty"`
 }
+
+// KindFan — увлечение «слушаю/смотрю/люблю», без степени увлечённости.
+const KindFan = "fan"
+
+// IsFan — увлечение без степени увлечённости.
+func (n Node) IsFan() bool { return n.Kind == KindFan }
 
 // Catalog — неизменяемый после загрузки каталог; безопасен для параллельного чтения.
 type Catalog struct {
@@ -72,6 +83,11 @@ func Parse(data []byte) (*Catalog, error) {
 			}
 		}
 		n.Depth = d
+	}
+	for _, n := range c.nodes {
+		for p := n.Parent; n.Kind == "" && p != ""; p = c.nodes[p].Parent {
+			n.Kind = c.nodes[p].Kind
+		}
 	}
 	return c, nil
 }

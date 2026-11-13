@@ -1,13 +1,17 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app.dart';
 import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/profile_blocks.dart';
 import '../widgets/safety.dart' show Avatar;
 import 'filters_screen.dart';
+import 'interests_screen.dart';
+import 'profile_edit_screen.dart';
 import 'match_screen.dart';
 
 /// Лента: анонимные карточки по выбранной цели, по одной за раз.
@@ -198,6 +202,7 @@ class _FeedTabState extends State<FeedTab> {
                     ),
                   ),
           ),
+          const _Reminder(),
           Expanded(child: _body()),
         ],
       ),
@@ -264,6 +269,91 @@ class _FeedTabState extends State<FeedTab> {
   }
 }
 
+/// Ненавязчивое напоминание над карточкой: выбрать интересы или рассказать о себе.
+/// Закрыли — не показываем три дня.
+class _Reminder extends StatefulWidget {
+  const _Reminder();
+
+  @override
+  State<_Reminder> createState() => _ReminderState();
+}
+
+class _ReminderState extends State<_Reminder> {
+  static const _key = 'feed_reminder_hidden_until';
+  bool _hidden = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() async {
+      final until = (await SharedPreferences.getInstance()).getInt(_key) ?? 0;
+      if (mounted) setState(() => _hidden = DateTime.now().millisecondsSinceEpoch < until);
+    });
+  }
+
+  Future<void> _close() async {
+    setState(() => _hidden = true);
+    final until = DateTime.now().add(const Duration(days: 3)).millisecondsSinceEpoch;
+    await (await SharedPreferences.getInstance()).setInt(_key, until);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppScope.of(context);
+    final f = state.profile;
+    final noInterests = state.interests.isEmpty;
+    final thinProfile = f != null && profileCompletion(f) < 40;
+    if (_hidden || (!noInterests && !thinProfile)) return const SizedBox.shrink();
+    final text = noInterests
+        ? 'Выберите интересы — без них подбор почти случайный'
+        : 'Расскажите о себе — с анкетой проще начать разговор';
+    final Widget screen = noInterests
+        ? const InterestsScreen()
+        : const ProfileEditScreen(blocks: completionBlocks);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+      child: Material(
+        key: const Key('feed-reminder'),
+        color: AppColors.accentTint,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+            child: Row(
+              children: [
+                Icon(
+                  noInterests ? Icons.interests_outlined : Icons.edit_note,
+                  size: 20,
+                  color: AppColors.accent,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    text,
+                    style: const TextStyle(
+                      color: AppColors.accent,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Скрыть',
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(Icons.close, size: 18, color: AppColors.muted),
+                  onPressed: _close,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _GoalChip extends StatelessWidget {
   const _GoalChip({required this.goal, required this.selected, required this.onTap});
 
@@ -295,16 +385,19 @@ class _GoalChip extends StatelessWidget {
 
 /// Карточка человека: без имени и фото, только то, что он сам открыл.
 class PersonCard extends StatefulWidget {
-  const PersonCard({super.key, required this.card});
+  const PersonCard({super.key, required this.card, this.showAllInterests = false});
 
   final FeedCard card;
+
+  /// Сразу все интересы, без «ещё N» — для просмотра своей карточки.
+  final bool showAllInterests;
 
   @override
   State<PersonCard> createState() => _PersonCardState();
 }
 
 class _PersonCardState extends State<PersonCard> {
-  bool _allInterests = false;
+  late bool _allInterests = widget.showAllInterests;
 
   @override
   Widget build(BuildContext context) {

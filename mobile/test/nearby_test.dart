@@ -69,7 +69,9 @@ void main() {
     await tester.tap(find.text('Профиль'));
     await tester.pumpAndSettle();
     final toggle = find.byKey(const Key('hide-from-contacts'));
+    await reveal(tester, toggle);
     await tester.ensureVisible(toggle);
+    await tester.pumpAndSettle();
     await tester.tap(toggle);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Скрыть'));

@@ -161,17 +161,26 @@ class DemoApi extends Api {
     final raw =
         catalogJson ?? utf8.decode((await rootBundle.load('assets/data/catalog.json')).buffer.asUint8List());
     final data = jsonDecode(raw) as Map<String, dynamic>;
-    _nodes = (data['nodes'] as List)
-        .cast<Map<String, dynamic>>()
-        .map(
-          (n) => _Node(
-            n['id'] as String,
-            n['parent'] as String? ?? '',
-            n['name'] as String,
-            ((n['synonyms'] as List?) ?? const []).cast<String>(),
-          ),
-        )
-        .toList();
+    final rawNodes = (data['nodes'] as List).cast<Map<String, dynamic>>();
+    final byId = {for (final n in rawNodes) n['id'] as String: n};
+    String kindOf(Map<String, dynamic> n) {
+      for (Map<String, dynamic>? cur = n; cur != null; cur = byId[cur['parent']]) {
+        final k = cur['kind'] as String? ?? '';
+        if (k.isNotEmpty) return k;
+      }
+      return '';
+    }
+
+    _nodes = [
+      for (final n in rawNodes)
+        _Node(
+          n['id'] as String,
+          n['parent'] as String? ?? '',
+          n['name'] as String,
+          ((n['synonyms'] as List?) ?? const []).cast<String>(),
+          kindOf(n),
+        ),
+    ];
     return _nodes!;
   }
 
@@ -184,7 +193,13 @@ class DemoApi extends Api {
         cur = all.where((x) => x.id == cur!.parent).firstOrNull;
       }
     }
-    return InterestNode(id: n.id, name: n.name, hasChildren: all.any((x) => x.parent == n.id), path: path);
+    return InterestNode(
+      id: n.id,
+      name: n.name,
+      hasChildren: all.any((x) => x.parent == n.id),
+      path: path,
+      kind: n.kind,
+    );
   }
 
   Future<void> _pause() => Future<void>.delayed(const Duration(milliseconds: 250));
@@ -294,9 +309,17 @@ class DemoApi extends Api {
   @override
   Future<List<MyInterest>> interests() async {
     _needUser();
+    final all = await _catalog();
+    String kind(String id) => all.where((n) => n.id == id).firstOrNull?.kind ?? '';
     return [
       for (final i in _interests)
-        MyInterest(id: i.id, name: i.name, level: i.level, seekingPartner: i.seekingPartner),
+        MyInterest(
+          id: i.id,
+          name: i.name,
+          level: i.level,
+          seekingPartner: i.seekingPartner,
+          kind: kind(i.id),
+        ),
     ];
   }
 
@@ -307,12 +330,14 @@ class DemoApi extends Api {
     final all = await _catalog();
     _interests = [
       for (final i in items)
-        MyInterest(
-          id: i.id,
-          name: all.firstWhere((n) => n.id == i.id).name,
-          level: i.level,
-          seekingPartner: i.seekingPartner,
-        ),
+        if (all.firstWhere((n) => n.id == i.id) case final n)
+          MyInterest(
+            id: i.id,
+            name: n.name,
+            level: n.kind == 'fan' ? 'curious' : i.level,
+            seekingPartner: i.seekingPartner,
+            kind: n.kind,
+          ),
     ];
     _save();
   }
@@ -775,11 +800,12 @@ class DemoApi extends Api {
 }
 
 class _Node {
-  const _Node(this.id, this.parent, this.name, this.synonyms);
+  const _Node(this.id, this.parent, this.name, this.synonyms, this.kind);
   final String id;
   final String parent;
   final String name;
   final List<String> synonyms;
+  final String kind;
 }
 
 /// Упрощённая проверка на ссылки и контакты — как на сервере (chat.HasContacts).

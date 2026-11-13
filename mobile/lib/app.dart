@@ -5,6 +5,7 @@ import 'screens/code_screen.dart';
 import 'screens/goals_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/interests_screen.dart';
+import 'screens/profile_step_screen.dart';
 import 'screens/phone_screen.dart';
 import 'state.dart';
 import 'theme.dart';
@@ -55,6 +56,7 @@ class _Root extends StatelessWidget {
       Stage.about => const AboutScreen(),
       Stage.goals => const GoalsScreen(onboarding: true),
       Stage.interests => const InterestsScreen(onboarding: true),
+      Stage.profile => const ProfileStepScreen(),
       Stage.home => const HomeScreen(),
     };
     return AnimatedSwitcher(

@@ -89,18 +89,28 @@ class Registration {
 
 /// Узел каталога интересов.
 class InterestNode {
-  const InterestNode({required this.id, required this.name, this.hasChildren = false, this.path = const []});
+  const InterestNode({
+    required this.id,
+    required this.name,
+    this.hasChildren = false,
+    this.path = const [],
+    this.kind = '',
+  });
 
   factory InterestNode.fromJson(Map<String, dynamic> j) => InterestNode(
     id: j['id'] as String,
     name: j['name'] as String,
     hasChildren: j['has_children'] as bool? ?? false,
     path: (j['path'] as List?)?.cast<String>() ?? const [],
+    kind: j['kind'] as String? ?? '',
   );
 
   final String id;
   final String name;
   final bool hasChildren;
+
+  /// 'fan' — «слушаю рок», «кошки»: без степени увлечённости.
+  final String kind;
 
   /// Цепочка названий от категории до узла — только в результатах поиска.
   final List<String> path;
@@ -108,19 +118,30 @@ class InterestNode {
 
 /// Интерес в профиле.
 class MyInterest {
-  MyInterest({required this.id, this.name = '', this.level = 'doing', this.seekingPartner = false});
+  MyInterest({
+    required this.id,
+    this.name = '',
+    this.level = 'doing',
+    this.seekingPartner = false,
+    this.kind = '',
+  });
 
   factory MyInterest.fromJson(Map<String, dynamic> j) => MyInterest(
     id: j['id'] as String,
     name: j['name'] as String? ?? '',
     level: j['level'] as String? ?? 'doing',
     seekingPartner: j['seeking_partner'] as bool? ?? false,
+    kind: j['kind'] as String? ?? '',
   );
 
   final String id;
   String name;
   String level;
   bool seekingPartner;
+  final String kind;
+
+  /// «Слушаю рок», «кошки» — степень увлечённости не спрашиваем.
+  bool get isFan => kind == 'fan';
 
   Map<String, dynamic> toJson() => {'id': id, 'level': level, 'seeking_partner': seekingPartner};
 }

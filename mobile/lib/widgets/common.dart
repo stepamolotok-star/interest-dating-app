@@ -27,6 +27,7 @@ class StepScaffold extends StatelessWidget {
     this.subtitle,
     required this.child,
     required this.button,
+    this.secondary,
     this.step,
     this.onBack,
     this.scrollable = true,
@@ -37,7 +38,10 @@ class StepScaffold extends StatelessWidget {
   final Widget child;
   final Widget button;
 
-  /// Номер шага из 4 (телефон, о себе, цели, интересы); null — без индикатора.
+  /// Второе действие под кнопкой, например «Пропустить».
+  final Widget? secondary;
+
+  /// Номер шага из 5 (телефон, о себе, цели, интересы, анкета); null — без индикатора.
   final int? step;
   final VoidCallback? onBack;
   final bool scrollable;
@@ -61,7 +65,7 @@ class StepScaffold extends StatelessWidget {
       appBar: AppBar(
         leading: onBack == null ? null : IconButton(icon: const Icon(Icons.arrow_back), onPressed: onBack),
         automaticallyImplyLeading: false,
-        title: step == null ? null : StepDots(step: step!, total: 4),
+        title: step == null ? null : StepDots(step: step!, total: 5),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -72,7 +76,8 @@ class StepScaffold extends StatelessWidget {
                   ? SingleChildScrollView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 20), child: content)
                   : Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 0), child: content),
             ),
-            Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 16), child: button),
+            Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, secondary == null ? 16 : 4), child: button),
+            if (secondary != null) Padding(padding: const EdgeInsets.only(bottom: 8), child: secondary),
           ],
         ),
       ),

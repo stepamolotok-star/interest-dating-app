@@ -1,3 +1,5 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:svoi/api/demo_api.dart';
 import 'package:svoi/models.dart';
@@ -26,6 +28,17 @@ Future<AppState> registered() async {
     MyInterest(id: 'society.inner.meditation'),
     MyInterest(id: 'society.inner.self_development'),
   ]);
-  await (await SharedPreferences.getInstance()).setString('session_token', api.token!);
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('session_token', api.token!);
+  await prefs.setBool('onboarding_done', true);
   return AppState(api);
+}
+
+/// Находит элемент в длинном ленивом списке: сначала наверх, потом вниз, пока не появится.
+Future<void> reveal(WidgetTester tester, Finder f) async {
+  if (f.evaluate().isNotEmpty) return;
+  final list = find.byType(Scrollable).first;
+  await tester.drag(list, const Offset(0, 5000));
+  await tester.pumpAndSettle();
+  if (f.evaluate().isEmpty) await tester.scrollUntilVisible(f, 250, scrollable: list);
 }
