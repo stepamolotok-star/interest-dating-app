@@ -51,7 +51,7 @@ func TestCategoriesAndChildren(t *testing.T) {
 		t.Fatalf("категории: %d %v", code, body)
 	}
 	code, body = get(t, srv, "/v1/interests/transport.moto/children")
-	if code != 200 || len(body["items"].([]any)) != 4 {
+	if items, _ := body["items"].([]any); code != 200 || len(items) < 4 || items[0].(map[string]any)["id"] != "transport.moto.enduro" {
 		t.Fatalf("подкатегория мотоциклов: %d %v", code, body)
 	}
 	if code, _ = get(t, srv, "/v1/interests/нет-такого/children"); code != 404 {

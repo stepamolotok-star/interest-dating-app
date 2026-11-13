@@ -6,6 +6,7 @@ import 'package:svoi/state.dart';
 /// Уже зарегистрированный человек в демо-режиме: цель «Дружба», три интереса.
 /// Вызывать внутри tester.runAsync — демо-API делает настоящие паузы.
 Future<AppState> registered() async {
+  SharedPreferences.setMockInitialValues({});
   final api = DemoApi();
   await api.verify('+79123456789', DemoApi.demoCode);
   await api.register(
@@ -25,6 +26,6 @@ Future<AppState> registered() async {
     MyInterest(id: 'society.inner.meditation'),
     MyInterest(id: 'society.inner.self_development'),
   ]);
-  SharedPreferences.setMockInitialValues({'session_token': api.token!});
+  await (await SharedPreferences.getInstance()).setString('session_token', api.token!);
   return AppState(api);
 }

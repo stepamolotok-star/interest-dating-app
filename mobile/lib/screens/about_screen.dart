@@ -23,6 +23,11 @@ class _AboutScreenState extends State<AboutScreen> {
   bool _terms = false;
   bool _personalData = false;
 
+  /// Человек уже нажимал «Дальше» — показываем, что не так, у каждого поля.
+  bool _tried = false;
+  final _nameKey = GlobalKey(), _birthKey = GlobalKey(), _genderKey = GlobalKey();
+  final _cityKey = GlobalKey(), _consentKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -58,8 +63,10 @@ class _AboutScreenState extends State<AboutScreen> {
     return age;
   }
 
+  String? get _nameError => _tried && _name.text.trim().length < 2 ? 'Напишите имя — хотя бы 2 буквы' : null;
+
   String? get _birthError {
-    if (_birth.text.length < 10) return null;
+    if (_birth.text.length < 10) return _tried ? 'Введите дату полностью: ДД.ММ.ГГГГ' : null;
     final age = _age;
     if (age == null) return 'Проверьте дату';
     if (age < 18) return 'Приложение только для тех, кому есть 18';
@@ -76,54 +83,76 @@ class _AboutScreenState extends State<AboutScreen> {
       _terms &&
       _personalData;
 
+  /// «Дальше» всегда нажимается: если что-то не так, подсвечиваем поля красным
+  /// и прокручиваем к первому из них.
+  Future<void> _next() async {
+    if (!_ready) {
+      setState(() => _tried = true);
+      final first = [
+        if (_name.text.trim().length < 2) _nameKey,
+        if (_age == null || _birthError != null) _birthKey,
+        if (_gender == null) _genderKey,
+        if (_cityPicked == null) _cityKey,
+        if (!_terms || !_personalData) _consentKey,
+      ].firstOrNull;
+      final ctx = first?.currentContext;
+      if (ctx != null) {
+        await Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 300), alignment: 0.2);
+      }
+      return;
+    }
+    await AppScope.read(context).register(
+      Registration(
+        name: _name.text.trim(),
+        birthDate: _birthDate!,
+        gender: _gender!,
+        city: _cityPicked!.name,
+        cityId: _cityPicked!.id,
+        terms: _terms,
+        personalData: _personalData,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StepScaffold(
       step: 2,
       title: 'О себе',
       subtitle:
-          'Имя увидят только после взаимного интереса. Точную дату рождения — никто: '
-          'в ленте показываем возраст диапазоном.',
-      button: BusyButton(
-        label: 'Дальше',
-        onPressed: _ready
-            ? () => AppScope.read(context).register(
-                Registration(
-                  name: _name.text.trim(),
-                  birthDate: _birthDate!,
-                  gender: _gender!,
-                  city: _cityPicked!.name,
-                  cityId: _cityPicked!.id,
-                  terms: _terms,
-                  personalData: _personalData,
-                ),
-              )
-            : null,
-      ),
+          'Имя увидят только после взаимного интереса. Дату рождения — никто: '
+          'в анкете только возраст.',
+      button: BusyButton(label: 'Дальше', onPressed: _next),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextField(
-            key: const Key('name'),
-            controller: _name,
-            textCapitalization: TextCapitalization.words,
-            maxLength: 40,
-            decoration: const InputDecoration(labelText: 'Имя', counterText: ''),
+          KeyedSubtree(
+            key: _nameKey,
+            child: TextField(
+              key: const Key('name'),
+              controller: _name,
+              textCapitalization: TextCapitalization.words,
+              maxLength: 40,
+              decoration: InputDecoration(labelText: 'Имя', counterText: '', errorText: _nameError),
+            ),
           ),
           const SizedBox(height: 12),
-          TextField(
-            key: const Key('birth'),
-            controller: _birth,
-            keyboardType: TextInputType.number,
-            inputFormatters: [_DateFormatter()],
-            decoration: InputDecoration(
-              labelText: 'Дата рождения',
-              hintText: 'ДД.ММ.ГГГГ',
-              errorText: _birthError,
+          KeyedSubtree(
+            key: _birthKey,
+            child: TextField(
+              key: const Key('birth'),
+              controller: _birth,
+              keyboardType: TextInputType.number,
+              inputFormatters: [_DateFormatter()],
+              decoration: InputDecoration(
+                labelText: 'Дата рождения',
+                hintText: 'ДД.ММ.ГГГГ',
+                errorText: _birthError,
+              ),
             ),
           ),
           const SizedBox(height: 16),
-          Text('Пол', style: Theme.of(context).textTheme.titleMedium),
+          Text(key: _genderKey, 'Пол', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -132,6 +161,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   child: _Choice(
                     label: label,
                     selected: _gender == id,
+                    error: _tried && _gender == null,
                     onTap: () => setState(() => _gender = id),
                   ),
                 ),
@@ -139,6 +169,7 @@ class _AboutScreenState extends State<AboutScreen> {
               ],
             ],
           ),
+          if (_tried && _gender == null) const _ErrorLine('Выберите пол'),
           const SizedBox(height: 16),
           InkWell(
             key: const Key('city'),
@@ -148,8 +179,13 @@ class _AboutScreenState extends State<AboutScreen> {
               if (picked != null) setState(() => _cityPicked = picked);
             },
             child: InputDecorator(
+              key: _cityKey,
               isEmpty: _cityPicked == null,
-              decoration: const InputDecoration(labelText: 'Город', suffixIcon: Icon(Icons.search)),
+              decoration: InputDecoration(
+                labelText: 'Город',
+                suffixIcon: const Icon(Icons.search),
+                errorText: _tried && _cityPicked == null ? 'Выберите город из списка' : null,
+              ),
               child: _cityPicked == null
                   ? null
                   : Text(_cityPicked!.label, style: Theme.of(context).textTheme.bodyLarge),
@@ -163,18 +199,26 @@ class _AboutScreenState extends State<AboutScreen> {
             ),
           ),
           const SizedBox(height: 20),
+          SizedBox(key: _consentKey),
           _Consent(
             key: const Key('terms'),
+            error: _tried && !_terms,
             value: _terms,
             onChanged: (v) => setState(() => _terms = v),
             text: 'Принимаю пользовательское соглашение',
           ),
           _Consent(
             key: const Key('personal_data'),
+            error: _tried && !_personalData,
             value: _personalData,
             onChanged: (v) => setState(() => _personalData = v),
             text: 'Даю согласие на обработку персональных данных',
           ),
+          if (_tried && (!_terms || !_personalData))
+            const Padding(
+              padding: EdgeInsets.only(left: 48),
+              child: _ErrorLine('Без этих двух согласий зарегистрироваться нельзя'),
+            ),
           Padding(
             padding: const EdgeInsets.only(left: 48, top: 2),
             child: Text(
@@ -188,12 +232,26 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 }
 
+/// Красная строка под полем, которое нужно заполнить.
+class _ErrorLine extends StatelessWidget {
+  const _ErrorLine(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(left: 4, top: 6),
+    child: Text(text, style: const TextStyle(color: AppColors.error, fontSize: 13)),
+  );
+}
+
 class _Choice extends StatelessWidget {
-  const _Choice({required this.label, required this.selected, required this.onTap});
+  const _Choice({required this.label, required this.selected, required this.onTap, this.error = false});
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final bool error;
 
   @override
   Widget build(BuildContext context) {
@@ -201,7 +259,14 @@ class _Choice extends StatelessWidget {
       color: selected ? AppColors.accentTint : AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: selected ? AppColors.accent : AppColors.line, width: selected ? 1.5 : 1),
+        side: BorderSide(
+          color: error
+              ? AppColors.error
+              : selected
+              ? AppColors.accent
+              : AppColors.line,
+          width: selected || error ? 1.5 : 1,
+        ),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
@@ -224,8 +289,15 @@ class _Choice extends StatelessWidget {
 }
 
 class _Consent extends StatelessWidget {
-  const _Consent({super.key, required this.value, required this.onChanged, required this.text});
+  const _Consent({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    required this.text,
+    this.error = false,
+  });
 
+  final bool error;
   final bool value;
   final ValueChanged<bool> onChanged;
   final String text;
@@ -239,7 +311,7 @@ class _Consent extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           children: [
-            Checkbox(value: value, onChanged: (v) => onChanged(v ?? false)),
+            Checkbox(value: value, isError: error, onChanged: (v) => onChanged(v ?? false)),
             const SizedBox(width: 4),
             Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
           ],

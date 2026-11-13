@@ -56,6 +56,17 @@ void main() {
 
     // О себе: младше 18 нельзя, два согласия отдельно.
     expect(find.text('О себе'), findsOneWidget);
+    // «Дальше» на пустой форме подсвечивает всё, что нужно заполнить.
+    await tapText(tester, 'Дальше');
+    for (final error in [
+      'Напишите имя — хотя бы 2 буквы',
+      'Введите дату полностью: ДД.ММ.ГГГГ',
+      'Выберите пол',
+      'Выберите город из списка',
+      'Без этих двух согласий зарегистрироваться нельзя',
+    ]) {
+      expect(find.text(error), findsOneWidget, reason: error);
+    }
     await tester.enterText(find.byKey(const Key('name')), 'Аня');
     await tester.enterText(find.byKey(const Key('birth')), '01012015');
     await tester.pump();
@@ -70,11 +81,10 @@ void main() {
     await tapKey(tester, 'city-2d9abaa6-85a6-4f1f-a1bd-14b76ec17d9c');
     expect(find.text('Чита, Забайкальский край'), findsOneWidget);
     await tapKey(tester, 'terms');
-    expect(
-      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
-      isNull,
-      reason: 'без согласия на обработку данных дальше нельзя',
-    );
+    // Без согласия на обработку данных дальше нельзя — и видно, почему.
+    await tapText(tester, 'Дальше');
+    expect(find.text('О себе'), findsOneWidget);
+    expect(find.text('Без этих двух согласий зарегистрироваться нельзя'), findsOneWidget);
     await tapKey(tester, 'personal_data');
     await tapText(tester, 'Дальше');
 
@@ -99,11 +109,17 @@ void main() {
       await tester.enterText(find.byKey(const Key('interest-search')), query);
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
       await tapKey(tester, 'result-$id');
+      // Сразу после выбора — уровень и «ищу партнёра».
+      expect(find.text('Насколько увлечены'), findsOneWidget);
+      if (id == 'fitness.strength.yoga') {
+        await tapText(tester, 'Профи');
+        await tapText(tester, 'Ищу партнёра');
+      }
+      await tapText(tester, 'Добавить');
     }
-    // Уровень и «ищу партнёра» — в нижней панели.
-    await tapKey(tester, 'chip-fitness.strength.yoga');
-    await tapText(tester, 'Профи');
-    await tapText(tester, 'Ищу партнёра');
+    // Уже выбранный интерес открывает те же настройки, где его можно убрать.
+    await tapKey(tester, 'chip-society.inner.self_development');
+    expect(find.text('Убрать'), findsOneWidget);
     await tapText(tester, 'Готово');
     await tapText(tester, 'Готово — к людям');
 
@@ -111,6 +127,11 @@ void main() {
     expect(find.text('Свои'), findsOneWidget);
     expect(find.textContaining('общих интерес'), findsOneWidget);
     expect(find.text('Имя и фото откроются, если интерес будет взаимным'), findsOneWidget);
+    // Точный возраст и остальные интересы по нажатию на «ещё N».
+    expect(find.text('27 лет'), findsOneWidget);
+    expect(find.text('Походы'), findsNothing);
+    await tapKey(tester, 'more-interests');
+    expect(find.text('Походы'), findsOneWidget);
     await tapKey(tester, 'like');
 
     // В демо первый интерес взаимный.
@@ -140,7 +161,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Марина'), findsOneWidget);
     expect(find.textContaining('могу говорить часами'), findsOneWidget);
-    await tapText(tester, 'Совпадения');
+    await tapText(tester, 'Взаимно');
     expect(find.text('Новых совпадений нет'), findsOneWidget);
 
     // Жалоба «несовершеннолетний» — срочная, с блокировкой переписка исчезает.

@@ -167,11 +167,13 @@ class FeedCard {
   const FeedCard({
     required this.userId,
     required this.ageRange,
+    this.age = 0,
     required this.goal,
     required this.score,
     required this.explanation,
     required this.shared,
     this.otherInterests = 0,
+    this.others = const [],
     this.photoVerified = false,
     this.ageVerified = false,
     this.about = '',
@@ -185,6 +187,7 @@ class FeedCard {
   factory FeedCard.fromJson(Map<String, dynamic> j) => FeedCard(
     userId: j['user_id'] as String,
     ageRange: j['age_range'] as String? ?? '',
+    age: j['age'] as int? ?? 0,
     goal: j['goal'] as String? ?? '',
     score: j['score'] as int? ?? 0,
     explanation: j['explanation'] as String? ?? '',
@@ -192,6 +195,7 @@ class FeedCard {
         .map((e) => SharedInterest.fromJson(e as Map<String, dynamic>))
         .toList(),
     otherInterests: j['other_interests_count'] as int? ?? 0,
+    others: ((j['other_interests'] as List?) ?? const []).cast<String>(),
     photoVerified: j['photo_verified'] as bool? ?? false,
     ageVerified: j['age_verified'] as bool? ?? false,
     about: j['about'] as String? ?? '',
@@ -206,11 +210,20 @@ class FeedCard {
 
   final String userId;
   final String ageRange;
+
+  /// Точный возраст; 0 — человек показывает возраст диапазоном.
+  final int age;
+
+  /// «27 лет» или «28–32 лет», если человек скрыл точный возраст.
+  String get ageLabel => age > 0 ? '$age ${yearsWord(age)}' : (ageRange.isEmpty ? '' : '$ageRange лет');
   final String goal;
   final int score;
   final String explanation;
   final List<SharedInterest> shared;
   final int otherInterests;
+
+  /// Названия остальных интересов (не общих).
+  final List<String> others;
   final bool photoVerified;
   final bool ageVerified;
   final String about;
@@ -259,6 +272,17 @@ class Person {
   final String about;
   final List<Prompt> prompts;
   final List<String> interests;
+
+  Map<String, dynamic> toJson() => {
+    'user_id': userId,
+    'name': name,
+    'age': age,
+    'about': about,
+    'prompts': [
+      for (final p in prompts) {'question': p.question, 'answer': p.answer},
+    ],
+    'interests': interests,
+  };
 }
 
 class Message {
@@ -287,6 +311,14 @@ class Message {
   final DateTime createdAt;
 
   bool get isSystem => kind == 'system';
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'sender': sender,
+    'kind': kind,
+    'body': body,
+    'created_at': createdAt.toUtc().toIso8601String(),
+  };
 }
 
 /// Взаимный интерес: с кем, по какой цели и последнее сообщение.
@@ -317,6 +349,14 @@ class Match {
 
   /// Переписка ещё не началась (служебные сообщения не в счёт).
   bool get isNew => lastMessage == null || lastMessage!.isSystem;
+
+  Map<String, dynamic> toJson() => {
+    'match_id': matchId,
+    'goal': goal,
+    'created_at': createdAt.toUtc().toIso8601String(),
+    'other': other.toJson(),
+    if (lastMessage != null) 'last_message': lastMessage!.toJson(),
+  };
 }
 
 /// Настройки видимости в «Рядом».
@@ -378,6 +418,8 @@ class Zone {
   final double lat;
   final double lon;
   final int radiusM;
+
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'lat': lat, 'lon': lon, 'radius_m': radiusM};
 }
 
 /// Ответ на отправку геопозиции: видно ли сейчас человека и почему нет.
@@ -417,6 +459,7 @@ class ProfileFields {
     this.religion = '',
     this.religionForMatching = false,
     this.showZodiac = false,
+    this.ageAsRange = false,
     List<Map<String, dynamic>>? languages,
   }) : prompts = prompts ?? [],
        habits = habits ?? {},
@@ -435,6 +478,7 @@ class ProfileFields {
     religion: j['religion'] as String? ?? '',
     religionForMatching: j['religion_for_matching'] as bool? ?? false,
     showZodiac: j['show_zodiac'] as bool? ?? false,
+    ageAsRange: j['age_as_range'] as bool? ?? false,
     languages: List.of(((j['languages'] as List?) ?? const []).cast<Map<String, dynamic>>()),
   );
 
@@ -448,6 +492,9 @@ class ProfileFields {
   String religion;
   bool religionForMatching;
   bool showZodiac;
+
+  /// В карточке показывать возраст диапазоном («28–32») вместо точного числа.
+  bool ageAsRange;
 
   /// Языки пока не редактируются в приложении, но сохраняются как есть.
   List<Map<String, dynamic>> languages;
@@ -465,6 +512,7 @@ class ProfileFields {
     'religion': religion,
     'religion_for_matching': religionForMatching,
     'show_zodiac': showZodiac,
+    'age_as_range': ageAsRange,
     'languages': languages,
   };
 
@@ -626,4 +674,12 @@ class OAuthStart {
   final String url;
   final String state;
   final String redirectUri;
+}
+
+/// «1 год», «3 года», «27 лет».
+String yearsWord(int n) {
+  final m10 = n % 10, m100 = n % 100;
+  if (m10 == 1 && m100 != 11) return 'год';
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'года';
+  return 'лет';
 }

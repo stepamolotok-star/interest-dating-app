@@ -97,7 +97,9 @@ type Fields struct {
 	Religion            string            `json:"religion"`
 	ReligionForMatching bool              `json:"religion_for_matching"`
 	ShowZodiac          bool              `json:"show_zodiac"`
-	Languages           []Language        `json:"languages"`
+	// AgeAsRange — в анкете возраст диапазоном («28–32») вместо точного числа.
+	AgeAsRange bool       `json:"age_as_range"`
+	Languages  []Language `json:"languages"`
 }
 
 // Validate проверяет поля.
@@ -188,9 +190,9 @@ func (s *Service) Get(ctx context.Context, userID string) (Fields, error) {
 	var bodyType, diet, religion *string
 	err := s.DB.QueryRow(ctx, `
 		SELECT coalesce(about, ''), prompts, height_cm, weight_kg, body_type, habits, diet, religion,
-		       religion_for_matching, show_zodiac, languages
+		       religion_for_matching, show_zodiac, languages, age_as_range
 		FROM profiles WHERE user_id = $1`, userID).Scan(&f.About, &prompts, &height, &weight, &bodyType,
-		&habits, &diet, &religion, &f.ReligionForMatching, &f.ShowZodiac, &langs)
+		&habits, &diet, &religion, &f.ReligionForMatching, &f.ShowZodiac, &langs, &f.AgeAsRange)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Fields{}, ErrNotFound
 	}
@@ -252,9 +254,9 @@ func (s *Service) Update(ctx context.Context, userID string, f Fields, grantSpec
 	tag, err := tx.Exec(ctx, `
 		UPDATE profiles SET about = $2, prompts = $3, height_cm = $4, weight_kg = $5, body_type = $6,
 			habits = $7, diet = $8, religion = $9, religion_for_matching = $10, show_zodiac = $11,
-			languages = $12, updated_at = now()
+			languages = $12, age_as_range = $13, updated_at = now()
 		WHERE user_id = $1`, userID, f.About, prompts, f.HeightCm, f.WeightKg, nullable(f.BodyType),
-		habits, nullable(f.Diet), nullable(f.Religion), f.ReligionForMatching, f.ShowZodiac, langs)
+		habits, nullable(f.Diet), nullable(f.Religion), f.ReligionForMatching, f.ShowZodiac, langs, f.AgeAsRange)
 	if err != nil {
 		return err
 	}

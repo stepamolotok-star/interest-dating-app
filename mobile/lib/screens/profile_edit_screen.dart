@@ -303,6 +303,19 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ),
         ),
         _Section(
+          title: 'Возраст',
+          child: SwitchListTile(
+            key: const Key('age-as-range'),
+            contentPadding: EdgeInsets.zero,
+            value: f.ageAsRange,
+            onChanged: (v) => setState(() => f.ageAsRange = v),
+            title: const Text('Показывать диапазоном'),
+            subtitle: const Text(
+              'Например, «28–32» вместо «30 лет». Фильтры по возрасту работают как обычно',
+            ),
+          ),
+        ),
+        _Section(
           title: 'Знак зодиака',
           child: SwitchListTile(
             contentPadding: EdgeInsets.zero,

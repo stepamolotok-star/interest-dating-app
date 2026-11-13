@@ -72,6 +72,10 @@ void main() {
     await tester.enterText(find.byKey(const Key('code')), DemoApi.demoCode);
     await tester.pumpAndSettle();
 
+    await tap(find.text('Дальше'));
+    await tester.drag(find.byType(SingleChildScrollView).first, const Offset(0, 2000));
+    await tester.pumpAndSettle();
+    await shot('02b_about_errors');
     await tester.enterText(find.byKey(const Key('name')), 'Аня');
     await tester.enterText(find.byKey(const Key('birth')), '01021995');
     await tap(find.text('Женщина'));
@@ -111,6 +115,12 @@ void main() {
       );
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
       await tap(find.byKey(Key('result-$id')));
+      if (id.endsWith('yoga')) {
+        await tap(find.text('Увлечён всерьёз'));
+        await tap(find.text('Ищу партнёра'));
+        await shot('06_interest_sheet');
+      }
+      await tap(find.text('Добавить'));
     }
     await tester.enterText(find.byKey(const Key('interest-search')), '');
     await tester.pumpAndSettle(const Duration(milliseconds: 300));
@@ -119,19 +129,11 @@ void main() {
     await tap(find.text('Общество и духовность'));
     await tester.scrollUntilVisible(find.text('Духовные практики'), 200, scrollable: list);
     await shot('05_interests');
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('chip-fitness.strength.yoga')),
-      -500,
-      scrollable: list,
-    );
-    await tap(find.byKey(const Key('chip-fitness.strength.yoga')));
-    await tap(find.text('Увлечён всерьёз'));
-    await tap(find.text('Ищу партнёра'));
-    await shot('06_interest_sheet');
-    await tap(find.text('Готово'));
     await tap(find.text('Готово — к людям'));
 
     await shot('07_feed');
+    await tap(find.byKey(const Key('more-interests')));
+    await shot('07b_feed_all_interests');
     await tap(find.byKey(const Key('like')));
     await shot('08_match');
     await tap(find.byKey(const Key('write')));
@@ -162,7 +164,7 @@ void main() {
     await tap(find.byKey(const Key('like')));
     await tap(find.byKey(const Key('like')));
     await tap(find.text('Смотреть дальше'));
-    await tap(find.text('Совпадения'));
+    await tap(find.text('Взаимно'));
     await shot('13_matches');
     await tap(find.text('Профиль'));
     await shot('14_profile');

@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../cities.dart';
 import '../models.dart';
 import 'api.dart';
 
-/// Демо-режим: работает без сервера, данные живут в памяти.
+/// Демо-режим: работает без сервера. Данные хранятся на телефоне и переживают перезапуск.
 /// Код подтверждения всегда [demoCode]. Каталог интересов — тот же, что на сервере.
 class DemoApi extends Api {
   DemoApi({this.catalogJson});
@@ -57,9 +58,107 @@ class DemoApi extends Api {
   @override
   bool get isDemo => true;
 
+  static const _storeKey = 'demo_state_v1';
+
+  /// Поднимает сохранённое состояние демо-режима.
+  @override
+  Future<void> init() async {
+    final raw = (await SharedPreferences.getInstance()).getString(_storeKey);
+    if (raw == null) return;
+    try {
+      _restore(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      // Формат поменялся между версиями — начинаем с чистого листа.
+    }
+  }
+
+  void _save() {
+    final state = jsonEncode(_dump());
+    // Не получилось записать — не страшно: демо продолжит работать в памяти.
+    SharedPreferences.getInstance().then((p) => p.setString(_storeKey, state)).catchError((_) => false);
+  }
+
+  Map<String, dynamic> _dump() => {
+    'registered': _registered,
+    if (_reg != null)
+      'reg': {
+        'name': _reg!.name,
+        'birth_date': _reg!.birthDate.toIso8601String(),
+        'gender': _reg!.gender,
+        'city': _reg!.city,
+        'city_id': _reg!.cityId,
+      },
+    'goals': [for (final g in _goals) g.toJson()],
+    'interests': [
+      for (final i in _interests) {...i.toJson(), 'name': i.name},
+    ],
+    'seen': _seen.toList(),
+    'likes': _likes,
+    'matches': [for (final m in _matches) m.toJson()],
+    'messages': {
+      for (final e in _messages.entries) e.key: [for (final m in e.value) m.toJson()],
+    },
+    'next_message_id': _nextMessageId,
+    'visibility': {
+      'mode': _visibility.mode,
+      'visible_until': _visibility.visibleUntil?.toUtc().toIso8601String(),
+      'radius_m': _visibility.radiusM,
+      'verified_only': _visibility.verifiedOnly,
+    },
+    'zones': [for (final z in _zones) z.toJson()],
+    'next_zone_id': _nextZoneId,
+    'contacts': {'count': _contacts.count, 'hide': _contacts.hide},
+    'profile': _profile.toJson(),
+    'special_consent': _specialConsent,
+    'field_visibility': _fieldVisibility,
+    'prefs': _prefs,
+  };
+
+  void _restore(Map<String, dynamic> j) {
+    List<Map<String, dynamic>> list(String k) => ((j[k] as List?) ?? const []).cast<Map<String, dynamic>>();
+    _registered = j['registered'] as bool? ?? false;
+    final reg = j['reg'] as Map<String, dynamic>?;
+    if (reg != null) {
+      _reg = Registration(
+        name: reg['name'] as String,
+        birthDate: DateTime.parse(reg['birth_date'] as String),
+        gender: reg['gender'] as String,
+        city: reg['city'] as String,
+        cityId: reg['city_id'] as String? ?? '',
+        terms: true,
+        personalData: true,
+      );
+    }
+    _goals = list('goals').map(GoalSetting.fromJson).toList();
+    _interests = list('interests').map(MyInterest.fromJson).toList();
+    _seen.addAll(((j['seen'] as List?) ?? const []).cast<String>());
+    _likes = j['likes'] as int? ?? 0;
+    _matches.addAll(list('matches').map(Match.fromJson));
+    for (final e in ((j['messages'] as Map?) ?? const {}).entries) {
+      _messages[e.key as String] = (e.value as List)
+          .cast<Map<String, dynamic>>()
+          .map(Message.fromJson)
+          .toList();
+    }
+    _nextMessageId = j['next_message_id'] as int? ?? 1;
+    _visibility = NearbyVisibility.fromJson((j['visibility'] as Map<String, dynamic>?) ?? const {});
+    _zones.addAll(list('zones').map(Zone.fromJson));
+    _nextZoneId = j['next_zone_id'] as int? ?? 1;
+    final c = (j['contacts'] as Map<String, dynamic>?) ?? const {};
+    _contacts = ContactsStatus(count: c['count'] as int? ?? 0, hide: c['hide'] as bool? ?? false);
+    _profile = ProfileFields.fromJson((j['profile'] as Map<String, dynamic>?) ?? const {});
+    _specialConsent = j['special_consent'] as bool? ?? false;
+    _fieldVisibility.addAll(((j['field_visibility'] as Map?) ?? const {}).cast<String, String>());
+    for (final e in ((j['prefs'] as Map?) ?? const {}).entries) {
+      _prefs[e.key as String] = Map<String, dynamic>.of(e.value as Map<String, dynamic>);
+    }
+  }
+
   Future<List<_Node>> _catalog() async {
     if (_nodes != null) return _nodes!;
-    final raw = catalogJson ?? await rootBundle.loadString('assets/data/catalog.json');
+    // Не loadString: файлы больше 50 КБ он разбирает в отдельном isolate.
+    final raw =
+        catalogJson ?? utf8.decode((await rootBundle.load('assets/data/catalog.json')).buffer.asUint8List());
     final data = jsonDecode(raw) as Map<String, dynamic>;
     _nodes = (data['nodes'] as List)
         .cast<Map<String, dynamic>>()
@@ -128,6 +227,7 @@ class DemoApi extends Api {
     }
     _reg = r;
     _registered = true;
+    _save();
   }
 
   @override
@@ -187,6 +287,7 @@ class DemoApi extends Api {
       throw const ApiException(403, 'для этой цели подтвердите, что вам есть 18 лет');
     }
     _goals = List.of(goals);
+    _save();
   }
 
   @override
@@ -212,6 +313,7 @@ class DemoApi extends Api {
           seekingPartner: i.seekingPartner,
         ),
     ];
+    _save();
   }
 
   @override
@@ -245,11 +347,17 @@ class DemoApi extends Api {
         _cards[id] = FeedCard(
           userId: id,
           ageRange: person.ageRange,
+          age: person.age,
           goal: goal,
           score: 92 - p * 7,
           explanation: _explain(shared),
           shared: shared,
           otherInterests: person.other,
+          others: [
+            ...person.extraInterests,
+            for (var k = 0; leaves.isNotEmpty && k < person.other - person.extraInterests.length; k++)
+              leaves[(p * 37 + k * 11) % leaves.length].name,
+          ].take(person.other).toList(),
           photoVerified: person.verified,
           ageVerified: person.verified,
           about: person.about,
@@ -271,7 +379,10 @@ class DemoApi extends Api {
     _likes++;
     // В демо каждый второй интерес взаимный — чтобы увидеть экран совпадения.
     final matched = _likes.isOdd;
-    if (!matched) return const InterestResult(false, '');
+    if (!matched) {
+      _save();
+      return const InterestResult(false, '');
+    }
     final p = int.parse(userId.split('-').last);
     final person = _people[p];
     final card = _cards[userId];
@@ -293,6 +404,7 @@ class DemoApi extends Api {
       ),
     );
     _messages[matchId] = [];
+    _save();
     return InterestResult(true, matchId);
   }
 
@@ -367,8 +479,10 @@ class DemoApi extends Api {
             createdAt: DateTime.now(),
           ),
         );
+        _save();
       });
     }
+    _save();
     return m;
   }
 
@@ -378,6 +492,7 @@ class DemoApi extends Api {
     _chat(matchId);
     _matches.removeWhere((m) => m.matchId == matchId);
     _messages.remove(matchId);
+    _save();
   }
 
   @override
@@ -388,6 +503,7 @@ class DemoApi extends Api {
       _messages.remove(m.matchId);
     }
     _seen.add(userId);
+    _save();
   }
 
   @override
@@ -401,6 +517,7 @@ class DemoApi extends Api {
   Future<void> skip(String userId, String goal) async {
     _needUser();
     _seen.add(userId);
+    _save();
   }
 
   bool get _visibleNow =>
@@ -441,6 +558,7 @@ class DemoApi extends Api {
       hideFromContacts: hideFromContacts,
     );
     if (mode == 'off') _position = null;
+    _save();
     return visibility();
   }
 
@@ -449,6 +567,7 @@ class DemoApi extends Api {
     _needUser();
     _visibility = NearbyVisibility(radiusM: _visibility.radiusM);
     _position = null;
+    _save();
   }
 
   @override
@@ -467,6 +586,7 @@ class DemoApi extends Api {
     if (_zones.length >= 10) throw const ApiException(400, 'не больше 10 личных зон');
     final z = Zone(id: 'zone-${_nextZoneId++}', name: name.trim(), lat: lat, lon: lon, radiusM: radiusM);
     _zones.add(z);
+    _save();
     return z;
   }
 
@@ -474,6 +594,7 @@ class DemoApi extends Api {
   Future<void> deleteZone(String id) async {
     _needUser();
     _zones.removeWhere((z) => z.id == id);
+    _save();
   }
 
   @override
@@ -516,11 +637,13 @@ class DemoApi extends Api {
           FeedCard(
             userId: c.userId,
             ageRange: c.ageRange,
+            age: c.age,
             goal: c.goal,
             score: c.score,
             explanation: c.explanation,
             shared: c.shared,
             otherInterests: c.otherInterests,
+            others: c.others,
             photoVerified: c.photoVerified,
             ageVerified: c.ageVerified,
             about: c.about,
@@ -544,13 +667,16 @@ class DemoApi extends Api {
     _needUser();
     await _pause();
     if (hashes.length > 5000) throw const ApiException(400, 'не больше 5000 номеров');
-    return _contacts = ContactsStatus(count: hashes.toSet().length, hide: true);
+    _contacts = ContactsStatus(count: hashes.toSet().length, hide: true);
+    _save();
+    return _contacts;
   }
 
   @override
   Future<void> clearContacts() async {
     _needUser();
     _contacts = const ContactsStatus();
+    _save();
   }
 
   @override
@@ -573,6 +699,7 @@ class DemoApi extends Api {
     if (grantSpecial) _specialConsent = true;
     if (fields.religion.isEmpty) _specialConsent = false;
     _profile = fields.copy();
+    _save();
   }
 
   @override
@@ -585,6 +712,7 @@ class DemoApi extends Api {
   Future<void> setFieldVisibility(Map<String, String> changes) async {
     _needUser();
     _fieldVisibility.addAll(changes);
+    _save();
   }
 
   @override
@@ -602,6 +730,7 @@ class DemoApi extends Api {
       throw const ApiException(400, 'рост и вес можно задавать только в романтических целях');
     }
     _prefs[goal] = prefs.toJson();
+    _save();
   }
 
   @override

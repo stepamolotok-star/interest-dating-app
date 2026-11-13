@@ -68,6 +68,7 @@ class AppState extends ChangeNotifier {
 
   /// При запуске: восстанавливаем сессию и понимаем, на каком шаге человек остановился.
   Future<void> start() async {
+    await api.init();
     final prefs = await SharedPreferences.getInstance();
     api.token = prefs.getString(_tokenKey);
     if (api.token == null) return _go(Stage.phone);

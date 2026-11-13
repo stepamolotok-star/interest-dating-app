@@ -26,6 +26,9 @@ abstract class Api {
   /// Токен текущей сессии; null — не вошли.
   String? token;
 
+  /// Подготовка при запуске (демо-режим поднимает сохранённые данные).
+  Future<void> init() async {}
+
   Future<Challenge> startAuth(String phone, {String method = 'call'});
   Future<Session> verify(String phone, String code);
   Future<void> register(Registration r);

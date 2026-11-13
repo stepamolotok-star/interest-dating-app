@@ -81,19 +81,21 @@ class _InterestsScreenState extends State<InterestsScreen> {
     });
   }
 
-  void _toggle(InterestNode n) {
-    if (_selected.containsKey(n.id)) {
-      setState(() => _selected.remove(n.id));
-      return;
-    }
+  /// Нажатие на интерес: новый — добавляем и сразу спрашиваем уровень и «ищу партнёра»
+  /// (иначе до настройки мало кто доберётся), уже выбранный — открываем его настройки.
+  Future<void> _toggle(InterestNode n) async {
+    final existing = _selected[n.id];
+    if (existing != null) return _edit(existing);
     if (_selected.length >= maxInterests) {
       showInfo(context, 'Не больше $maxInterests интересов — оставьте самые важные');
       return;
     }
-    setState(() => _selected[n.id] = MyInterest(id: n.id, name: n.name));
+    final i = MyInterest(id: n.id, name: n.name);
+    setState(() => _selected[n.id] = i);
+    await _edit(i, isNew: true);
   }
 
-  Future<void> _edit(MyInterest i) async {
+  Future<void> _edit(MyInterest i, {bool isNew = false}) async {
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -101,6 +103,7 @@ class _InterestsScreenState extends State<InterestsScreen> {
       backgroundColor: AppColors.bg,
       builder: (_) => _InterestSheet(
         interest: i,
+        isNew: isNew,
         onRemove: () => setState(() => _selected.remove(i.id)),
         onChanged: () => setState(() {}),
       ),
@@ -115,7 +118,7 @@ class _InterestsScreenState extends State<InterestsScreen> {
       onBack: widget.onboarding ? null : () => Navigator.of(context).pop(),
       scrollable: false,
       title: 'Ваши интересы',
-      subtitle: 'По ним подбираем людей. Нажмите на выбранный, чтобы указать уровень.',
+      subtitle: 'По ним подбираем людей. У каждого интереса можно указать, насколько вы им увлечены.',
       button: BusyButton(
         label: n < minInterests
             ? 'Выберите ещё ${minInterests - n}'
@@ -449,9 +452,17 @@ class _SearchResults extends StatelessWidget {
 }
 
 class _InterestSheet extends StatefulWidget {
-  const _InterestSheet({required this.interest, required this.onRemove, required this.onChanged});
+  const _InterestSheet({
+    required this.interest,
+    required this.onRemove,
+    required this.onChanged,
+    this.isNew = false,
+  });
 
   final MyInterest interest;
+
+  /// Только что добавлен: вместо «Убрать» — «Отмена», вместо «Готово» — «Добавить».
+  final bool isNew;
   final VoidCallback onRemove;
   final VoidCallback onChanged;
 
@@ -471,6 +482,13 @@ class _InterestSheetState extends State<_InterestSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(i.name, style: Theme.of(context).textTheme.headlineSmall),
+            if (widget.isNew) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Отметьте, насколько увлечены, — так подбор точнее. Изменить можно в любой момент.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
             const SizedBox(height: 16),
             Text('Насколько увлечены', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
@@ -511,14 +529,14 @@ class _InterestSheetState extends State<_InterestSheet> {
                       widget.onRemove();
                       Navigator.of(context).pop();
                     },
-                    child: const Text('Убрать'),
+                    child: Text(widget.isNew ? 'Отмена' : 'Убрать'),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: FilledButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Готово'),
+                    child: Text(widget.isNew ? 'Добавить' : 'Готово'),
                   ),
                 ),
               ],

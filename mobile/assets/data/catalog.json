@@ -1,5 +1,5 @@
 {
- "version": 1,
+ "version": 2,
  "nodes": [
   {
    "id": "sport_team",
@@ -42,6 +42,58 @@
    "synonyms": []
   },
   {
+   "id": "sport_team.ball.rugby",
+   "parent": "sport_team.ball",
+   "name": "Регби",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.ball.handball",
+   "parent": "sport_team.ball",
+   "name": "Гандбол",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.ball.futsal",
+   "parent": "sport_team.ball",
+   "name": "Мини-футбол",
+   "synonyms": [
+    "футзал"
+   ]
+  },
+  {
+   "id": "sport_team.ball.beach_volleyball",
+   "parent": "sport_team.ball",
+   "name": "Пляжный волейбол",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.ball.bandy",
+   "parent": "sport_team.ball",
+   "name": "Хоккей с мячом",
+   "synonyms": [
+    "бенди"
+   ]
+  },
+  {
+   "id": "sport_team.ball.floorball",
+   "parent": "sport_team.ball",
+   "name": "Флорбол",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.ball.american_football",
+   "parent": "sport_team.ball",
+   "name": "Американский футбол",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.ball.streetball",
+   "parent": "sport_team.ball",
+   "name": "Стритбол",
+   "synonyms": []
+  },
+  {
    "id": "sport_team.racket",
    "parent": "sport_team",
    "name": "Ракетки",
@@ -75,6 +127,129 @@
    "id": "sport_team.racket.badminton",
    "parent": "sport_team.racket",
    "name": "Бадминтон",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.racket.squash",
+   "parent": "sport_team.racket",
+   "name": "Сквош",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.racket.pickleball",
+   "parent": "sport_team.racket",
+   "name": "Пиклбол",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.precision",
+   "parent": "sport_team",
+   "name": "Меткость",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.precision.billiards",
+   "parent": "sport_team.precision",
+   "name": "Бильярд",
+   "synonyms": [
+    "русский бильярд",
+    "пул"
+   ]
+  },
+  {
+   "id": "sport_team.precision.darts",
+   "parent": "sport_team.precision",
+   "name": "Дартс",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.precision.bowling",
+   "parent": "sport_team.precision",
+   "name": "Боулинг",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.precision.golf",
+   "parent": "sport_team.precision",
+   "name": "Гольф",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.precision.archery",
+   "parent": "sport_team.precision",
+   "name": "Стрельба из лука",
+   "synonyms": [
+    "лук"
+   ]
+  },
+  {
+   "id": "sport_team.precision.shooting",
+   "parent": "sport_team.precision",
+   "name": "Стрелковый спорт",
+   "synonyms": [
+    "стрельба"
+   ]
+  },
+  {
+   "id": "sport_team.precision.curling",
+   "parent": "sport_team.precision",
+   "name": "Кёрлинг",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.extreme",
+   "parent": "sport_team",
+   "name": "Экстрим",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.extreme.skateboarding",
+   "parent": "sport_team.extreme",
+   "name": "Скейтбординг",
+   "synonyms": [
+    "скейт"
+   ]
+  },
+  {
+   "id": "sport_team.extreme.bmx",
+   "parent": "sport_team.extreme",
+   "name": "BMX",
+   "synonyms": [
+    "бмх"
+   ]
+  },
+  {
+   "id": "sport_team.extreme.parkour",
+   "parent": "sport_team.extreme",
+   "name": "Паркур",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.extreme.skydiving",
+   "parent": "sport_team.extreme",
+   "name": "Парашютный спорт",
+   "synonyms": [
+    "прыжки с парашютом"
+   ]
+  },
+  {
+   "id": "sport_team.extreme.wakeboarding",
+   "parent": "sport_team.extreme",
+   "name": "Вейкбординг",
+   "synonyms": []
+  },
+  {
+   "id": "sport_team.extreme.kitesurfing",
+   "parent": "sport_team.extreme",
+   "name": "Кайтсёрфинг",
+   "synonyms": [
+    "кайт"
+   ]
+  },
+  {
+   "id": "sport_team.extreme.windsurfing",
+   "parent": "sport_team.extreme",
+   "name": "Виндсёрфинг",
    "synonyms": []
   },
   {
@@ -122,6 +297,50 @@
    "synonyms": []
   },
   {
+   "id": "fitness.endurance.trail",
+   "parent": "fitness.endurance",
+   "name": "Трейлраннинг",
+   "synonyms": [
+    "трейл"
+   ]
+  },
+  {
+   "id": "fitness.endurance.marathon",
+   "parent": "fitness.endurance",
+   "name": "Марафоны",
+   "synonyms": [
+    "полумарафон"
+   ]
+  },
+  {
+   "id": "fitness.endurance.xc_skiing",
+   "parent": "fitness.endurance",
+   "name": "Беговые лыжи",
+   "synonyms": [
+    "лыжи"
+   ]
+  },
+  {
+   "id": "fitness.endurance.nordic_walking",
+   "parent": "fitness.endurance",
+   "name": "Скандинавская ходьба",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.endurance.rowing",
+   "parent": "fitness.endurance",
+   "name": "Гребля",
+   "synonyms": [
+    "академическая гребля"
+   ]
+  },
+  {
+   "id": "fitness.endurance.open_water",
+   "parent": "fitness.endurance",
+   "name": "Плавание на открытой воде",
+   "synonyms": []
+  },
+  {
    "id": "fitness.strength",
    "parent": "fitness",
    "name": "Сила и тело",
@@ -161,6 +380,56 @@
    ]
   },
   {
+   "id": "fitness.strength.pilates",
+   "parent": "fitness.strength",
+   "name": "Пилатес",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.strength.stretching",
+   "parent": "fitness.strength",
+   "name": "Стретчинг",
+   "synonyms": [
+    "растяжка"
+   ]
+  },
+  {
+   "id": "fitness.strength.workout",
+   "parent": "fitness.strength",
+   "name": "Воркаут",
+   "synonyms": [
+    "турники",
+    "калистеника"
+   ]
+  },
+  {
+   "id": "fitness.strength.powerlifting",
+   "parent": "fitness.strength",
+   "name": "Пауэрлифтинг",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.strength.gymnastics",
+   "parent": "fitness.strength",
+   "name": "Гимнастика",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.strength.acrobatics",
+   "parent": "fitness.strength",
+   "name": "Акробатика",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.strength.aerial",
+   "parent": "fitness.strength",
+   "name": "Воздушная гимнастика",
+   "synonyms": [
+    "полотна",
+    "кольцо"
+   ]
+  },
+  {
    "id": "fitness.martial",
    "parent": "fitness",
    "name": "Единоборства",
@@ -191,6 +460,112 @@
    "parent": "fitness.martial",
    "name": "Джиу-джитсу",
    "synonyms": []
+  },
+  {
+   "id": "fitness.martial.karate",
+   "parent": "fitness.martial",
+   "name": "Карате",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.martial.taekwondo",
+   "parent": "fitness.martial",
+   "name": "Тхэквондо",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.martial.sambo",
+   "parent": "fitness.martial",
+   "name": "Самбо",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.martial.wrestling",
+   "parent": "fitness.martial",
+   "name": "Борьба",
+   "synonyms": [
+    "вольная борьба",
+    "греко-римская"
+   ]
+  },
+  {
+   "id": "fitness.martial.kickboxing",
+   "parent": "fitness.martial",
+   "name": "Кикбоксинг",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.martial.muay_thai",
+   "parent": "fitness.martial",
+   "name": "Тайский бокс",
+   "synonyms": [
+    "муай-тай"
+   ]
+  },
+  {
+   "id": "fitness.martial.aikido",
+   "parent": "fitness.martial",
+   "name": "Айкидо",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.martial.fencing",
+   "parent": "fitness.martial",
+   "name": "Фехтование",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.martial.self_defense",
+   "parent": "fitness.martial",
+   "name": "Самооборона",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.wellness",
+   "parent": "fitness",
+   "name": "Здоровье",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.wellness.healthy_eating",
+   "parent": "fitness.wellness",
+   "name": "Здоровое питание",
+   "synonyms": [
+    "пп",
+    "правильное питание"
+   ]
+  },
+  {
+   "id": "fitness.wellness.banya",
+   "parent": "fitness.wellness",
+   "name": "Баня",
+   "synonyms": [
+    "парение",
+    "сауна"
+   ]
+  },
+  {
+   "id": "fitness.wellness.cold",
+   "parent": "fitness.wellness",
+   "name": "Моржевание и закаливание",
+   "synonyms": [
+    "закаливание",
+    "обливания"
+   ]
+  },
+  {
+   "id": "fitness.wellness.biohacking",
+   "parent": "fitness.wellness",
+   "name": "Биохакинг",
+   "synonyms": []
+  },
+  {
+   "id": "fitness.wellness.posture",
+   "parent": "fitness.wellness",
+   "name": "Здоровая спина и осанка",
+   "synonyms": [
+    "осанка"
+   ]
   },
   {
    "id": "outdoor",
@@ -234,6 +609,26 @@
    "synonyms": []
   },
   {
+   "id": "outdoor.mountains.ski_touring",
+   "parent": "outdoor.mountains",
+   "name": "Ски-тур",
+   "synonyms": []
+  },
+  {
+   "id": "outdoor.mountains.freeride",
+   "parent": "outdoor.mountains",
+   "name": "Фрирайд",
+   "synonyms": []
+  },
+  {
+   "id": "outdoor.mountains.trekking",
+   "parent": "outdoor.mountains",
+   "name": "Треккинг",
+   "synonyms": [
+    "многодневные походы"
+   ]
+  },
+  {
    "id": "outdoor.water",
    "parent": "outdoor",
    "name": "Вода",
@@ -271,6 +666,41 @@
    ]
   },
   {
+   "id": "outdoor.water.sailing",
+   "parent": "outdoor.water",
+   "name": "Парусный спорт",
+   "synonyms": [
+    "яхтинг",
+    "яхты"
+   ]
+  },
+  {
+   "id": "outdoor.water.kayaking",
+   "parent": "outdoor.water",
+   "name": "Каякинг",
+   "synonyms": [
+    "байдарки"
+   ]
+  },
+  {
+   "id": "outdoor.water.snorkeling",
+   "parent": "outdoor.water",
+   "name": "Снорклинг",
+   "synonyms": []
+  },
+  {
+   "id": "outdoor.water.spearfishing",
+   "parent": "outdoor.water",
+   "name": "Подводная охота",
+   "synonyms": []
+  },
+  {
+   "id": "outdoor.water.boats",
+   "parent": "outdoor.water",
+   "name": "Катера и лодки",
+   "synonyms": []
+  },
+  {
    "id": "outdoor.wild",
    "parent": "outdoor",
    "name": "Дикая природа",
@@ -295,6 +725,79 @@
    "parent": "outdoor.wild",
    "name": "Наблюдение за птицами",
    "synonyms": []
+  },
+  {
+   "id": "outdoor.wild.mushrooms",
+   "parent": "outdoor.wild",
+   "name": "Сбор грибов",
+   "synonyms": [
+    "тихая охота",
+    "грибы"
+   ]
+  },
+  {
+   "id": "outdoor.wild.bushcraft",
+   "parent": "outdoor.wild",
+   "name": "Бушкрафт и выживание",
+   "synonyms": [
+    "выживание"
+   ]
+  },
+  {
+   "id": "outdoor.wild.geocaching",
+   "parent": "outdoor.wild",
+   "name": "Геокэшинг",
+   "synonyms": []
+  },
+  {
+   "id": "outdoor.wild.caving",
+   "parent": "outdoor.wild",
+   "name": "Спелеология",
+   "synonyms": [
+    "пещеры"
+   ]
+  },
+  {
+   "id": "outdoor.wild.foraging",
+   "parent": "outdoor.wild",
+   "name": "Сбор ягод и трав",
+   "synonyms": [
+    "травы"
+   ]
+  },
+  {
+   "id": "outdoor.winter",
+   "parent": "outdoor",
+   "name": "Зима",
+   "synonyms": []
+  },
+  {
+   "id": "outdoor.winter.skating",
+   "parent": "outdoor.winter",
+   "name": "Коньки",
+   "synonyms": [
+    "фигурное катание"
+   ]
+  },
+  {
+   "id": "outdoor.winter.ice_fishing",
+   "parent": "outdoor.winter",
+   "name": "Зимняя рыбалка",
+   "synonyms": []
+  },
+  {
+   "id": "outdoor.winter.snowmobile",
+   "parent": "outdoor.winter",
+   "name": "Снегоходы",
+   "synonyms": []
+  },
+  {
+   "id": "outdoor.winter.dog_sledding",
+   "parent": "outdoor.winter",
+   "name": "Собачьи упряжки",
+   "synonyms": [
+    "ездовой спорт"
+   ]
   },
   {
    "id": "transport",
@@ -340,6 +843,24 @@
    ]
   },
   {
+   "id": "transport.moto.scooters",
+   "parent": "transport.moto",
+   "name": "Скутеры и мопеды",
+   "synonyms": []
+  },
+  {
+   "id": "transport.moto.motocross",
+   "parent": "transport.moto",
+   "name": "Мотокросс",
+   "synonyms": []
+  },
+  {
+   "id": "transport.moto.moto_repair",
+   "parent": "transport.moto",
+   "name": "Ремонт мотоциклов",
+   "synonyms": []
+  },
+  {
    "id": "transport.auto",
    "parent": "transport",
    "name": "Автомобили",
@@ -371,6 +892,41 @@
    ]
   },
   {
+   "id": "transport.auto.drift",
+   "parent": "transport.auto",
+   "name": "Дрифт",
+   "synonyms": []
+  },
+  {
+   "id": "transport.auto.karting",
+   "parent": "transport.auto",
+   "name": "Картинг",
+   "synonyms": []
+  },
+  {
+   "id": "transport.auto.classic_cars",
+   "parent": "transport.auto",
+   "name": "Ретроавтомобили",
+   "synonyms": [
+    "ретро",
+    "классика"
+   ]
+  },
+  {
+   "id": "transport.auto.car_repair",
+   "parent": "transport.auto",
+   "name": "Ремонт автомобилей",
+   "synonyms": [
+    "гараж"
+   ]
+  },
+  {
+   "id": "transport.auto.rally",
+   "parent": "transport.auto",
+   "name": "Ралли",
+   "synonyms": []
+  },
+  {
    "id": "transport.air",
    "parent": "transport",
    "name": "Небо",
@@ -400,6 +956,40 @@
    "synonyms": [
     "самолёты"
    ]
+  },
+  {
+   "id": "transport.air.rc_models",
+   "parent": "transport.air",
+   "name": "Авиамоделизм",
+   "synonyms": [
+    "радиоуправляемые модели"
+   ]
+  },
+  {
+   "id": "transport.air.balloons",
+   "parent": "transport.air",
+   "name": "Воздушные шары",
+   "synonyms": []
+  },
+  {
+   "id": "transport.rail",
+   "parent": "transport",
+   "name": "Рельсы",
+   "synonyms": []
+  },
+  {
+   "id": "transport.rail.railways",
+   "parent": "transport.rail",
+   "name": "Железные дороги",
+   "synonyms": [
+    "поезда"
+   ]
+  },
+  {
+   "id": "transport.rail.metro",
+   "parent": "transport.rail",
+   "name": "Метро",
+   "synonyms": []
   },
   {
    "id": "tech",
@@ -440,6 +1030,53 @@
    ]
   },
   {
+   "id": "tech.software.web",
+   "parent": "tech.software",
+   "name": "Веб-разработка",
+   "synonyms": [
+    "фронтенд",
+    "бэкенд"
+   ]
+  },
+  {
+   "id": "tech.software.mobile",
+   "parent": "tech.software",
+   "name": "Мобильная разработка",
+   "synonyms": []
+  },
+  {
+   "id": "tech.software.data",
+   "parent": "tech.software",
+   "name": "Анализ данных",
+   "synonyms": [
+    "data science"
+   ]
+  },
+  {
+   "id": "tech.software.security",
+   "parent": "tech.software",
+   "name": "Кибербезопасность",
+   "synonyms": [
+    "информационная безопасность"
+   ]
+  },
+  {
+   "id": "tech.software.open_source",
+   "parent": "tech.software",
+   "name": "Открытый код",
+   "synonyms": [
+    "open source"
+   ]
+  },
+  {
+   "id": "tech.software.linux",
+   "parent": "tech.software",
+   "name": "Linux",
+   "synonyms": [
+    "линукс"
+   ]
+  },
+  {
    "id": "tech.hardware",
    "parent": "tech",
    "name": "Железо",
@@ -466,6 +1103,57 @@
    "id": "tech.hardware.robotics",
    "parent": "tech.hardware",
    "name": "Робототехника",
+   "synonyms": []
+  },
+  {
+   "id": "tech.hardware.arduino",
+   "parent": "tech.hardware",
+   "name": "Arduino и микроконтроллеры",
+   "synonyms": [
+    "ардуино"
+   ]
+  },
+  {
+   "id": "tech.hardware.smart_home",
+   "parent": "tech.hardware",
+   "name": "Умный дом",
+   "synonyms": []
+  },
+  {
+   "id": "tech.hardware.pc_building",
+   "parent": "tech.hardware",
+   "name": "Сборка компьютеров",
+   "synonyms": [
+    "сборка пк"
+   ]
+  },
+  {
+   "id": "tech.hardware.ham_radio",
+   "parent": "tech.hardware",
+   "name": "Радиолюбительство",
+   "synonyms": [
+    "радио"
+   ]
+  },
+  {
+   "id": "tech.hardware.gadgets",
+   "parent": "tech.hardware",
+   "name": "Гаджеты",
+   "synonyms": []
+  },
+  {
+   "id": "tech.hardware.vr",
+   "parent": "tech.hardware",
+   "name": "Виртуальная реальность",
+   "synonyms": [
+    "vr",
+    "ar"
+   ]
+  },
+  {
+   "id": "tech.hardware.retro_tech",
+   "parent": "tech.hardware",
+   "name": "Ретротехника",
    "synonyms": []
   },
   {
@@ -504,6 +1192,57 @@
    "synonyms": []
   },
   {
+   "id": "games.video.mobile_games",
+   "parent": "games.video",
+   "name": "Мобильные игры",
+   "synonyms": []
+  },
+  {
+   "id": "games.video.retro_games",
+   "parent": "games.video",
+   "name": "Ретро-игры",
+   "synonyms": [
+    "денди",
+    "сега"
+   ]
+  },
+  {
+   "id": "games.video.streaming",
+   "parent": "games.video",
+   "name": "Стриминг игр",
+   "synonyms": [
+    "стримы"
+   ]
+  },
+  {
+   "id": "games.video.mmo",
+   "parent": "games.video",
+   "name": "MMORPG",
+   "synonyms": [
+    "ммо"
+   ]
+  },
+  {
+   "id": "games.video.strategy",
+   "parent": "games.video",
+   "name": "Стратегии",
+   "synonyms": []
+  },
+  {
+   "id": "games.video.shooters",
+   "parent": "games.video",
+   "name": "Шутеры",
+   "synonyms": []
+  },
+  {
+   "id": "games.video.rpg",
+   "parent": "games.video",
+   "name": "Компьютерные RPG",
+   "synonyms": [
+    "рпг"
+   ]
+  },
+  {
    "id": "games.table",
    "parent": "games",
    "name": "Настольные игры",
@@ -536,6 +1275,105 @@
    "id": "games.table.quests",
    "parent": "games.table",
    "name": "Квесты",
+   "synonyms": []
+  },
+  {
+   "id": "games.table.go",
+   "parent": "games.table",
+   "name": "Го",
+   "synonyms": [
+    "вэйци"
+   ]
+  },
+  {
+   "id": "games.table.mafia",
+   "parent": "games.table",
+   "name": "Мафия",
+   "synonyms": []
+  },
+  {
+   "id": "games.table.wargames",
+   "parent": "games.table",
+   "name": "Варгеймы",
+   "synonyms": [
+    "warhammer"
+   ]
+  },
+  {
+   "id": "games.table.puzzles",
+   "parent": "games.table",
+   "name": "Головоломки",
+   "synonyms": [
+    "пазлы"
+   ]
+  },
+  {
+   "id": "games.table.crosswords",
+   "parent": "games.table",
+   "name": "Кроссворды",
+   "synonyms": [
+    "сканворды"
+   ]
+  },
+  {
+   "id": "games.table.quiz",
+   "parent": "games.table",
+   "name": "Квизы",
+   "synonyms": [
+    "что где когда"
+   ]
+  },
+  {
+   "id": "games.table.cards",
+   "parent": "games.table",
+   "name": "Карточные игры",
+   "synonyms": [
+    "преферанс"
+   ]
+  },
+  {
+   "id": "games.table.backgammon",
+   "parent": "games.table",
+   "name": "Нарды",
+   "synonyms": []
+  },
+  {
+   "id": "games.table.checkers",
+   "parent": "games.table",
+   "name": "Шашки",
+   "synonyms": []
+  },
+  {
+   "id": "games.live",
+   "parent": "games",
+   "name": "Живые игры",
+   "synonyms": []
+  },
+  {
+   "id": "games.live.larp",
+   "parent": "games.live",
+   "name": "Ролевые игры живого действия",
+   "synonyms": [
+    "ролевки",
+    "larp"
+   ]
+  },
+  {
+   "id": "games.live.airsoft",
+   "parent": "games.live",
+   "name": "Страйкбол",
+   "synonyms": []
+  },
+  {
+   "id": "games.live.paintball",
+   "parent": "games.live",
+   "name": "Пейнтбол",
+   "synonyms": []
+  },
+  {
+   "id": "games.live.laser_tag",
+   "parent": "games.live",
+   "name": "Лазертаг",
    "synonyms": []
   },
   {
@@ -578,6 +1416,38 @@
    "synonyms": []
   },
   {
+   "id": "home.garden.flowers",
+   "parent": "home.garden",
+   "name": "Цветоводство",
+   "synonyms": [
+    "цветы"
+   ]
+  },
+  {
+   "id": "home.garden.landscape",
+   "parent": "home.garden",
+   "name": "Ландшафтный дизайн",
+   "synonyms": []
+  },
+  {
+   "id": "home.garden.hydroponics",
+   "parent": "home.garden",
+   "name": "Гидропоника",
+   "synonyms": []
+  },
+  {
+   "id": "home.garden.dacha",
+   "parent": "home.garden",
+   "name": "Дача",
+   "synonyms": []
+  },
+  {
+   "id": "home.garden.greenhouse",
+   "parent": "home.garden",
+   "name": "Теплицы",
+   "synonyms": []
+  },
+  {
    "id": "home.craft",
    "parent": "home",
    "name": "Ремёсла",
@@ -603,6 +1473,75 @@
    "id": "home.craft.restoration",
    "parent": "home.craft",
    "name": "Реставрация",
+   "synonyms": []
+  },
+  {
+   "id": "home.craft.woodcarving",
+   "parent": "home.craft",
+   "name": "Резьба по дереву",
+   "synonyms": []
+  },
+  {
+   "id": "home.craft.blacksmith",
+   "parent": "home.craft",
+   "name": "Кузнечное дело",
+   "synonyms": [
+    "ковка"
+   ]
+  },
+  {
+   "id": "home.craft.leather",
+   "parent": "home.craft",
+   "name": "Работа с кожей",
+   "synonyms": []
+  },
+  {
+   "id": "home.craft.scale_models",
+   "parent": "home.craft",
+   "name": "Стендовый моделизм",
+   "synonyms": [
+    "модели",
+    "сборные модели"
+   ]
+  },
+  {
+   "id": "home.craft.welding",
+   "parent": "home.craft",
+   "name": "Сварка и металл",
+   "synonyms": []
+  },
+  {
+   "id": "home.house",
+   "parent": "home",
+   "name": "Дом и быт",
+   "synonyms": []
+  },
+  {
+   "id": "home.house.interior",
+   "parent": "home.house",
+   "name": "Дизайн интерьера",
+   "synonyms": [
+    "интерьер"
+   ]
+  },
+  {
+   "id": "home.house.organizing",
+   "parent": "home.house",
+   "name": "Порядок и организация пространства",
+   "synonyms": [
+    "расхламление"
+   ]
+  },
+  {
+   "id": "home.house.minimalism",
+   "parent": "home.house",
+   "name": "Минимализм",
+   "synonyms": []
+  },
+  {
+   "id": "home.house.decor",
+   "parent": "home.house",
+   "name": "Декор своими руками",
    "synonyms": []
   },
   {
@@ -648,6 +1587,62 @@
    "synonyms": []
   },
   {
+   "id": "creative.visual.drawing",
+   "parent": "creative.visual",
+   "name": "Рисование и скетчинг",
+   "synonyms": [
+    "скетчинг",
+    "рисую"
+   ]
+  },
+  {
+   "id": "creative.visual.digital_art",
+   "parent": "creative.visual",
+   "name": "Цифровая иллюстрация",
+   "synonyms": [
+    "диджитал-арт"
+   ]
+  },
+  {
+   "id": "creative.visual.calligraphy",
+   "parent": "creative.visual",
+   "name": "Каллиграфия",
+   "synonyms": [
+    "леттеринг"
+   ]
+  },
+  {
+   "id": "creative.visual.street_art",
+   "parent": "creative.visual",
+   "name": "Граффити и стрит-арт",
+   "synonyms": [
+    "граффити"
+   ]
+  },
+  {
+   "id": "creative.visual.film_photo",
+   "parent": "creative.visual",
+   "name": "Плёночная фотография",
+   "synonyms": [
+    "плёнка"
+   ]
+  },
+  {
+   "id": "creative.visual.animation",
+   "parent": "creative.visual",
+   "name": "Анимация",
+   "synonyms": []
+  },
+  {
+   "id": "creative.visual.3d",
+   "parent": "creative.visual",
+   "name": "3D-графика",
+   "synonyms": [
+    "3д",
+    "блендер"
+   ]
+  },
+  {
    "id": "creative.handmade",
    "parent": "creative",
    "name": "Рукоделие",
@@ -674,6 +1669,68 @@
    "synonyms": []
   },
   {
+   "id": "creative.handmade.embroidery",
+   "parent": "creative.handmade",
+   "name": "Вышивка",
+   "synonyms": [
+    "вышивание"
+   ]
+  },
+  {
+   "id": "creative.handmade.jewelry",
+   "parent": "creative.handmade",
+   "name": "Украшения своими руками",
+   "synonyms": [
+    "бижутерия"
+   ]
+  },
+  {
+   "id": "creative.handmade.soap",
+   "parent": "creative.handmade",
+   "name": "Мыловарение",
+   "synonyms": []
+  },
+  {
+   "id": "creative.handmade.candles",
+   "parent": "creative.handmade",
+   "name": "Свечи своими руками",
+   "synonyms": []
+  },
+  {
+   "id": "creative.handmade.macrame",
+   "parent": "creative.handmade",
+   "name": "Макраме",
+   "synonyms": []
+  },
+  {
+   "id": "creative.handmade.origami",
+   "parent": "creative.handmade",
+   "name": "Оригами",
+   "synonyms": []
+  },
+  {
+   "id": "creative.handmade.scrapbooking",
+   "parent": "creative.handmade",
+   "name": "Скрапбукинг",
+   "synonyms": []
+  },
+  {
+   "id": "creative.handmade.felting",
+   "parent": "creative.handmade",
+   "name": "Валяние",
+   "synonyms": [
+    "войлок"
+   ]
+  },
+  {
+   "id": "creative.handmade.beads",
+   "parent": "creative.handmade",
+   "name": "Бисероплетение",
+   "synonyms": [
+    "бисер"
+   ]
+  },
+  {
    "id": "creative.writing",
    "parent": "creative",
    "name": "Слово",
@@ -693,6 +1750,121 @@
    "parent": "creative.writing",
    "name": "Блогинг",
    "synonyms": []
+  },
+  {
+   "id": "creative.writing.poetry",
+   "parent": "creative.writing",
+   "name": "Поэзия",
+   "synonyms": [
+    "стихи"
+   ]
+  },
+  {
+   "id": "creative.writing.journaling",
+   "parent": "creative.writing",
+   "name": "Ведение дневника",
+   "synonyms": [
+    "дневник"
+   ]
+  },
+  {
+   "id": "creative.writing.screenwriting",
+   "parent": "creative.writing",
+   "name": "Сценарии",
+   "synonyms": []
+  },
+  {
+   "id": "creative.writing.translation",
+   "parent": "creative.writing",
+   "name": "Переводы",
+   "synonyms": []
+  },
+  {
+   "id": "creative.writing.journalism",
+   "parent": "creative.writing",
+   "name": "Журналистика",
+   "synonyms": []
+  },
+  {
+   "id": "creative.performing",
+   "parent": "creative",
+   "name": "Выступления",
+   "synonyms": []
+  },
+  {
+   "id": "creative.performing.acting",
+   "parent": "creative.performing",
+   "name": "Актёрское мастерство",
+   "synonyms": [
+    "театральная студия"
+   ]
+  },
+  {
+   "id": "creative.performing.improv",
+   "parent": "creative.performing",
+   "name": "Импровизация",
+   "synonyms": [
+    "импров"
+   ]
+  },
+  {
+   "id": "creative.performing.public_speaking",
+   "parent": "creative.performing",
+   "name": "Ораторское искусство",
+   "synonyms": [
+    "публичные выступления"
+   ]
+  },
+  {
+   "id": "creative.performing.cosplay",
+   "parent": "creative.performing",
+   "name": "Косплей",
+   "synonyms": []
+  },
+  {
+   "id": "creative.performing.magic",
+   "parent": "creative.performing",
+   "name": "Фокусы",
+   "synonyms": [
+    "иллюзионизм"
+   ]
+  },
+  {
+   "id": "creative.performing.circus",
+   "parent": "creative.performing",
+   "name": "Цирковое искусство",
+   "synonyms": [
+    "жонглирование"
+   ]
+  },
+  {
+   "id": "creative.media",
+   "parent": "creative",
+   "name": "Медиа",
+   "synonyms": []
+  },
+  {
+   "id": "creative.media.podcasts",
+   "parent": "creative.media",
+   "name": "Подкасты",
+   "synonyms": []
+  },
+  {
+   "id": "creative.media.video_blog",
+   "parent": "creative.media",
+   "name": "Видеоблоги",
+   "synonyms": [
+    "ютуб",
+    "влог"
+   ]
+  },
+  {
+   "id": "creative.media.editing",
+   "parent": "creative.media",
+   "name": "Монтаж видео",
+   "synonyms": [
+    "монтаж"
+   ]
   },
   {
    "id": "music",
@@ -737,6 +1909,78 @@
    ]
   },
   {
+   "id": "music.play.drums",
+   "parent": "music.play",
+   "name": "Барабаны",
+   "synonyms": [
+    "ударные"
+   ]
+  },
+  {
+   "id": "music.play.violin",
+   "parent": "music.play",
+   "name": "Скрипка",
+   "synonyms": []
+  },
+  {
+   "id": "music.play.bass",
+   "parent": "music.play",
+   "name": "Бас-гитара",
+   "synonyms": []
+  },
+  {
+   "id": "music.play.ukulele",
+   "parent": "music.play",
+   "name": "Укулеле",
+   "synonyms": []
+  },
+  {
+   "id": "music.play.wind",
+   "parent": "music.play",
+   "name": "Духовые инструменты",
+   "synonyms": [
+    "саксофон",
+    "труба",
+    "флейта"
+   ]
+  },
+  {
+   "id": "music.play.accordion",
+   "parent": "music.play",
+   "name": "Баян и аккордеон",
+   "synonyms": []
+  },
+  {
+   "id": "music.play.choir",
+   "parent": "music.play",
+   "name": "Хор",
+   "synonyms": []
+  },
+  {
+   "id": "music.play.production",
+   "parent": "music.play",
+   "name": "Создание музыки",
+   "synonyms": [
+    "продакшн",
+    "битмейкинг"
+   ]
+  },
+  {
+   "id": "music.play.folk_instruments",
+   "parent": "music.play",
+   "name": "Народные инструменты",
+   "synonyms": [
+    "балалайка",
+    "гусли"
+   ]
+  },
+  {
+   "id": "music.play.karaoke",
+   "parent": "music.play",
+   "name": "Караоке",
+   "synonyms": []
+  },
+  {
    "id": "music.listen",
    "parent": "music",
    "name": "Слушаю",
@@ -778,6 +2022,72 @@
    "synonyms": []
   },
   {
+   "id": "music.listen.hiphop",
+   "parent": "music.listen",
+   "name": "Хип-хоп и рэп",
+   "synonyms": [
+    "рэп"
+   ]
+  },
+  {
+   "id": "music.listen.pop",
+   "parent": "music.listen",
+   "name": "Поп-музыка",
+   "synonyms": []
+  },
+  {
+   "id": "music.listen.metal",
+   "parent": "music.listen",
+   "name": "Метал",
+   "synonyms": []
+  },
+  {
+   "id": "music.listen.indie",
+   "parent": "music.listen",
+   "name": "Инди",
+   "synonyms": []
+  },
+  {
+   "id": "music.listen.folk",
+   "parent": "music.listen",
+   "name": "Фолк",
+   "synonyms": []
+  },
+  {
+   "id": "music.listen.soviet",
+   "parent": "music.listen",
+   "name": "Советская эстрада",
+   "synonyms": []
+  },
+  {
+   "id": "music.listen.bard",
+   "parent": "music.listen",
+   "name": "Авторская песня",
+   "synonyms": [
+    "бардовская песня"
+   ]
+  },
+  {
+   "id": "music.listen.opera",
+   "parent": "music.listen",
+   "name": "Опера",
+   "synonyms": []
+  },
+  {
+   "id": "music.listen.blues",
+   "parent": "music.listen",
+   "name": "Блюз",
+   "synonyms": []
+  },
+  {
+   "id": "music.listen.festivals",
+   "parent": "music.listen",
+   "name": "Музыкальные фестивали",
+   "synonyms": [
+    "фестивали"
+   ]
+  },
+  {
    "id": "screen_books",
    "parent": "",
    "name": "Кино, книги, театр",
@@ -808,6 +2118,48 @@
    "parent": "screen_books.cinema",
    "name": "Аниме",
    "synonyms": []
+  },
+  {
+   "id": "screen_books.cinema.documentary",
+   "parent": "screen_books.cinema",
+   "name": "Документальное кино",
+   "synonyms": []
+  },
+  {
+   "id": "screen_books.cinema.arthouse",
+   "parent": "screen_books.cinema",
+   "name": "Артхаус",
+   "synonyms": [
+    "авторское кино"
+   ]
+  },
+  {
+   "id": "screen_books.cinema.soviet_films",
+   "parent": "screen_books.cinema",
+   "name": "Советское кино",
+   "synonyms": []
+  },
+  {
+   "id": "screen_books.cinema.horror",
+   "parent": "screen_books.cinema",
+   "name": "Фильмы ужасов",
+   "synonyms": [
+    "хоррор"
+   ]
+  },
+  {
+   "id": "screen_books.cinema.scifi",
+   "parent": "screen_books.cinema",
+   "name": "Фантастика в кино",
+   "synonyms": []
+  },
+  {
+   "id": "screen_books.cinema.cartoons",
+   "parent": "screen_books.cinema",
+   "name": "Мультфильмы",
+   "synonyms": [
+    "мультики"
+   ]
   },
   {
    "id": "screen_books.books",
@@ -842,6 +2194,40 @@
    "synonyms": []
   },
   {
+   "id": "screen_books.books.fantasy",
+   "parent": "screen_books.books",
+   "name": "Фэнтези и фантастика",
+   "synonyms": [
+    "фэнтези"
+   ]
+  },
+  {
+   "id": "screen_books.books.detective",
+   "parent": "screen_books.books",
+   "name": "Детективы",
+   "synonyms": []
+  },
+  {
+   "id": "screen_books.books.classics",
+   "parent": "screen_books.books",
+   "name": "Классическая литература",
+   "synonyms": [
+    "классика"
+   ]
+  },
+  {
+   "id": "screen_books.books.audiobooks",
+   "parent": "screen_books.books",
+   "name": "Аудиокниги",
+   "synonyms": []
+  },
+  {
+   "id": "screen_books.books.manga",
+   "parent": "screen_books.books",
+   "name": "Манга",
+   "synonyms": []
+  },
+  {
    "id": "screen_books.stage",
    "parent": "screen_books",
    "name": "Сцена",
@@ -860,6 +2246,33 @@
    "synonyms": [
     "стэндап"
    ]
+  },
+  {
+   "id": "screen_books.stage.musicals",
+   "parent": "screen_books.stage",
+   "name": "Мюзиклы",
+   "synonyms": []
+  },
+  {
+   "id": "screen_books.stage.ballet",
+   "parent": "screen_books.stage",
+   "name": "Балет",
+   "synonyms": []
+  },
+  {
+   "id": "screen_books.stage.museums",
+   "parent": "screen_books.stage",
+   "name": "Музеи и выставки",
+   "synonyms": [
+    "выставки",
+    "музеи"
+   ]
+  },
+  {
+   "id": "screen_books.stage.kvn",
+   "parent": "screen_books.stage",
+   "name": "КВН",
+   "synonyms": []
   },
   {
    "id": "food",
@@ -894,6 +2307,60 @@
    "synonyms": [
     "шашлык",
     "мангал"
+   ]
+  },
+  {
+   "id": "food.cooking.asian",
+   "parent": "food.cooking",
+   "name": "Азиатская кухня",
+   "synonyms": [
+    "суши",
+    "вок"
+   ]
+  },
+  {
+   "id": "food.cooking.fermentation",
+   "parent": "food.cooking",
+   "name": "Ферментация",
+   "synonyms": [
+    "квашение"
+   ]
+  },
+  {
+   "id": "food.cooking.vegan",
+   "parent": "food.cooking",
+   "name": "Веганская кухня",
+   "synonyms": []
+  },
+  {
+   "id": "food.cooking.desserts",
+   "parent": "food.cooking",
+   "name": "Десерты и кондитерка",
+   "synonyms": [
+    "кондитерское дело",
+    "торты"
+   ]
+  },
+  {
+   "id": "food.cooking.smoking",
+   "parent": "food.cooking",
+   "name": "Копчение",
+   "synonyms": []
+  },
+  {
+   "id": "food.cooking.preserves",
+   "parent": "food.cooking",
+   "name": "Заготовки и соления",
+   "synonyms": [
+    "консервация"
+   ]
+  },
+  {
+   "id": "food.cooking.sourdough",
+   "parent": "food.cooking",
+   "name": "Хлеб на закваске",
+   "synonyms": [
+    "закваска"
    ]
   },
   {
@@ -935,6 +2402,44 @@
    "synonyms": []
   },
   {
+   "id": "food.tasting.cocktails",
+   "parent": "food.tasting",
+   "name": "Коктейли",
+   "synonyms": [
+    "миксология"
+   ]
+  },
+  {
+   "id": "food.tasting.cheese",
+   "parent": "food.tasting",
+   "name": "Сыр",
+   "synonyms": [
+    "сыроварение"
+   ]
+  },
+  {
+   "id": "food.tasting.street_food",
+   "parent": "food.tasting",
+   "name": "Уличная еда",
+   "synonyms": [
+    "фестивали еды"
+   ]
+  },
+  {
+   "id": "food.tasting.restaurants",
+   "parent": "food.tasting",
+   "name": "Рестораны",
+   "synonyms": []
+  },
+  {
+   "id": "food.tasting.whisky",
+   "parent": "food.tasting",
+   "name": "Виски и крепкие напитки",
+   "synonyms": [
+    "виски"
+   ]
+  },
+  {
    "id": "travel",
    "parent": "",
    "name": "Путешествия",
@@ -970,6 +2475,114 @@
    "id": "travel.ways.diving",
    "parent": "travel.ways",
    "name": "Дайвинг",
+   "synonyms": []
+  },
+  {
+   "id": "travel.ways.solo",
+   "parent": "travel.ways",
+   "name": "Путешествия в одиночку",
+   "synonyms": [
+    "соло"
+   ]
+  },
+  {
+   "id": "travel.ways.cruises",
+   "parent": "travel.ways",
+   "name": "Круизы",
+   "synonyms": []
+  },
+  {
+   "id": "travel.ways.train",
+   "parent": "travel.ways",
+   "name": "Путешествия на поезде",
+   "synonyms": []
+  },
+  {
+   "id": "travel.ways.motorhome",
+   "parent": "travel.ways",
+   "name": "Автодома",
+   "synonyms": [
+    "автодом",
+    "кемпер"
+   ]
+  },
+  {
+   "id": "travel.ways.bike_touring",
+   "parent": "travel.ways",
+   "name": "Велотуризм",
+   "synonyms": [
+    "велопоходы"
+   ]
+  },
+  {
+   "id": "travel.ways.budget",
+   "parent": "travel.ways",
+   "name": "Бюджетные путешествия",
+   "synonyms": [
+    "лоукост"
+   ]
+  },
+  {
+   "id": "travel.ways.nomad",
+   "parent": "travel.ways",
+   "name": "Работа в путешествиях",
+   "synonyms": [
+    "удалёнка",
+    "цифровой кочевник"
+   ]
+  },
+  {
+   "id": "travel.where",
+   "parent": "travel",
+   "name": "Куда",
+   "synonyms": []
+  },
+  {
+   "id": "travel.where.russia",
+   "parent": "travel.where",
+   "name": "Путешествия по России",
+   "synonyms": []
+  },
+  {
+   "id": "travel.where.north",
+   "parent": "travel.where",
+   "name": "Север и Арктика",
+   "synonyms": [
+    "арктика"
+   ]
+  },
+  {
+   "id": "travel.where.asia",
+   "parent": "travel.where",
+   "name": "Азия",
+   "synonyms": []
+  },
+  {
+   "id": "travel.where.sea",
+   "parent": "travel.where",
+   "name": "Море и пляжи",
+   "synonyms": [
+    "море"
+   ]
+  },
+  {
+   "id": "travel.where.cities",
+   "parent": "travel.where",
+   "name": "Городской туризм",
+   "synonyms": [
+    "города"
+   ]
+  },
+  {
+   "id": "travel.where.eco",
+   "parent": "travel.where",
+   "name": "Экотуризм",
+   "synonyms": []
+  },
+  {
+   "id": "travel.where.pilgrimage",
+   "parent": "travel.where",
+   "name": "Паломничества",
    "synonyms": []
   },
   {
@@ -1011,6 +2624,76 @@
    "synonyms": []
   },
   {
+   "id": "science.knowledge.biology",
+   "parent": "science.knowledge",
+   "name": "Биология",
+   "synonyms": []
+  },
+  {
+   "id": "science.knowledge.physics",
+   "parent": "science.knowledge",
+   "name": "Физика",
+   "synonyms": []
+  },
+  {
+   "id": "science.knowledge.math",
+   "parent": "science.knowledge",
+   "name": "Математика",
+   "synonyms": []
+  },
+  {
+   "id": "science.knowledge.chemistry",
+   "parent": "science.knowledge",
+   "name": "Химия",
+   "synonyms": []
+  },
+  {
+   "id": "science.knowledge.archaeology",
+   "parent": "science.knowledge",
+   "name": "Археология",
+   "synonyms": []
+  },
+  {
+   "id": "science.knowledge.local_history",
+   "parent": "science.knowledge",
+   "name": "Краеведение",
+   "synonyms": []
+  },
+  {
+   "id": "science.knowledge.economics",
+   "parent": "science.knowledge",
+   "name": "Экономика",
+   "synonyms": []
+  },
+  {
+   "id": "science.knowledge.linguistics",
+   "parent": "science.knowledge",
+   "name": "Лингвистика",
+   "synonyms": []
+  },
+  {
+   "id": "science.knowledge.genealogy",
+   "parent": "science.knowledge",
+   "name": "Генеалогия",
+   "synonyms": [
+    "родословная"
+   ]
+  },
+  {
+   "id": "science.knowledge.medicine",
+   "parent": "science.knowledge",
+   "name": "Медицина",
+   "synonyms": []
+  },
+  {
+   "id": "science.knowledge.space",
+   "parent": "science.knowledge",
+   "name": "Космонавтика",
+   "synonyms": [
+    "космос"
+   ]
+  },
+  {
    "id": "science.languages",
    "parent": "science",
    "name": "Языки",
@@ -1037,6 +2720,96 @@
    "synonyms": [
     "практика языка"
    ]
+  },
+  {
+   "id": "science.languages.german",
+   "parent": "science.languages",
+   "name": "Немецкий язык",
+   "synonyms": []
+  },
+  {
+   "id": "science.languages.french",
+   "parent": "science.languages",
+   "name": "Французский язык",
+   "synonyms": []
+  },
+  {
+   "id": "science.languages.spanish",
+   "parent": "science.languages",
+   "name": "Испанский язык",
+   "synonyms": []
+  },
+  {
+   "id": "science.languages.japanese",
+   "parent": "science.languages",
+   "name": "Японский язык",
+   "synonyms": []
+  },
+  {
+   "id": "science.languages.korean",
+   "parent": "science.languages",
+   "name": "Корейский язык",
+   "synonyms": []
+  },
+  {
+   "id": "science.languages.italian",
+   "parent": "science.languages",
+   "name": "Итальянский язык",
+   "synonyms": []
+  },
+  {
+   "id": "science.languages.turkish",
+   "parent": "science.languages",
+   "name": "Турецкий язык",
+   "synonyms": []
+  },
+  {
+   "id": "science.languages.arabic",
+   "parent": "science.languages",
+   "name": "Арабский язык",
+   "synonyms": []
+  },
+  {
+   "id": "science.languages.sign",
+   "parent": "science.languages",
+   "name": "Жестовый язык",
+   "synonyms": [
+    "жестовый"
+   ]
+  },
+  {
+   "id": "science.learning",
+   "parent": "science",
+   "name": "Учёба",
+   "synonyms": []
+  },
+  {
+   "id": "science.learning.online_courses",
+   "parent": "science.learning",
+   "name": "Онлайн-курсы",
+   "synonyms": []
+  },
+  {
+   "id": "science.learning.lectures",
+   "parent": "science.learning",
+   "name": "Лекции и научпоп",
+   "synonyms": [
+    "научпоп"
+   ]
+  },
+  {
+   "id": "science.learning.teaching",
+   "parent": "science.learning",
+   "name": "Преподавание",
+   "synonyms": [
+    "репетиторство"
+   ]
+  },
+  {
+   "id": "science.learning.debates",
+   "parent": "science.learning",
+   "name": "Дебаты",
+   "synonyms": []
   },
   {
    "id": "animals",
@@ -1071,6 +2844,39 @@
    ]
   },
   {
+   "id": "animals.pets.birds",
+   "parent": "animals.pets",
+   "name": "Попугаи и птицы",
+   "synonyms": [
+    "попугаи"
+   ]
+  },
+  {
+   "id": "animals.pets.reptiles",
+   "parent": "animals.pets",
+   "name": "Рептилии",
+   "synonyms": [
+    "террариум"
+   ]
+  },
+  {
+   "id": "animals.pets.rodents",
+   "parent": "animals.pets",
+   "name": "Грызуны",
+   "synonyms": [
+    "хомяки"
+   ]
+  },
+  {
+   "id": "animals.pets.dog_training",
+   "parent": "animals.pets",
+   "name": "Дрессировка собак",
+   "synonyms": [
+    "кинология",
+    "аджилити"
+   ]
+  },
+  {
    "id": "animals.riding",
    "parent": "animals",
    "name": "Верховая езда",
@@ -1085,6 +2891,12 @@
    ]
   },
   {
+   "id": "animals.riding.horse_trips",
+   "parent": "animals.riding",
+   "name": "Конные прогулки",
+   "synonyms": []
+  },
+  {
    "id": "animals.help",
    "parent": "animals",
    "name": "Помощь животным",
@@ -1095,6 +2907,48 @@
    "parent": "animals.help",
    "name": "Волонтёрство в приютах",
    "synonyms": []
+  },
+  {
+   "id": "animals.help.rehoming",
+   "parent": "animals.help",
+   "name": "Пристройство животных",
+   "synonyms": []
+  },
+  {
+   "id": "animals.help.wildlife",
+   "parent": "animals.help",
+   "name": "Помощь диким животным",
+   "synonyms": []
+  },
+  {
+   "id": "animals.farm",
+   "parent": "animals",
+   "name": "Хозяйство",
+   "synonyms": []
+  },
+  {
+   "id": "animals.farm.beekeeping",
+   "parent": "animals.farm",
+   "name": "Пчеловодство",
+   "synonyms": [
+    "пчёлы"
+   ]
+  },
+  {
+   "id": "animals.farm.poultry",
+   "parent": "animals.farm",
+   "name": "Птицеводство",
+   "synonyms": [
+    "куры"
+   ]
+  },
+  {
+   "id": "animals.farm.farming",
+   "parent": "animals.farm",
+   "name": "Фермерство",
+   "synonyms": [
+    "ферма"
+   ]
   },
   {
    "id": "business",
@@ -1141,6 +2995,62 @@
    "synonyms": []
   },
   {
+   "id": "business.work.personal_finance",
+   "parent": "business.work",
+   "name": "Личные финансы",
+   "synonyms": [
+    "финансовая грамотность"
+   ]
+  },
+  {
+   "id": "business.work.sales",
+   "parent": "business.work",
+   "name": "Продажи",
+   "synonyms": []
+  },
+  {
+   "id": "business.work.management",
+   "parent": "business.work",
+   "name": "Управление и лидерство",
+   "synonyms": [
+    "менеджмент"
+   ]
+  },
+  {
+   "id": "business.work.freelance",
+   "parent": "business.work",
+   "name": "Фриланс",
+   "synonyms": []
+  },
+  {
+   "id": "business.work.real_estate",
+   "parent": "business.work",
+   "name": "Недвижимость",
+   "synonyms": []
+  },
+  {
+   "id": "business.work.ecommerce",
+   "parent": "business.work",
+   "name": "Онлайн-торговля",
+   "synonyms": [
+    "маркетплейсы"
+   ]
+  },
+  {
+   "id": "business.work.career",
+   "parent": "business.work",
+   "name": "Карьера и профразвитие",
+   "synonyms": [
+    "карьера"
+   ]
+  },
+  {
+   "id": "business.work.social_business",
+   "parent": "business.work",
+   "name": "Социальное предпринимательство",
+   "synonyms": []
+  },
+  {
    "id": "society",
    "parent": "",
    "name": "Общество и духовность",
@@ -1167,6 +3077,53 @@
    ]
   },
   {
+   "id": "society.community.charity",
+   "parent": "society.community",
+   "name": "Благотворительность",
+   "synonyms": []
+  },
+  {
+   "id": "society.community.urbanism",
+   "parent": "society.community",
+   "name": "Урбанистика",
+   "synonyms": [
+    "город"
+   ]
+  },
+  {
+   "id": "society.community.reenactment",
+   "parent": "society.community",
+   "name": "Историческая реконструкция",
+   "synonyms": [
+    "реконструкция"
+   ]
+  },
+  {
+   "id": "society.community.search_teams",
+   "parent": "society.community",
+   "name": "Поисковые отряды",
+   "synonyms": [
+    "лизаалерт",
+    "поиск людей"
+   ]
+  },
+  {
+   "id": "society.community.donation",
+   "parent": "society.community",
+   "name": "Донорство крови",
+   "synonyms": [
+    "донорство"
+   ]
+  },
+  {
+   "id": "society.community.mentoring",
+   "parent": "society.community",
+   "name": "Наставничество",
+   "synonyms": [
+    "менторство"
+   ]
+  },
+  {
    "id": "society.inner",
    "parent": "society",
    "name": "Внутренний мир и развитие",
@@ -1180,6 +3137,70 @@
     "осознанность",
     "майндфулнес",
     "випассана"
+   ]
+  },
+  {
+   "id": "society.inner.self_development",
+   "parent": "society.inner",
+   "name": "Саморазвитие",
+   "synonyms": [
+    "личностный рост",
+    "развитие себя",
+    "личная эффективность",
+    "самосовершенствование"
+   ]
+  },
+  {
+   "id": "society.inner.spiritual",
+   "parent": "society.inner",
+   "name": "Духовные практики",
+   "synonyms": [
+    "духовное развитие",
+    "духовность",
+    "духовный рост"
+   ]
+  },
+  {
+   "id": "society.inner.breathwork",
+   "parent": "society.inner",
+   "name": "Дыхательные практики",
+   "synonyms": [
+    "дыхание",
+    "пранаяма"
+   ]
+  },
+  {
+   "id": "society.inner.qigong",
+   "parent": "society.inner",
+   "name": "Цигун и тайцзи",
+   "synonyms": [
+    "цигун",
+    "тайцзи",
+    "тай-чи"
+   ]
+  },
+  {
+   "id": "society.inner.retreats",
+   "parent": "society.inner",
+   "name": "Ретриты",
+   "synonyms": [
+    "ретрит"
+   ]
+  },
+  {
+   "id": "society.inner.astrology",
+   "parent": "society.inner",
+   "name": "Астрология",
+   "synonyms": [
+    "гороскопы"
+   ]
+  },
+  {
+   "id": "society.inner.mindfulness",
+   "parent": "society.inner",
+   "name": "Осознанность",
+   "synonyms": [
+    "майндфулнес"
    ]
   },
   {
@@ -1233,6 +3254,66 @@
    "synonyms": []
   },
   {
+   "id": "collecting.items.rare_books",
+   "parent": "collecting.items",
+   "name": "Редкие книги",
+   "synonyms": []
+  },
+  {
+   "id": "collecting.items.badges",
+   "parent": "collecting.items",
+   "name": "Значки",
+   "synonyms": []
+  },
+  {
+   "id": "collecting.items.banknotes",
+   "parent": "collecting.items",
+   "name": "Банкноты",
+   "synonyms": [
+    "боны"
+   ]
+  },
+  {
+   "id": "collecting.items.minerals",
+   "parent": "collecting.items",
+   "name": "Минералы",
+   "synonyms": [
+    "камни"
+   ]
+  },
+  {
+   "id": "collecting.items.figures",
+   "parent": "collecting.items",
+   "name": "Фигурки",
+   "synonyms": []
+  },
+  {
+   "id": "collecting.items.lego",
+   "parent": "collecting.items",
+   "name": "LEGO",
+   "synonyms": [
+    "лего"
+   ]
+  },
+  {
+   "id": "collecting.items.trading_cards",
+   "parent": "collecting.items",
+   "name": "Коллекционные карточки",
+   "synonyms": []
+  },
+  {
+   "id": "collecting.items.watches",
+   "parent": "collecting.items",
+   "name": "Часы",
+   "synonyms": []
+  },
+  {
+   "id": "collecting.items.postcards",
+   "parent": "collecting.items",
+   "name": "Открытки",
+   "synonyms": []
+  },
+  {
    "id": "style",
    "parent": "",
    "name": "Мода и красота",
@@ -1262,6 +3343,58 @@
    "name": "Татуировки",
    "synonyms": [
     "тату"
+   ]
+  },
+  {
+   "id": "style.look.makeup",
+   "parent": "style.look",
+   "name": "Макияж",
+   "synonyms": []
+  },
+  {
+   "id": "style.look.hair",
+   "parent": "style.look",
+   "name": "Причёски",
+   "synonyms": []
+  },
+  {
+   "id": "style.look.barbering",
+   "parent": "style.look",
+   "name": "Барберинг",
+   "synonyms": [
+    "борода"
+   ]
+  },
+  {
+   "id": "style.look.perfume",
+   "parent": "style.look",
+   "name": "Парфюмерия",
+   "synonyms": [
+    "ароматы"
+   ]
+  },
+  {
+   "id": "style.look.sneakers",
+   "parent": "style.look",
+   "name": "Кроссовки",
+   "synonyms": [
+    "сникеры"
+   ]
+  },
+  {
+   "id": "style.look.thrift",
+   "parent": "style.look",
+   "name": "Секонд-хенд и ресейл",
+   "synonyms": [
+    "секонд"
+   ]
+  },
+  {
+   "id": "style.look.skincare",
+   "parent": "style.look",
+   "name": "Уход за кожей",
+   "synonyms": [
+    "уход"
    ]
   },
   {
@@ -1301,6 +3434,38 @@
    "synonyms": []
   },
   {
+   "id": "dance.pair.kizomba",
+   "parent": "dance.pair",
+   "name": "Кизомба",
+   "synonyms": []
+  },
+  {
+   "id": "dance.pair.wcs",
+   "parent": "dance.pair",
+   "name": "Вест-кост свинг",
+   "synonyms": []
+  },
+  {
+   "id": "dance.pair.lindy",
+   "parent": "dance.pair",
+   "name": "Линди-хоп",
+   "synonyms": [
+    "свинг"
+   ]
+  },
+  {
+   "id": "dance.pair.rock_n_roll",
+   "parent": "dance.pair",
+   "name": "Рок-н-ролл",
+   "synonyms": []
+  },
+  {
+   "id": "dance.pair.zouk",
+   "parent": "dance.pair",
+   "name": "Зук",
+   "synonyms": []
+  },
+  {
    "id": "dance.solo",
    "parent": "dance",
    "name": "Сольные",
@@ -1318,6 +3483,68 @@
    "id": "dance.solo.hiphop",
    "parent": "dance.solo",
    "name": "Хип-хоп",
+   "synonyms": []
+  },
+  {
+   "id": "dance.solo.classical",
+   "parent": "dance.solo",
+   "name": "Классический танец",
+   "synonyms": [
+    "балет"
+   ]
+  },
+  {
+   "id": "dance.solo.jazz_funk",
+   "parent": "dance.solo",
+   "name": "Джаз-фанк",
+   "synonyms": []
+  },
+  {
+   "id": "dance.solo.vogue",
+   "parent": "dance.solo",
+   "name": "Вог",
+   "synonyms": []
+  },
+  {
+   "id": "dance.solo.folk_dance",
+   "parent": "dance.solo",
+   "name": "Народные танцы",
+   "synonyms": []
+  },
+  {
+   "id": "dance.solo.breakdance",
+   "parent": "dance.solo",
+   "name": "Брейк-данс",
+   "synonyms": [
+    "брейкинг"
+   ]
+  },
+  {
+   "id": "dance.solo.oriental",
+   "parent": "dance.solo",
+   "name": "Восточные танцы",
+   "synonyms": [
+    "танец живота"
+   ]
+  },
+  {
+   "id": "dance.solo.kpop",
+   "parent": "dance.solo",
+   "name": "K-pop dance",
+   "synonyms": [
+    "кейпоп"
+   ]
+  },
+  {
+   "id": "dance.solo.flamenco",
+   "parent": "dance.solo",
+   "name": "Фламенко",
+   "synonyms": []
+  },
+  {
+   "id": "dance.solo.irish",
+   "parent": "dance.solo",
+   "name": "Ирландские танцы",
    "synonyms": []
   },
   {
@@ -1345,51 +3572,27 @@
    "synonyms": []
   },
   {
-   "id": "society.inner.self_development",
-   "parent": "society.inner",
-   "name": "Саморазвитие",
+   "id": "family.parents.development",
+   "parent": "family.parents",
+   "name": "Развивающие занятия с детьми",
    "synonyms": [
-    "личностный рост",
-    "развитие себя",
-    "личная эффективность",
-    "самосовершенствование"
+    "развивашки"
    ]
   },
   {
-   "id": "society.inner.spiritual",
-   "parent": "society.inner",
-   "name": "Духовные практики",
+   "id": "family.parents.homeschool",
+   "parent": "family.parents",
+   "name": "Семейное образование",
    "synonyms": [
-    "духовное развитие",
-    "духовность",
-    "духовный рост"
+    "домашнее обучение"
    ]
   },
   {
-   "id": "society.inner.breathwork",
-   "parent": "society.inner",
-   "name": "Дыхательные практики",
+   "id": "family.parents.large_family",
+   "parent": "family.parents",
+   "name": "Многодетная семья",
    "synonyms": [
-    "дыхание",
-    "пранаяма"
-   ]
-  },
-  {
-   "id": "society.inner.qigong",
-   "parent": "society.inner",
-   "name": "Цигун и тайцзи",
-   "synonyms": [
-    "цигун",
-    "тайцзи",
-    "тай-чи"
-   ]
-  },
-  {
-   "id": "society.inner.retreats",
-   "parent": "society.inner",
-   "name": "Ретриты",
-   "synonyms": [
-    "ретрит"
+    "многодетные"
    ]
   }
  ]

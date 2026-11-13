@@ -53,8 +53,10 @@ func (s *Service) now() time.Time {
 
 // Card — анонимная карточка кандидата.
 type Card struct {
-	UserID        string                    `json:"user_id"`
-	AgeRange      string                    `json:"age_range"`
+	UserID   string `json:"user_id"`
+	AgeRange string `json:"age_range"`
+	// Age — точный возраст; 0 (нет в JSON), если человек показывает возраст диапазоном.
+	Age           int                       `json:"age,omitempty"`
 	Goal          matching.Goal             `json:"goal"`
 	PhotoVerified bool                      `json:"photo_verified"`
 	AgeVerified   bool                      `json:"age_verified"`
@@ -62,13 +64,15 @@ type Card struct {
 	Explanation   string                    `json:"explanation"`
 	Shared        []matching.SharedInterest `json:"shared_interests"`
 	OtherInterest int                       `json:"other_interests_count"`
-	About         string                    `json:"about,omitempty"`
-	Prompts       []profile.Prompt          `json:"prompts,omitempty"`
-	Habits        map[string]string         `json:"habits,omitempty"`
-	Diet          string                    `json:"diet,omitempty"`
-	Languages     []profile.Language        `json:"languages,omitempty"`
-	Zodiac        string                    `json:"zodiac,omitempty"`
-	Distance      string                    `json:"distance,omitempty"` // только в «Рядом»: «до 1 км»
+	// Остальные интересы человека (названия): интересы — суть приложения, их видно сразу.
+	Others    []string           `json:"other_interests"`
+	About     string             `json:"about,omitempty"`
+	Prompts   []profile.Prompt   `json:"prompts,omitempty"`
+	Habits    map[string]string  `json:"habits,omitempty"`
+	Diet      string             `json:"diet,omitempty"`
+	Languages []profile.Language `json:"languages,omitempty"`
+	Zodiac    string             `json:"zodiac,omitempty"`
+	Distance  string             `json:"distance,omitempty"` // только в «Рядом»: «до 1 км»
 }
 
 // candidate — всё, что загружено о человеке.
@@ -79,6 +83,7 @@ type candidate struct {
 	prompts    []profile.Prompt
 	languages  []profile.Language
 	showZodiac bool
+	ageAsRange bool
 	zodiac     string
 	vis        map[string]string
 }
@@ -184,10 +189,23 @@ func (s *Service) card(c *candidate, goal matching.Goal, r matching.Result) Card
 		UserID: c.mp.ID, AgeRange: AgeRange(c.mp.Age), Goal: goal,
 		PhotoVerified: c.mp.PhotoVerified, AgeVerified: c.mp.AgeVerified,
 		Score: r.Score, Explanation: r.Explanation, Shared: r.Shared,
-		OtherInterest: len(c.mp.Interests) - len(r.Shared),
 	}
 	if card.Shared == nil {
 		card.Shared = []matching.SharedInterest{}
+	}
+	shared := make(map[string]bool, len(card.Shared))
+	for _, x := range card.Shared {
+		shared[x.ID] = true
+	}
+	card.Others = []string{}
+	for _, i := range c.mp.Interests {
+		if !shared[i.ID] {
+			card.Others = append(card.Others, s.Catalog.Name(i.ID))
+		}
+	}
+	card.OtherInterest = len(card.Others)
+	if !c.ageAsRange {
+		card.Age = c.mp.Age
 	}
 	if c.visible("about") {
 		card.About = c.about
@@ -366,7 +384,7 @@ func (s *Service) load(ctx context.Context, ids []string, now time.Time) (map[st
 	rows, err := s.DB.Query(ctx, `
 		SELECT u.id, u.birth_date, u.gender, u.photo_verified_at IS NOT NULL, u.gosuslugi_verified_at IS NOT NULL,
 		       u.last_active_at, coalesce(p.city_id, lower(p.city)), coalesce(p.about, ''), p.prompts, coalesce(p.height_cm, 0), coalesce(p.weight_kg, 0),
-		       p.habits, coalesce(p.diet, ''), coalesce(p.religion, ''), p.religion_for_matching, p.show_zodiac, p.languages
+		       p.habits, coalesce(p.diet, ''), coalesce(p.religion, ''), p.religion_for_matching, p.show_zodiac, p.languages, p.age_as_range
 		FROM users u JOIN profiles p ON p.user_id = u.id
 		WHERE u.id = ANY($1::uuid[]) AND u.deleted_at IS NULL`, ids)
 	if err != nil {
@@ -379,7 +397,7 @@ func (s *Service) load(ctx context.Context, ids []string, now time.Time) (map[st
 		var height, weight int16
 		err := rows.Scan(&c.mp.ID, &birth, &c.mp.Gender, &c.mp.PhotoVerified, &c.mp.AgeVerified, &c.mp.LastActive,
 			&c.city, &c.about, &prompts, &height, &weight, &habits, &c.mp.Diet, &c.mp.Religion,
-			&c.mp.ReligionForMatching, &c.showZodiac, &langs)
+			&c.mp.ReligionForMatching, &c.showZodiac, &langs, &c.ageAsRange)
 		if err != nil {
 			rows.Close()
 			return nil, err

@@ -58,36 +58,41 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     return Scaffold(
       body: IndexedStack(index: _tab, children: tabs),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: _select,
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.style_outlined),
-            selectedIcon: Icon(Icons.style),
-            label: 'Лента',
-          ),
-          const NavigationDestination(icon: Icon(Icons.radar), label: 'Рядом'),
-          NavigationDestination(
-            icon: Badge(
-              isLabelVisible: fresh > 0,
-              label: Text('$fresh'),
-              child: const Icon(Icons.favorite_border),
+      // Подписи вкладок не растягиваем сверх 1,15 от системного шрифта, иначе они не влезают в одну строку.
+      bottomNavigationBar: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 1.15,
+        child: NavigationBar(
+          selectedIndex: _tab,
+          onDestinationSelected: _select,
+          destinations: [
+            const NavigationDestination(
+              icon: Icon(Icons.style_outlined),
+              selectedIcon: Icon(Icons.style),
+              label: 'Лента',
             ),
-            selectedIcon: const Icon(Icons.favorite),
-            label: 'Совпадения',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble),
-            label: 'Чаты',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Профиль',
-          ),
-        ],
+            const NavigationDestination(icon: Icon(Icons.radar), label: 'Рядом'),
+            NavigationDestination(
+              icon: Badge(
+                isLabelVisible: fresh > 0,
+                label: Text('$fresh'),
+                child: const Icon(Icons.favorite_border),
+              ),
+              selectedIcon: const Icon(Icons.favorite),
+              // Короткое слово: «Совпадения» на телефонах с крупным шрифтом переносилось на две строки.
+              label: 'Взаимно',
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.chat_bubble_outline),
+              selectedIcon: Icon(Icons.chat_bubble),
+              label: 'Чаты',
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: 'Профиль',
+            ),
+          ],
+        ),
       ),
     );
   }

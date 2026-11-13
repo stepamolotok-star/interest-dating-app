@@ -293,13 +293,21 @@ class _GoalChip extends StatelessWidget {
 }
 
 /// Карточка человека: без имени и фото, только то, что он сам открыл.
-class PersonCard extends StatelessWidget {
+class PersonCard extends StatefulWidget {
   const PersonCard({super.key, required this.card});
 
   final FeedCard card;
 
   @override
+  State<PersonCard> createState() => _PersonCardState();
+}
+
+class _PersonCardState extends State<PersonCard> {
+  bool _allInterests = false;
+
+  @override
   Widget build(BuildContext context) {
+    final card = widget.card;
     final g = goalInfo(card.goal);
     final t = Theme.of(context).textTheme;
     final habits = [
@@ -317,17 +325,30 @@ class PersonCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Tag(goalShort[g.id] ?? g.label, color: g.color, background: g.tint),
-              if (card.ageRange.isNotEmpty) Tag('${card.ageRange} лет'),
-              if (card.distance.isNotEmpty) Tag(card.distance, icon: Icons.near_me_outlined),
-              if (card.ageVerified)
-                const Tag('Возраст подтверждён', icon: Icons.verified_outlined, color: AppColors.accent),
-              if (card.photoVerified)
-                const Tag('Фото проверено', icon: Icons.photo_camera_outlined, color: AppColors.accent),
+              HiddenAvatar(goal: card.goal),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    Tag(goalShort[g.id] ?? g.label, color: g.color, background: g.tint),
+                    if (card.ageLabel.isNotEmpty) Tag(card.ageLabel),
+                    if (card.distance.isNotEmpty) Tag(card.distance, icon: Icons.near_me_outlined),
+                    if (card.ageVerified)
+                      const Tag(
+                        'Возраст подтверждён',
+                        icon: Icons.verified_outlined,
+                        color: AppColors.accent,
+                      ),
+                    if (card.photoVerified)
+                      const Tag('Фото проверено', icon: Icons.photo_camera_outlined, color: AppColors.accent),
+                  ],
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 18),
@@ -344,7 +365,18 @@ class PersonCard extends StatelessWidget {
                   background: AppColors.accentTint,
                   icon: s.rare ? Icons.auto_awesome : null,
                 ),
-              if (card.otherInterests > 0) Tag('ещё ${card.otherInterests}'),
+              if (_allInterests)
+                for (final o in card.others) Tag(o)
+              else if (card.otherInterests > 0)
+                InkWell(
+                  key: const Key('more-interests'),
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: card.others.isEmpty ? null : () => setState(() => _allInterests = true),
+                  child: Tag(
+                    'ещё ${card.otherInterests}',
+                    icon: card.others.isEmpty ? null : Icons.expand_more,
+                  ),
+                ),
             ],
           ),
           if (card.about.isNotEmpty) ...[const SizedBox(height: 18), Text(card.about, style: t.bodyLarge)],
@@ -396,6 +428,55 @@ class _Empty extends StatelessWidget {
             if (action != null) ...[const SizedBox(height: 12), action!],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Заглушка вместо фото: силуэт в цвете цели и замок. Настоящее фото человек
+/// увидит после взаимного интереса (а пока фото в приложении нет — аватар с буквой имени).
+class HiddenAvatar extends StatelessWidget {
+  const HiddenAvatar({super.key, required this.goal, this.size = 64});
+
+  final String goal;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final g = goalInfo(goal);
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [g.tint, Color.lerp(g.tint, g.color, 0.35)!],
+              ),
+            ),
+            child: Icon(Icons.person, size: size * 0.62, color: g.color.withValues(alpha: 0.55)),
+          ),
+          Positioned(
+            right: -2,
+            bottom: -2,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Icon(Icons.lock_outline, size: 14, color: AppColors.muted),
+            ),
+          ),
+        ],
       ),
     );
   }

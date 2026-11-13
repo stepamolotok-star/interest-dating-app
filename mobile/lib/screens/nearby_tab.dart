@@ -464,9 +464,9 @@ class _NearbyCard extends StatelessWidget {
               Text(card.distance, style: t.titleMedium?.copyWith(color: g.color)),
               const SizedBox(width: 12),
               const Spacer(),
-              if (card.ageRange.isNotEmpty)
+              if (card.ageLabel.isNotEmpty)
                 Flexible(
-                  child: Text('${card.ageRange} лет', style: t.bodySmall, overflow: TextOverflow.ellipsis),
+                  child: Text(card.ageLabel, style: t.bodySmall, overflow: TextOverflow.ellipsis),
                 ),
               if (card.ageVerified) ...[
                 const SizedBox(width: 6),

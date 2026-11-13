@@ -146,8 +146,19 @@ func TestFeedRanksAndFilters(t *testing.T) {
 		t.Fatalf("лента: %v, ждали [%s %s]; другая цель %s и другой город %s не должны попасть", got, best, weak, otherGoal, otherCity)
 	}
 	c := cards[0]
-	if c.AgeRange != "28–32" || len(c.Shared) != 2 || c.About != "Люблю дорогу" || c.OtherInterest != 0 {
+	if c.AgeRange != "28–32" || c.Age < 28 || c.Age > 32 || len(c.Shared) != 2 || c.About != "Люблю дорогу" || c.OtherInterest != 0 {
 		t.Fatalf("карточка: %+v", c)
+	}
+	// Кто попросил показывать возраст диапазоном — точного возраста в карточке нет.
+	if _, err := e.db.Exec(ctx, `UPDATE profiles SET age_as_range = true WHERE user_id = $1`, best); err != nil {
+		t.Fatal(err)
+	}
+	if again, _ := e.feed.Feed(ctx, viewer, matching.Hobby, 10); again[0].Age != 0 || again[0].AgeRange != "28–32" {
+		t.Fatalf("возраст диапазоном: %+v", again[0])
+	}
+	// У «слабого» общих интересов нет — его интересы видны списком, а не только числом.
+	if w := cards[1]; w.OtherInterest != 1 || len(w.Others) != 1 || w.Others[0] == "" {
+		t.Fatalf("остальные интересы: %+v", w)
 	}
 	if _, err := e.feed.Feed(ctx, viewer, matching.Romance, 10); !errors.Is(err, ErrGoalNotActive) {
 		t.Fatalf("лента по невключённой цели: %v", err)
