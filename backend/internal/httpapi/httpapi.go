@@ -11,6 +11,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/cities"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/nearby"
@@ -29,6 +30,7 @@ type Deps struct {
 	Nearby   *nearby.Service
 	Contacts *contacts.Service
 	OAuth    *oauth.Service
+	Cities   *cities.Catalog
 	Log      *slog.Logger
 }
 
@@ -42,12 +44,13 @@ type Server struct {
 	nearby   *nearby.Service
 	contacts *contacts.Service
 	oauth    *oauth.Service
+	cities   *cities.Catalog
 	log      *slog.Logger
 }
 
 // New возвращает готовый http.Handler.
 func New(d Deps) http.Handler {
-	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, contacts: d.Contacts, oauth: d.OAuth, log: d.Log}
+	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, contacts: d.Contacts, oauth: d.OAuth, cities: d.Cities, log: d.Log}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.health)
 	mux.HandleFunc("GET /v1/interests/categories", s.categories)
@@ -66,6 +69,9 @@ func New(d Deps) http.Handler {
 		}
 		if s.oauth != nil {
 			s.registerOAuth(mux)
+		}
+		if s.cities != nil {
+			mux.HandleFunc("GET /v1/cities/search", s.citySearch)
 		}
 	}
 	return s.logging(mux)
@@ -149,4 +155,22 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 
 func writeError(w http.ResponseWriter, status int, msg string) {
 	writeJSON(w, status, map[string]string{"error": msg})
+}
+
+// citySearch — подсказки города при регистрации: «Чита, Забайкальский край».
+func (s *Server) citySearch(w http.ResponseWriter, r *http.Request) {
+	limit := 10
+	if v, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && v > 0 && v <= 30 {
+		limit = v
+	}
+	type item struct {
+		ID     string `json:"id"`
+		Name   string `json:"name"`
+		Region string `json:"region"`
+	}
+	items := []item{}
+	for _, c := range s.cities.Search(r.URL.Query().Get("q"), limit) {
+		items = append(items, item{c.ID, c.Name, c.Region})
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"items": items})
 }

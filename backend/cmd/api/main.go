@@ -12,6 +12,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -25,6 +26,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/cities"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/httpapi"
@@ -51,7 +53,11 @@ func run(log *slog.Logger) error {
 	if err != nil {
 		return err
 	}
-	deps := httpapi.Deps{Catalog: cat, Log: log}
+	cityCat, err := cities.Default()
+	if err != nil {
+		return fmt.Errorf("справочник городов: %w", err)
+	}
+	deps := httpapi.Deps{Catalog: cat, Cities: cityCat, Log: log}
 
 	if dsn := os.Getenv("DATABASE_URL"); dsn != "" {
 		db, err := pgxpool.New(ctx, dsn)
@@ -99,12 +105,17 @@ func run(log *slog.Logger) error {
 			return errors.New("в prod не настроен поставщик звонков-сбросов и SMS")
 		}
 		dev := auth.DevProvider{Log: log}
-		deps.Auth = &auth.Service{DB: db, Caller: dev, SMS: dev, Secret: []byte(secret)}
+		deps.Auth = &auth.Service{DB: db, Caller: dev, SMS: dev, Secret: []byte(secret), Cities: deps.Cities}
 		// Отдельный секрет: AUTH_SECRET можно менять, а ключи контактов без исходных хэшей не пересчитать.
 		contactsSecret := envOr("CONTACTS_SECRET", secret)
 		deps.Auth.ContactsSecret = []byte(contactsSecret)
 		deps.Contacts = &contacts.Service{DB: db, Secret: []byte(contactsSecret)}
 		deps.OAuth = &oauth.Service{DB: db, Providers: oauthProviders()}
+		if n, err := deps.Auth.BackfillCities(ctx); err != nil {
+			return err
+		} else if n > 0 {
+			log.Info("города переведены на справочник", "profiles", n)
+		}
 		if n, err := deps.Contacts.Backfill(ctx); err != nil {
 			return err
 		} else if n > 0 {

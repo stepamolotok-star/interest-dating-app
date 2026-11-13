@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../cities.dart';
 import '../models.dart';
 import 'api.dart';
 
@@ -122,6 +123,9 @@ class DemoApi extends Api {
     if (!r.terms || !r.personalData) {
       throw const ApiException(400, 'нужно принять условия и согласие на обработку данных');
     }
+    if ((await Cities.load()).byId(r.cityId) == null) {
+      throw const ApiException(400, 'выберите город из списка', field: 'city');
+    }
     _reg = r;
     _registered = true;
   }
@@ -140,7 +144,8 @@ class DemoApi extends Api {
     if (now.month < r.birthDate.month || (now.month == r.birthDate.month && now.day < r.birthDate.day)) {
       age--;
     }
-    return Me(userId: _myId, name: r.name, city: r.city, age: age);
+    final city = (await Cities.load()).byId(r.cityId);
+    return Me(userId: _myId, name: r.name, city: city?.name ?? r.city, region: city?.region ?? '', age: age);
   }
 
   @override
@@ -179,7 +184,7 @@ class DemoApi extends Api {
     _needUser();
     await _pause();
     if (goals.any((g) => g.goal == 'casual')) {
-      throw const ApiException(403, 'для этой цели нужно подтвердить возраст через Госуслуги');
+      throw const ApiException(403, 'для этой цели подтвердите, что вам есть 18 лет');
     }
     _goals = List.of(goals);
   }

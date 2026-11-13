@@ -10,6 +10,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/migrations"
+
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/cities"
 )
 
 func TestNormalizePhone(t *testing.T) {
@@ -88,7 +90,11 @@ func newTestService(t *testing.T) (*Service, *fakeCaller, *time.Time) {
 	}
 	clock := time.Date(2026, 11, 12, 12, 0, 0, 0, time.UTC)
 	fc := &fakeCaller{}
-	s := &Service{DB: db, Caller: fc, SMS: fc, Secret: []byte("test-secret"), Now: func() time.Time { return clock }}
+	cityCat, err := cities.Default()
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := &Service{DB: db, Caller: fc, SMS: fc, Secret: []byte("test-secret"), Cities: cityCat, Now: func() time.Time { return clock }}
 	return s, fc, &clock
 }
 

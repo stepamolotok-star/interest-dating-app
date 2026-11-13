@@ -74,7 +74,7 @@ type Card struct {
 // candidate — всё, что загружено о человеке.
 type candidate struct {
 	mp         matching.Profile
-	city       string
+	city       string // код города или (старые профили) название в нижнем регистре
 	about      string
 	prompts    []profile.Prompt
 	languages  []profile.Language
@@ -133,7 +133,7 @@ func (s *Service) rank(ctx context.Context, viewerID string, goal matching.Goal,
 		JOIN user_goals g ON g.user_id = u.id AND g.goal = $2 AND g.active
 		LEFT JOIN visibility_settings vs ON vs.user_id = u.id
 		WHERE u.id <> $1 AND u.deleted_at IS NULL
-		  AND ($3::text IS NULL OR lower(p.city) = lower($3))
+		  AND ($3::text IS NULL OR coalesce(p.city_id, lower(p.city)) = $3)
 		  AND ($7::uuid[] IS NULL OR u.id = ANY($7::uuid[]))
 		  AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker = $1 AND b.blocked = u.id) OR (b.blocker = u.id AND b.blocked = $1))
 		  AND NOT EXISTS (SELECT 1 FROM interests_expressed e WHERE e.from_user = $1 AND e.to_user = u.id AND e.goal = $2 AND e.expires_at > $4)
@@ -365,7 +365,7 @@ func (s *Service) load(ctx context.Context, ids []string, now time.Time) (map[st
 	}
 	rows, err := s.DB.Query(ctx, `
 		SELECT u.id, u.birth_date, u.gender, u.photo_verified_at IS NOT NULL, u.gosuslugi_verified_at IS NOT NULL,
-		       u.last_active_at, p.city, coalesce(p.about, ''), p.prompts, coalesce(p.height_cm, 0), coalesce(p.weight_kg, 0),
+		       u.last_active_at, coalesce(p.city_id, lower(p.city)), coalesce(p.about, ''), p.prompts, coalesce(p.height_cm, 0), coalesce(p.weight_kg, 0),
 		       p.habits, coalesce(p.diet, ''), coalesce(p.religion, ''), p.religion_for_matching, p.show_zodiac, p.languages
 		FROM users u JOIN profiles p ON p.user_id = u.id
 		WHERE u.id = ANY($1::uuid[]) AND u.deleted_at IS NULL`, ids)

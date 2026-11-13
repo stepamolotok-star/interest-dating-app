@@ -15,6 +15,7 @@ import (
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/cities"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/oauth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/migrations"
 )
@@ -83,12 +84,13 @@ func oauthServer(t *testing.T, fake *fakeProvider) *httptest.Server {
 	prov := httptest.NewServer(fake.handler(t))
 	t.Cleanup(prov.Close)
 	cat, _ := catalog.Default()
-	svc := &auth.Service{DB: db, Caller: fixedCaller{}, SMS: fixedCaller{}, Secret: []byte("s")}
+	cityCat, _ := cities.Default()
+	svc := &auth.Service{DB: db, Caller: fixedCaller{}, SMS: fixedCaller{}, Secret: []byte("s"), Cities: cityCat}
 	o := &oauth.Service{DB: db, Providers: []oauth.Provider{
 		oauth.VKID{ClientID: "42", Redirect: "vk42://vk.ru/blank.html", BaseURL: prov.URL},
 		oauth.YandexID{ClientID: "ya", Redirect: "ru.svoi://oauth/yandex", OAuthURL: prov.URL, LoginURL: prov.URL},
 	}}
-	srv := httptest.NewServer(New(Deps{Catalog: cat, Auth: svc, OAuth: o, Log: slog.New(slog.NewTextHandler(io.Discard, nil))}))
+	srv := httptest.NewServer(New(Deps{Catalog: cat, Cities: cityCat, Auth: svc, OAuth: o, Log: slog.New(slog.NewTextHandler(io.Discard, nil))}))
 	t.Cleanup(srv.Close)
 	return srv
 }

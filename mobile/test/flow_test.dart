@@ -64,7 +64,11 @@ void main() {
     await tester.pump();
     expect(find.text('01.02.1995'), findsOneWidget);
     await tapText(tester, 'Женщина');
-    await tester.enterText(find.byKey(const Key('city')), 'Чита');
+    await tapKey(tester, 'city');
+    await tester.enterText(find.byKey(const Key('city-search')), 'Чита');
+    await tester.pumpAndSettle();
+    await tapKey(tester, 'city-2d9abaa6-85a6-4f1f-a1bd-14b76ec17d9c');
+    expect(find.text('Чита, Забайкальский край'), findsOneWidget);
     await tapKey(tester, 'terms');
     expect(
       tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
@@ -74,10 +78,10 @@ void main() {
     await tapKey(tester, 'personal_data');
     await tapText(tester, 'Дальше');
 
-    // Цели: «Без обязательств» закрыта без Госуслуг.
+    // Цели: «Без обязательств» закрыта, пока возраст не подтверждён.
     expect(find.text('Кого вы ищете?'), findsOneWidget);
     await tapKey(tester, 'goal-casual');
-    expect(find.textContaining('Госуслуги'), findsWidgets);
+    expect(find.textContaining('подтвердить возраст'), findsWidgets);
     await tester.pump(const Duration(seconds: 5)); // подсказка уходит и не закрывает кнопку
     await tester.pumpAndSettle();
     await tapKey(tester, 'goal-friendship');

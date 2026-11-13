@@ -56,6 +56,7 @@ TEST_REDIS_URL=redis://localhost:6379/15 go test -p 1 ./...
 | GET | `/v1/interests/{id}/children` | Подкатегории и увлечения |
 | GET | `/v1/interests/search?q=` | Поиск увлечений с синонимами |
 | POST | `/v1/auth/start` | `{phone, method}` — звонок-сброс (по умолчанию) или `sms` |
+| GET | `/v1/cities/search?q=` | Подсказки города: `{id, name, region}`; регистрация принимает `city_id` (код ФИАС) |
 | POST | `/v1/auth/verify` | `{phone, code}` → `{token, registered}` |
 | GET | `/v1/auth/providers` | Подключённые способы входа: VK ID, Яндекс ID (только те, для которых заданы ключи) |
 | POST | `/v1/auth/oauth/{vk\|yandex}/start` | → `{url, state, redirect_uri}`: ссылка для браузера (OAuth 2.1 + PKCE) |

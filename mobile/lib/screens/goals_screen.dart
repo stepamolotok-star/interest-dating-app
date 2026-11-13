@@ -53,7 +53,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   if (g.needsVerification && !verified) {
                     showInfo(
                       context,
-                      'Эта цель открывается после подтверждения возраста через Госуслуги. Подключаем — скоро будет.',
+                      'Чтобы открыть эту цель, подтвердите, что вам есть 18 лет. Подтверждение скоро заработает.',
                     );
                     return;
                   }

@@ -75,7 +75,14 @@ void main() {
     await tester.enterText(find.byKey(const Key('name')), 'Аня');
     await tester.enterText(find.byKey(const Key('birth')), '01021995');
     await tap(find.text('Женщина'));
-    await tester.enterText(find.byKey(const Key('city')), 'Чита');
+    await tap(find.byKey(const Key('city')));
+    // Одноимённые города различаются регионом.
+    await tester.enterText(find.byKey(const Key('city-search')), 'Кировск');
+    await tester.pumpAndSettle();
+    await shot('03a_city_same_name');
+    await tester.enterText(find.byKey(const Key('city-search')), 'Чита');
+    await tester.pumpAndSettle();
+    await tap(find.byKey(const Key('city-2d9abaa6-85a6-4f1f-a1bd-14b76ec17d9c')));
     await tap(find.byKey(const Key('terms')));
     await tap(find.byKey(const Key('personal_data')));
     await tester.drag(find.byType(SingleChildScrollView).first, const Offset(0, 300));

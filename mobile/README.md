@@ -55,4 +55,6 @@ flutter test test_screens    # снимки экранов с настоящим
 
 Каталог `assets/data/catalog.json` — копия `backend/internal/catalog/catalog.json`; при изменении каталога копируйте файл.
 
+Справочник городов `assets/data/cities.json` — github.com/hflabs/city (CC BY-SA 4.0), копия `backend/internal/cities/cities.json`.
+
 Шрифты Manrope и Unbounded — под лицензией SIL OFL 1.1 (тексты лицензий в `assets/fonts/`).

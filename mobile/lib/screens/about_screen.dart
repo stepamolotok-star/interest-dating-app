@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../app.dart';
+import '../cities.dart';
 import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -17,7 +18,7 @@ class AboutScreen extends StatefulWidget {
 class _AboutScreenState extends State<AboutScreen> {
   final _name = TextEditingController();
   final _birth = TextEditingController();
-  final _city = TextEditingController();
+  City? _cityPicked;
   String? _gender;
   bool _terms = false;
   bool _personalData = false;
@@ -25,14 +26,14 @@ class _AboutScreenState extends State<AboutScreen> {
   @override
   void initState() {
     super.initState();
-    for (final c in [_name, _birth, _city]) {
+    for (final c in [_name, _birth]) {
       c.addListener(() => setState(() {}));
     }
   }
 
   @override
   void dispose() {
-    for (final c in [_name, _birth, _city]) {
+    for (final c in [_name, _birth]) {
       c.dispose();
     }
     super.dispose();
@@ -71,7 +72,7 @@ class _AboutScreenState extends State<AboutScreen> {
       _age != null &&
       _birthError == null &&
       _gender != null &&
-      _city.text.trim().length >= 2 &&
+      _cityPicked != null &&
       _terms &&
       _personalData;
 
@@ -91,7 +92,8 @@ class _AboutScreenState extends State<AboutScreen> {
                   name: _name.text.trim(),
                   birthDate: _birthDate!,
                   gender: _gender!,
-                  city: _city.text.trim(),
+                  city: _cityPicked!.name,
+                  cityId: _cityPicked!.id,
                   terms: _terms,
                   personalData: _personalData,
                 ),
@@ -138,11 +140,27 @@ class _AboutScreenState extends State<AboutScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          TextField(
+          InkWell(
             key: const Key('city'),
-            controller: _city,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(labelText: 'Город'),
+            borderRadius: BorderRadius.circular(14),
+            onTap: () async {
+              final picked = await pickCity(context);
+              if (picked != null) setState(() => _cityPicked = picked);
+            },
+            child: InputDecorator(
+              isEmpty: _cityPicked == null,
+              decoration: const InputDecoration(labelText: 'Город', suffixIcon: Icon(Icons.search)),
+              child: _cityPicked == null
+                  ? null
+                  : Text(_cityPicked!.label, style: Theme.of(context).textTheme.bodyLarge),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 4, top: 6),
+            child: Text(
+              'Живёте в посёлке или селе — выберите ближайший город.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ),
           const SizedBox(height: 20),
           _Consent(
@@ -246,6 +264,105 @@ class _DateFormatter extends TextInputFormatter {
     return TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+}
+
+/// Выбор города из справочника. Одноимённые города различаются регионом.
+Future<City?> pickCity(BuildContext context) => showModalBottomSheet<City>(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  showDragHandle: true,
+  backgroundColor: AppColors.bg,
+  builder: (_) => const _CitySheet(),
+);
+
+class _CitySheet extends StatefulWidget {
+  const _CitySheet();
+
+  @override
+  State<_CitySheet> createState() => _CitySheetState();
+}
+
+class _CitySheetState extends State<_CitySheet> {
+  final _q = TextEditingController();
+  Cities? _cities;
+
+  @override
+  void initState() {
+    super.initState();
+    _q.addListener(() => setState(() {}));
+    Cities.load().then((c) {
+      if (mounted) setState(() => _cities = c);
+    });
+  }
+
+  @override
+  void dispose() {
+    _q.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final results = _cities?.search(_q.text) ?? const <City>[];
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SizedBox(
+        height: MediaQuery.sizeOf(context).height * 0.75,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: TextField(
+                key: const Key('city-search'),
+                controller: _q,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  hintText: 'Начните вводить город',
+                  prefixIcon: Icon(Icons.search),
+                ),
+              ),
+            ),
+            Expanded(
+              child: _q.text.trim().isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        'Все города России. Если вашего посёлка нет — выберите ближайший город.',
+                        style: t.bodySmall,
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : results.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        'Такого города нет в списке. Проверьте название или выберите ближайший город.',
+                        style: t.bodySmall,
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: results.length,
+                      itemBuilder: (context, i) {
+                        final c = results[i];
+                        return ListTile(
+                          key: Key('city-${c.id}'),
+                          title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                          subtitle: c.region.isEmpty ? null : Text(c.region, style: t.bodySmall),
+                          onTap: () => Navigator.of(context).pop(c),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

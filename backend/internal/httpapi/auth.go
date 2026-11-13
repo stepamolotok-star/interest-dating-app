@@ -69,6 +69,7 @@ func (s *Server) authRegister(w http.ResponseWriter, r *http.Request) {
 		BirthDate string `json:"birth_date"` // ГГГГ-ММ-ДД
 		Gender    string `json:"gender"`
 		City      string `json:"city"`
+		CityID    string `json:"city_id"`
 		Consents  struct {
 			Terms        bool `json:"terms"`
 			PersonalData bool `json:"personal_data"`
@@ -83,7 +84,7 @@ func (s *Server) authRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userID, err := s.auth.Register(r.Context(), bearer(r), auth.Registration{
-		Name: req.Name, BirthDate: birth, Gender: req.Gender, City: req.City,
+		Name: req.Name, BirthDate: birth, Gender: req.Gender, City: req.City, CityID: req.CityID,
 		Terms: req.Consents.Terms, PersonalData: req.Consents.PersonalData, DocVersion: DocVersion,
 	})
 	if err != nil {

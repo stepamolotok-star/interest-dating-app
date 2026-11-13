@@ -62,7 +62,7 @@ var Religions = []string{"orthodox", "christian", "islam", "buddhism", "judaism"
 // Ошибки.
 var (
 	ErrNotFound           = errors.New("профиль не найден")
-	ErrNeedVerification   = errors.New("цель «Без обязательств» доступна после проверки фото и подтверждения возраста через Госуслуги")
+	ErrNeedVerification   = errors.New("цель «Без обязательств» доступна после проверки фото и подтверждения, что вам есть 18 лет")
 	ErrNeedSpecialConsent = errors.New("чтобы указать религию, нужно отдельное согласие на обработку таких данных")
 )
 

@@ -15,6 +15,7 @@ import (
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/cities"
 	"github.com/stepamolotok-star/interest-dating-app/backend/migrations"
 )
 
@@ -42,8 +43,9 @@ func authServer(t *testing.T) *httptest.Server {
 		t.Fatal(err)
 	}
 	cat, _ := catalog.Default()
-	svc := &auth.Service{DB: db, Caller: fixedCaller{}, SMS: fixedCaller{}, Secret: []byte("s")}
-	srv := httptest.NewServer(New(Deps{Catalog: cat, Auth: svc, Log: slog.New(slog.NewTextHandler(io.Discard, nil))}))
+	cityCat, _ := cities.Default()
+	svc := &auth.Service{DB: db, Caller: fixedCaller{}, SMS: fixedCaller{}, Secret: []byte("s"), Cities: cityCat}
+	srv := httptest.NewServer(New(Deps{Catalog: cat, Cities: cityCat, Auth: svc, Log: slog.New(slog.NewTextHandler(io.Discard, nil))}))
 	t.Cleanup(srv.Close)
 	return srv
 }
@@ -113,5 +115,41 @@ func TestAuthFlowOverHTTP(t *testing.T) {
 	}
 	if code, _, _ = call(t, srv, "GET", "/v1/me", "", nil); code != 401 {
 		t.Fatalf("без токена: %d", code)
+	}
+}
+
+func TestCitiesOverHTTP(t *testing.T) {
+	srv := authServer(t)
+	code, body, _ := call(t, srv, "GET", "/v1/cities/search?q=советск", "", nil)
+	items := body["items"].([]any)
+	if code != 200 || len(items) < 3 {
+		t.Fatalf("поиск: %d %v", code, body)
+	}
+	for _, it := range items[:3] {
+		if it.(map[string]any)["name"] != "Советск" {
+			t.Fatalf("точные совпадения — первыми: %v", items)
+		}
+	}
+	first := items[0].(map[string]any)
+	if first["name"] != "Советск" || first["region"] == "" {
+		t.Fatalf("у одноимённых городов есть регион: %v", first)
+	}
+
+	// Вход и регистрация: одноимённый город текстом — нельзя, по коду — можно.
+	call(t, srv, "POST", "/v1/auth/start", "", map[string]string{"phone": "+79145550001"})
+	_, body, _ = call(t, srv, "POST", "/v1/auth/verify", "", map[string]string{"phone": "+79145550001", "code": "7315"})
+	token := body["token"].(string)
+	reg := map[string]any{"name": "Олег", "birth_date": "1990-01-01", "gender": "male", "city": "Советск",
+		"consents": map[string]bool{"terms": true, "personal_data": true}}
+	if code, body, _ := call(t, srv, "POST", "/v1/auth/register", token, reg); code != 400 || body["field"] != "city" {
+		t.Fatalf("неоднозначный город: %d %v", code, body)
+	}
+	reg["city_id"] = first["id"]
+	if code, body, _ := call(t, srv, "POST", "/v1/auth/register", token, reg); code != 201 && code != 200 {
+		t.Fatalf("регистрация с городом из списка: %d %v", code, body)
+	}
+	_, me, _ := call(t, srv, "GET", "/v1/me", token, nil)
+	if me["city"] != "Советск" || me["city_id"] != first["id"] || me["region"] != first["region"] {
+		t.Fatalf("me: %v", me)
 	}
 }

@@ -28,6 +28,7 @@ class Me {
     required this.name,
     required this.city,
     required this.age,
+    this.region = '',
     this.photoVerified = false,
     this.ageVerified = false,
   });
@@ -36,6 +37,7 @@ class Me {
     userId: j['user_id'] as String,
     name: j['name'] as String? ?? '',
     city: j['city'] as String? ?? '',
+    region: j['region'] as String? ?? '',
     age: j['age'] as int? ?? 0,
     photoVerified: j['photo_verified'] as bool? ?? false,
     ageVerified: j['age_verified'] as bool? ?? false,
@@ -44,6 +46,9 @@ class Me {
   final String userId;
   final String name;
   final String city;
+
+  /// Регион города: «Забайкальский край».
+  final String region;
   final int age;
   final bool photoVerified;
   final bool ageVerified;
@@ -55,6 +60,7 @@ class Registration {
     required this.birthDate,
     required this.gender,
     required this.city,
+    required this.cityId,
     required this.terms,
     required this.personalData,
   });
@@ -62,7 +68,9 @@ class Registration {
   final String name;
   final DateTime birthDate;
   final String gender; // male | female
+  /// Название города (для показа) и его код ФИАС из справочника — его и проверяет сервер.
   final String city;
+  final String cityId;
   final bool terms;
   final bool personalData;
 
@@ -74,6 +82,7 @@ class Registration {
         '${birthDate.day.toString().padLeft(2, '0')}',
     'gender': gender,
     'city': city,
+    'city_id': cityId,
     'consents': {'terms': terms, 'personal_data': personalData},
   };
 }

@@ -14,6 +14,7 @@ Future<AppState> registered() async {
       birthDate: DateTime(1995, 2, 1),
       gender: 'female',
       city: 'Чита',
+      cityId: '2d9abaa6-85a6-4f1f-a1bd-14b76ec17d9c',
       terms: true,
       personalData: true,
     ),

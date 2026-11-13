@@ -19,6 +19,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/cities"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
 )
 
@@ -75,7 +76,9 @@ type Service struct {
 	Secret []byte
 	// ContactsSecret — секрет для ключа номера («скрыть от контактов»); пустой — берётся Secret.
 	ContactsSecret []byte
-	Now            func() time.Time
+	// Cities — справочник городов для регистрации.
+	Cities *cities.Catalog
+	Now    func() time.Time
 }
 
 func (s *Service) now() time.Time {
@@ -296,15 +299,20 @@ type Registration struct {
 	Name         string
 	BirthDate    time.Time
 	Gender       string // male | female
-	City         string
-	Terms        bool // принял пользовательское соглашение
-	PersonalData bool // согласие на обработку ПДн — отдельный документ
+	City         string // старые клиенты: город текстом
+	CityID       string // код ФИАС из справочника городов
+	Terms        bool   // принял пользовательское соглашение
+	PersonalData bool   // согласие на обработку ПДн — отдельный документ
 	DocVersion   string
 }
 
 // Register создаёт пользователя для сессии, которая ещё не привязана к аккаунту.
 func (s *Service) Register(ctx context.Context, token string, r Registration) (string, error) {
 	if err := s.validate(r); err != nil {
+		return "", err
+	}
+	city, err := s.city(r)
+	if err != nil {
 		return "", err
 	}
 	tx, err := s.DB.Begin(ctx)
@@ -344,7 +352,8 @@ func (s *Service) Register(ctx context.Context, token string, r Registration) (s
 		sql  string
 		args []any
 	}{
-		{`INSERT INTO profiles (user_id, display_name, city) VALUES ($1, $2, $3)`, []any{userID, strings.TrimSpace(r.Name), strings.TrimSpace(r.City)}},
+		{`INSERT INTO profiles (user_id, display_name, city, city_id, timezone) VALUES ($1, $2, $3, $4, $5)`,
+			[]any{userID, strings.TrimSpace(r.Name), city.Name, city.ID, city.TZ}},
 		{`INSERT INTO consents (user_id, kind, doc_version) VALUES ($1, 'terms', $2), ($1, 'personal_data', $2)`, []any{userID, r.DocVersion}},
 		{`INSERT INTO visibility_settings (user_id) VALUES ($1)`, []any{userID}},
 		{`UPDATE sessions SET user_id = $1 WHERE phone_e164 = $2 AND user_id IS NULL`, []any{userID, phone}},
@@ -368,8 +377,8 @@ func (s *Service) validate(r Registration) error {
 	if n := utf8.RuneCountInString(name); n < 2 || n > 40 {
 		return &ValidationError{"name", "имя должно быть от 2 до 40 символов"}
 	}
-	if utf8.RuneCountInString(strings.TrimSpace(r.City)) < 2 {
-		return &ValidationError{"city", "укажите город"}
+	if _, err := s.city(r); err != nil {
+		return err
 	}
 	if r.Gender != "male" && r.Gender != "female" {
 		return &ValidationError{"gender", "укажите пол"}
@@ -424,6 +433,8 @@ type Me struct {
 	UserID        string `json:"user_id"`
 	Name          string `json:"name"`
 	City          string `json:"city"`
+	CityID        string `json:"city_id"`
+	Region        string `json:"region"`
 	Age           int    `json:"age"`
 	PhotoVerified bool   `json:"photo_verified"`
 	AgeVerified   bool   `json:"age_verified"`
@@ -435,9 +446,9 @@ func (s *Service) Me(ctx context.Context, userID string) (Me, error) {
 	var birth time.Time
 	var photo, gos *time.Time
 	err := s.DB.QueryRow(ctx, `
-		SELECT p.display_name, p.city, u.birth_date, u.photo_verified_at, u.gosuslugi_verified_at
+		SELECT p.display_name, p.city, coalesce(p.city_id, ''), u.birth_date, u.photo_verified_at, u.gosuslugi_verified_at
 		FROM users u JOIN profiles p ON p.user_id = u.id
-		WHERE u.id = $1 AND u.deleted_at IS NULL`, userID).Scan(&m.Name, &m.City, &birth, &photo, &gos)
+		WHERE u.id = $1 AND u.deleted_at IS NULL`, userID).Scan(&m.Name, &m.City, &m.CityID, &birth, &photo, &gos)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Me{}, ErrUnauthorized
 	}
@@ -446,5 +457,57 @@ func (s *Service) Me(ctx context.Context, userID string) (Me, error) {
 	}
 	m.Age = Age(birth, s.now())
 	m.PhotoVerified, m.AgeVerified = photo != nil, gos != nil
+	if s.Cities != nil {
+		if c, ok := s.Cities.Get(m.CityID); ok {
+			m.Region = c.Region
+		}
+	}
 	return m, nil
+}
+
+// city находит город регистрации в справочнике: по коду или (старые клиенты) по названию.
+func (s *Service) city(r Registration) (cities.City, error) {
+	if s.Cities == nil {
+		return cities.City{}, errors.New("auth: не задан справочник городов")
+	}
+	if r.CityID != "" {
+		if c, ok := s.Cities.Get(r.CityID); ok {
+			return c, nil
+		}
+		return cities.City{}, &ValidationError{"city", "неизвестный город — выберите из списка"}
+	}
+	if c, ok := s.Cities.FindByName(r.City); ok {
+		return c, nil
+	}
+	return cities.City{}, &ValidationError{"city", "выберите город из списка"}
+}
+
+// BackfillCities проставляет код города тем, кто регистрировался, когда город вводился текстом.
+// Одноимённые города не угадываем — у таких людей город останется текстом до правки профиля.
+func (s *Service) BackfillCities(ctx context.Context) (int, error) {
+	rows, err := s.DB.Query(ctx, `SELECT user_id, city FROM profiles WHERE city_id IS NULL AND city IS NOT NULL`)
+	if err != nil {
+		return 0, err
+	}
+	type p struct{ id, city string }
+	list, err := pgx.CollectRows(rows, func(r pgx.CollectableRow) (p, error) {
+		var x p
+		return x, r.Scan(&x.id, &x.city)
+	})
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, x := range list {
+		c, ok := s.Cities.FindByName(x.city)
+		if !ok {
+			continue
+		}
+		if _, err := s.DB.Exec(ctx, `UPDATE profiles SET city = $2, city_id = $3, timezone = $4 WHERE user_id = $1`,
+			x.id, c.Name, c.ID, c.TZ); err != nil {
+			return n, err
+		}
+		n++
+	}
+	return n, nil
 }

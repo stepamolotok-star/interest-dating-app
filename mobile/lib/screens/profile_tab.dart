@@ -26,7 +26,10 @@ class ProfileTab extends StatelessWidget {
           Text(me == null ? 'Профиль' : '${me.name}, ${me.age}', style: t.headlineMedium),
           if (me != null && me.city.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(me.city, style: t.bodyLarge?.copyWith(color: AppColors.muted)),
+            Text(
+              me.region.isEmpty ? me.city : '${me.city}, ${me.region}',
+              style: t.bodyLarge?.copyWith(color: AppColors.muted),
+            ),
           ],
           const SizedBox(height: 12),
           Wrap(

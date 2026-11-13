@@ -88,12 +88,14 @@ void main() {
         birthDate: DateTime(1995, 2, 1),
         gender: 'female',
         city: 'Чита',
+        cityId: '2d9abaa6-85a6-4f1f-a1bd-14b76ec17d9c',
         terms: true,
         personalData: true,
       ),
     );
     expect(body['birth_date'], '1995-02-01');
     expect(body['consents'], {'terms': true, 'personal_data': true});
+    expect(body['city_id'], '2d9abaa6-85a6-4f1f-a1bd-14b76ec17d9c');
   });
 
   test('интерес без отметки не шлёт interest_id', () async {
