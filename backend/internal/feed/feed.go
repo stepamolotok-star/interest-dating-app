@@ -180,7 +180,12 @@ func (s *Service) rank(ctx context.Context, viewerID string, goal matching.Goal,
 		if ok, _ := matching.Eligible(v.mp, c.mp, goal); !ok {
 			continue
 		}
-		cards = append(cards, s.card(c, goal, scorer.Score(v.mp, c.mp, goal)))
+		card := s.card(c, goal, scorer.Score(v.mp, c.mp, goal))
+		// Кто прячет свои фото до взаимности, тот и чужие видит только после неё — честно в обе стороны.
+		if !v.visible("photos") {
+			card.PhotosHidden = true
+		}
+		cards = append(cards, card)
 	}
 	sort.SliceStable(cards, func(i, j int) bool { return cards[i].Score > cards[j].Score })
 	if len(cards) > limit {

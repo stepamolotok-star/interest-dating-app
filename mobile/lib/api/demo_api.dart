@@ -350,7 +350,9 @@ class DemoApi extends Api {
           ageRange: person.ageRange,
           age: person.age,
           name: person.name,
-          photosHidden: goal == 'casual' || person.photosAfterMatch,
+          // Кто прячет свои фото до взаимности, не видит и чужие — как на сервере.
+          photosHidden:
+              goal == 'casual' || person.photosAfterMatch || _fieldVisibility['photos'] == 'after_match',
           goal: goal,
           score: 92 - p * 7,
           explanation: _explain(shared),

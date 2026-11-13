@@ -311,7 +311,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             value: _vis['photos'] == 'after_match',
             onChanged: (v) => _setVis('photos', v ? 'after_match' : 'anonymous'),
             title: const Text('Показывать фото только после взаимного интереса'),
-            subtitle: const Text('До этого в ленте будет силуэт с замком'),
+            subtitle: const Text(
+              'До этого вместо ваших фото будет силуэт с замком. Но и чужие фото вы тоже увидите '
+              'только после взаимного интереса — правило одно для всех.',
+            ),
           ),
         ),
         _Section(

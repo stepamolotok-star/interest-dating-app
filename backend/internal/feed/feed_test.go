@@ -163,6 +163,16 @@ func TestFeedRanksAndFilters(t *testing.T) {
 	if again, _ := e.feed.Feed(ctx, viewer, matching.Hobby, 10); again[0].Age != 0 || again[0].AgeRange != "28–32" || !again[0].PhotosHidden {
 		t.Fatalf("возраст диапазоном: %+v", again[0])
 	}
+	// Правило в обе стороны: кто сам прячет фото до взаимности, не видит и чужие.
+	if again, _ := e.feed.Feed(ctx, viewer, matching.Hobby, 10); again[1].PhotosHidden {
+		t.Fatalf("у «слабого» фото открыто, пока смотрящий своё не прячет: %+v", again[1])
+	}
+	if _, err := e.db.Exec(ctx, `INSERT INTO profile_field_visibility (user_id, field, visibility) VALUES ($1, 'photos', 'after_match')`, viewer); err != nil {
+		t.Fatal(err)
+	}
+	if again, _ := e.feed.Feed(ctx, viewer, matching.Hobby, 10); !again[1].PhotosHidden {
+		t.Fatalf("смотрящий прячет свои фото — чужие тоже скрыты: %+v", again[1])
+	}
 	// У «слабого» общих интересов нет — его интересы видны списком, а не только числом.
 	if w := cards[1]; w.OtherInterest != 1 || len(w.Others) != 1 || w.Others[0] == "" {
 		t.Fatalf("остальные интересы: %+v", w)

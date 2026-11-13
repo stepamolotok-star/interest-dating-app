@@ -53,6 +53,9 @@ void main() {
     expect(saved.heightCm, 168);
     expect(saved.religion, 'orthodox');
     expect((await state.api.fieldVisibility())['photos'], 'after_match');
+    // Свои фото скрыты — чужие в ленте тоже под замком.
+    final cards = (await tester.runAsync(() => state.api.feed('friendship')))!;
+    expect(cards, everyElement(predicate<dynamic>((c) => c.photosHidden == true)));
 
     // Убрать религию: повторное нажатие снимает выбор.
     await tester.pump(const Duration(seconds: 5));
