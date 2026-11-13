@@ -29,7 +29,12 @@ class _InterestsScreenState extends State<InterestsScreen> {
       i.id: MyInterest(id: i.id, name: i.name, level: i.level, seekingPartner: i.seekingPartner),
   };
   final _query = TextEditingController();
-  final _children = <String, Future<List<InterestNode>>>{};
+
+  /// Загруженные подкатегории и интересы. Держим готовыми данными, а не Future:
+  /// иначе при прокрутке назад раскрытая категория на кадр «сжимается» и лента прыгает.
+  final _kids = <String, List<InterestNode>>{};
+  final _loadingKids = <String>{};
+  final _failedKids = <String>{};
   late final Future<List<InterestNode>> _categories = _api.categories();
   Future<List<InterestNode>>? _results;
   Timer? _debounce;
@@ -41,7 +46,31 @@ class _InterestsScreenState extends State<InterestsScreen> {
     super.dispose();
   }
 
-  Future<List<InterestNode>> _childrenOf(String id) => _children.putIfAbsent(id, () => _api.children(id));
+  /// Загружает категорию целиком: подкатегории и их интересы — одним махом,
+  /// чтобы раскрытая категория больше не меняла высоту.
+  Future<void> _loadCategory(String id) async {
+    if (_kids.containsKey(id) || _loadingKids.contains(id)) return;
+    setState(() {
+      _loadingKids.add(id);
+      _failedKids.remove(id);
+    });
+    try {
+      final children = await _api.children(id);
+      final groups = children.where((n) => n.hasChildren).toList();
+      final leaves = await Future.wait(groups.map((g) => _api.children(g.id)));
+      if (!mounted) return;
+      setState(() {
+        _kids[id] = children;
+        for (var i = 0; i < groups.length; i++) {
+          _kids[groups[i].id] = leaves[i];
+        }
+      });
+    } catch (_) {
+      if (mounted) setState(() => _failedKids.add(id));
+    } finally {
+      if (mounted) setState(() => _loadingKids.remove(id));
+    }
+  }
 
   void _onQuery(String q) {
     _debounce?.cancel();
@@ -101,6 +130,8 @@ class _InterestsScreenState extends State<InterestsScreen> {
               },
       ),
       child: CustomScrollView(
+        // Строим с запасом за краем экрана, чтобы при быстрой прокрутке не собирать плитки на лету.
+        scrollCacheExtent: const ScrollCacheExtent.pixels(800),
         slivers: [
           SliverToBoxAdapter(
             child: TextField(
@@ -158,7 +189,9 @@ class _InterestsScreenState extends State<InterestsScreen> {
                     for (final c in snap.data!)
                       _CategoryTile(
                         category: c,
-                        childrenOf: _childrenOf,
+                        kids: _kids,
+                        failed: _failedKids.contains(c.id),
+                        onExpand: () => _loadCategory(c.id),
                         selected: _selected,
                         onToggle: _toggle,
                       ),
@@ -226,60 +259,103 @@ class _SelectedChip extends StatelessWidget {
 class _CategoryTile extends StatelessWidget {
   const _CategoryTile({
     required this.category,
-    required this.childrenOf,
+    required this.kids,
+    required this.failed,
+    required this.onExpand,
     required this.selected,
     required this.onToggle,
   });
 
   final InterestNode category;
-  final Future<List<InterestNode>> Function(String) childrenOf;
+
+  /// Загруженные дети по id узла; нет ключа — ещё не загружено.
+  final Map<String, List<InterestNode>> kids;
+  final bool failed;
+  final VoidCallback onExpand;
   final Map<String, MyInterest> selected;
   final void Function(InterestNode) onToggle;
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-      child: ExpansionTile(
-        key: PageStorageKey(category.id),
-        tilePadding: EdgeInsets.zero,
-        childrenPadding: const EdgeInsets.only(bottom: 12),
-        title: Text(category.name, style: Theme.of(context).textTheme.titleMedium),
-        expandedAlignment: Alignment.centerLeft,
-        expandedCrossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FutureBuilder<List<InterestNode>>(
-            future: childrenOf(category.id),
-            builder: (context, snap) {
-              if (snap.hasError) return const _LoadError();
-              if (!snap.hasData) return const LinearProgressIndicator();
-              final leaves = snap.data!.where((n) => !n.hasChildren).toList();
-              final groups = snap.data!.where((n) => n.hasChildren).toList();
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (leaves.isNotEmpty) _Leaves(nodes: leaves, selected: selected, onToggle: onToggle),
-                  for (final g in groups) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10, bottom: 6),
-                      child: Text(
-                        g.name,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    FutureBuilder<List<InterestNode>>(
-                      future: childrenOf(g.id),
-                      builder: (context, s) => s.hasData
-                          ? _Leaves(nodes: s.data!, selected: selected, onToggle: onToggle)
-                          : const SizedBox(height: 32),
-                    ),
-                  ],
-                ],
-              );
-            },
+    final children = kids[category.id];
+    return ExpansionTile(
+      key: PageStorageKey(category.id),
+      // Без линий сверху и снизу — и без копии всей темы на каждую плитку.
+      shape: const Border(),
+      collapsedShape: const Border(),
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: const EdgeInsets.only(bottom: 12),
+      title: Text(category.name, style: Theme.of(context).textTheme.titleMedium),
+      expandedAlignment: Alignment.centerLeft,
+      expandedCrossAxisAlignment: CrossAxisAlignment.start,
+      onExpansionChanged: (open) {
+        if (open) onExpand();
+      },
+      children: [
+        if (children != null)
+          _CategoryBody(nodes: children, kids: kids, selected: selected, onToggle: onToggle)
+        else if (failed)
+          TextButton(onPressed: onExpand, child: const Text('Не загрузилось. Повторить'))
+        else
+          _AutoLoad(onLoad: onExpand),
+      ],
+    );
+  }
+}
+
+/// Индикатор загрузки, который сам запускает загрузку — на случай, когда категория
+/// раскрыта из сохранённого состояния и onExpansionChanged не вызывался.
+class _AutoLoad extends StatefulWidget {
+  const _AutoLoad({required this.onLoad});
+
+  final VoidCallback onLoad;
+
+  @override
+  State<_AutoLoad> createState() => _AutoLoadState();
+}
+
+class _AutoLoadState extends State<_AutoLoad> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(widget.onLoad);
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: LinearProgressIndicator());
+}
+
+class _CategoryBody extends StatelessWidget {
+  const _CategoryBody({
+    required this.nodes,
+    required this.kids,
+    required this.selected,
+    required this.onToggle,
+  });
+
+  final List<InterestNode> nodes;
+  final Map<String, List<InterestNode>> kids;
+  final Map<String, MyInterest> selected;
+  final void Function(InterestNode) onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final leaves = nodes.where((n) => !n.hasChildren).toList();
+    final groups = nodes.where((n) => n.hasChildren).toList();
+    final label = Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (leaves.isNotEmpty) _Leaves(nodes: leaves, selected: selected, onToggle: onToggle),
+        for (final g in groups) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 10, bottom: 6),
+            child: Text(g.name, style: label),
           ),
+          _Leaves(nodes: kids[g.id] ?? const [], selected: selected, onToggle: onToggle),
         ],
-      ),
+      ],
     );
   }
 }
