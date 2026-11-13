@@ -149,11 +149,18 @@ func TestFeedRanksAndFilters(t *testing.T) {
 	if c.AgeRange != "28–32" || c.Age < 28 || c.Age > 32 || len(c.Shared) != 2 || c.About != "Люблю дорогу" || c.OtherInterest != 0 {
 		t.Fatalf("карточка: %+v", c)
 	}
+	if c.Name != "Тест" || c.PhotosHidden {
+		t.Fatalf("имя и фото в ленте видны сразу: %+v", c)
+	}
+	// Фото только после взаимного интереса — по желанию человека.
+	if _, err := e.db.Exec(ctx, `INSERT INTO profile_field_visibility (user_id, field, visibility) VALUES ($1, 'photos', 'after_match')`, best); err != nil {
+		t.Fatal(err)
+	}
 	// Кто попросил показывать возраст диапазоном — точного возраста в карточке нет.
 	if _, err := e.db.Exec(ctx, `UPDATE profiles SET age_as_range = true WHERE user_id = $1`, best); err != nil {
 		t.Fatal(err)
 	}
-	if again, _ := e.feed.Feed(ctx, viewer, matching.Hobby, 10); again[0].Age != 0 || again[0].AgeRange != "28–32" {
+	if again, _ := e.feed.Feed(ctx, viewer, matching.Hobby, 10); again[0].Age != 0 || again[0].AgeRange != "28–32" || !again[0].PhotosHidden {
 		t.Fatalf("возраст диапазоном: %+v", again[0])
 	}
 	// У «слабого» общих интересов нет — его интересы видны списком, а не только числом.

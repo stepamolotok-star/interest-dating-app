@@ -37,7 +37,7 @@ class MatchScreen extends StatelessWidget {
               Text('Это взаимно!', style: t.headlineMedium, textAlign: TextAlign.center),
               const SizedBox(height: 10),
               Text(
-                'Теперь вы видите имена и фото друг друга. ${card.explanation}.',
+                'Теперь можно написать друг другу. ${card.explanation}.',
                 style: t.bodyLarge?.copyWith(color: AppColors.muted),
                 textAlign: TextAlign.center,
               ),

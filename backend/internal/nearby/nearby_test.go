@@ -131,7 +131,7 @@ func TestRadarBasicsAndSymmetry(t *testing.T) {
 	e.at(t, her, near300)
 
 	cards, err := e.svc.Radar(ctx, me, matching.Hobby)
-	if err != nil || len(cards) != 1 || cards[0].UserID != her || cards[0].Distance != "до 500 м" {
+	if err != nil || len(cards) != 1 || cards[0].UserID != her || cards[0].Distance != "до 500 м" || !cards[0].PhotosHidden {
 		t.Fatalf("радар: %+v %v", cards, err)
 	}
 	if strings.Contains(fmt.Sprintf("%+v", cards[0]), "52.03") {

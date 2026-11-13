@@ -119,9 +119,7 @@ class _AboutScreenState extends State<AboutScreen> {
     return StepScaffold(
       step: 2,
       title: 'О себе',
-      subtitle:
-          'Имя увидят только после взаимного интереса. Дату рождения — никто: '
-          'в анкете только возраст.',
+      subtitle: 'Имя и возраст будут видны в анкете. Саму дату рождения не увидит никто.',
       button: BusyButton(label: 'Дальше', onPressed: _next),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

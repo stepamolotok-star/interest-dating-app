@@ -168,6 +168,8 @@ class FeedCard {
     required this.userId,
     required this.ageRange,
     this.age = 0,
+    this.name = '',
+    this.photosHidden = false,
     required this.goal,
     required this.score,
     required this.explanation,
@@ -188,6 +190,8 @@ class FeedCard {
     userId: j['user_id'] as String,
     ageRange: j['age_range'] as String? ?? '',
     age: j['age'] as int? ?? 0,
+    name: j['name'] as String? ?? '',
+    photosHidden: j['photos_hidden'] as bool? ?? false,
     goal: j['goal'] as String? ?? '',
     score: j['score'] as int? ?? 0,
     explanation: j['explanation'] as String? ?? '',
@@ -213,6 +217,11 @@ class FeedCard {
 
   /// Точный возраст; 0 — человек показывает возраст диапазоном.
   final int age;
+
+  final String name;
+
+  /// Фото размыто до взаимного интереса: так решил человек, это «Без обязательств» или «Рядом».
+  final bool photosHidden;
 
   /// «27 лет» или «28–32 лет», если человек скрыл точный возраст.
   String get ageLabel => age > 0 ? '$age ${yearsWord(age)}' : (ageRange.isEmpty ? '' : '$ageRange лет');

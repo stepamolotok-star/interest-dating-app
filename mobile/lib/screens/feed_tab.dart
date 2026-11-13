@@ -6,6 +6,7 @@ import '../app.dart';
 import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/safety.dart' show Avatar;
 import 'filters_screen.dart';
 import 'match_screen.dart';
 
@@ -328,24 +329,45 @@ class _PersonCardState extends State<PersonCard> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              HiddenAvatar(goal: card.goal),
+              // Фото в приложении пока нет: открытая карточка — аватар с буквой имени,
+              // скрытая до взаимности — силуэт с замком.
+              if (card.photosHidden || card.name.isEmpty)
+                HiddenAvatar(goal: card.goal)
+              else
+                Avatar(name: card.name, goal: card.goal, size: 64),
               const SizedBox(width: 14),
               Expanded(
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Tag(goalShort[g.id] ?? g.label, color: g.color, background: g.tint),
-                    if (card.ageLabel.isNotEmpty) Tag(card.ageLabel),
-                    if (card.distance.isNotEmpty) Tag(card.distance, icon: Icons.near_me_outlined),
-                    if (card.ageVerified)
-                      const Tag(
-                        'Возраст подтверждён',
-                        icon: Icons.verified_outlined,
-                        color: AppColors.accent,
+                    if (card.name.isNotEmpty) ...[
+                      Text(
+                        [card.name, if (card.ageLabel.isNotEmpty) card.ageLabel].join(', '),
+                        style: t.titleLarge?.copyWith(fontWeight: FontWeight.w800, fontSize: 22),
                       ),
-                    if (card.photoVerified)
-                      const Tag('Фото проверено', icon: Icons.photo_camera_outlined, color: AppColors.accent),
+                      const SizedBox(height: 8),
+                    ],
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        Tag(goalShort[g.id] ?? g.label, color: g.color, background: g.tint),
+                        if (card.name.isEmpty && card.ageLabel.isNotEmpty) Tag(card.ageLabel),
+                        if (card.distance.isNotEmpty) Tag(card.distance, icon: Icons.near_me_outlined),
+                        if (card.ageVerified)
+                          const Tag(
+                            'Возраст подтверждён',
+                            icon: Icons.verified_outlined,
+                            color: AppColors.accent,
+                          ),
+                        if (card.photoVerified)
+                          const Tag(
+                            'Фото проверено',
+                            icon: Icons.photo_camera_outlined,
+                            color: AppColors.accent,
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -390,14 +412,16 @@ class _PersonCardState extends State<PersonCard> {
             const SizedBox(height: 18),
             Wrap(spacing: 6, runSpacing: 6, children: [for (final h in habits) Tag(h)]),
           ],
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              const Icon(Icons.lock_outline, size: 16, color: AppColors.muted),
-              const SizedBox(width: 6),
-              Expanded(child: Text('Имя и фото откроются, если интерес будет взаимным', style: t.bodySmall)),
-            ],
-          ),
+          if (card.photosHidden) ...[
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                const Icon(Icons.lock_outline, size: 16, color: AppColors.muted),
+                const SizedBox(width: 6),
+                Expanded(child: Text('Фото откроется, если интерес будет взаимным', style: t.bodySmall)),
+              ],
+            ),
+          ],
         ],
       ),
     );

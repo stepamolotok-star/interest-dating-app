@@ -37,6 +37,8 @@ void main() {
     await tap(find.byKey(const Key('diet-vegetarian')));
     await tester.enterText(find.byKey(const Key('height')), '168');
 
+    await tap(find.byKey(const Key('photos-after-match')));
+
     // Религия — только с отдельным согласием.
     await tap(find.byKey(const Key('religion-orthodox')));
     expect(find.text('Отдельное согласие'), findsOneWidget);
@@ -50,6 +52,7 @@ void main() {
     expect(saved.diet, 'vegetarian');
     expect(saved.heightCm, 168);
     expect(saved.religion, 'orthodox');
+    expect((await state.api.fieldVisibility())['photos'], 'after_match');
 
     // Убрать религию: повторное нажатие снимает выбор.
     await tester.pump(const Duration(seconds: 5));

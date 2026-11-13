@@ -126,9 +126,10 @@ void main() {
     // Лента: анонимная карточка с объяснением совпадения.
     expect(find.text('Свои'), findsOneWidget);
     expect(find.textContaining('общих интерес'), findsOneWidget);
-    expect(find.text('Имя и фото откроются, если интерес будет взаимным'), findsOneWidget);
+    // Имя и возраст видны сразу, фото у Марины открыто — замка нет.
+    expect(find.text('Марина, 27 лет'), findsOneWidget);
+    expect(find.text('Фото откроется, если интерес будет взаимным'), findsNothing);
     // Точный возраст и остальные интересы по нажатию на «ещё N».
-    expect(find.text('27 лет'), findsOneWidget);
     expect(find.text('Походы'), findsNothing);
     await tapKey(tester, 'more-interests');
     expect(find.text('Походы'), findsOneWidget);

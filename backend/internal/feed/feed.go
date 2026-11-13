@@ -53,8 +53,12 @@ func (s *Service) now() time.Time {
 
 // Card — анонимная карточка кандидата.
 type Card struct {
-	UserID   string `json:"user_id"`
-	AgeRange string `json:"age_range"`
+	UserID string `json:"user_id"`
+	Name   string `json:"name"`
+	// PhotosHidden — фото до взаимного интереса размыто: так решил сам человек,
+	// это цель «Без обязательств» или карточка из «Рядом».
+	PhotosHidden bool   `json:"photos_hidden"`
+	AgeRange     string `json:"age_range"`
 	// Age — точный возраст; 0 (нет в JSON), если человек показывает возраст диапазоном.
 	Age           int                       `json:"age,omitempty"`
 	Goal          matching.Goal             `json:"goal"`
@@ -83,6 +87,7 @@ type candidate struct {
 	prompts    []profile.Prompt
 	languages  []profile.Language
 	showZodiac bool
+	name       string
 	ageAsRange bool
 	zodiac     string
 	vis        map[string]string
@@ -186,7 +191,8 @@ func (s *Service) rank(ctx context.Context, viewerID string, goal matching.Goal,
 
 func (s *Service) card(c *candidate, goal matching.Goal, r matching.Result) Card {
 	card := Card{
-		UserID: c.mp.ID, AgeRange: AgeRange(c.mp.Age), Goal: goal,
+		UserID: c.mp.ID, Name: c.name, AgeRange: AgeRange(c.mp.Age), Goal: goal,
+		PhotosHidden:  !c.visible("photos") || goal == matching.Casual,
 		PhotoVerified: c.mp.PhotoVerified, AgeVerified: c.mp.AgeVerified,
 		Score: r.Score, Explanation: r.Explanation, Shared: r.Shared,
 	}
@@ -384,7 +390,7 @@ func (s *Service) load(ctx context.Context, ids []string, now time.Time) (map[st
 	rows, err := s.DB.Query(ctx, `
 		SELECT u.id, u.birth_date, u.gender, u.photo_verified_at IS NOT NULL, u.gosuslugi_verified_at IS NOT NULL,
 		       u.last_active_at, coalesce(p.city_id, lower(p.city)), coalesce(p.about, ''), p.prompts, coalesce(p.height_cm, 0), coalesce(p.weight_kg, 0),
-		       p.habits, coalesce(p.diet, ''), coalesce(p.religion, ''), p.religion_for_matching, p.show_zodiac, p.languages, p.age_as_range
+		       p.habits, coalesce(p.diet, ''), coalesce(p.religion, ''), p.religion_for_matching, p.show_zodiac, p.languages, p.age_as_range, p.display_name
 		FROM users u JOIN profiles p ON p.user_id = u.id
 		WHERE u.id = ANY($1::uuid[]) AND u.deleted_at IS NULL`, ids)
 	if err != nil {
@@ -397,7 +403,7 @@ func (s *Service) load(ctx context.Context, ids []string, now time.Time) (map[st
 		var height, weight int16
 		err := rows.Scan(&c.mp.ID, &birth, &c.mp.Gender, &c.mp.PhotoVerified, &c.mp.AgeVerified, &c.mp.LastActive,
 			&c.city, &c.about, &prompts, &height, &weight, &habits, &c.mp.Diet, &c.mp.Religion,
-			&c.mp.ReligionForMatching, &c.showZodiac, &langs, &c.ageAsRange)
+			&c.mp.ReligionForMatching, &c.showZodiac, &langs, &c.ageAsRange, &c.name)
 		if err != nil {
 			rows.Close()
 			return nil, err

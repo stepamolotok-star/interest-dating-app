@@ -8,6 +8,7 @@ import '../location.dart';
 import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import 'feed_tab.dart' show HiddenAvatar;
 import 'match_screen.dart';
 import 'nearby_settings_screen.dart';
 
@@ -475,6 +476,19 @@ class _NearbyCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
+          if (card.name.isNotEmpty) ...[
+            Row(
+              children: [
+                // В «Рядом» фото до взаимного интереса скрыто всегда.
+                HiddenAvatar(goal: card.goal, size: 44),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(card.name, style: t.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
           Text(card.explanation, style: t.titleMedium),
           if (card.about.isNotEmpty) ...[
             const SizedBox(height: 6),

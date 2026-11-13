@@ -53,6 +53,7 @@ class DemoApi extends Api {
     'weight': 'matching_only',
     'body_type': 'matching_only',
     'religion': 'hidden',
+    'photos': 'anonymous',
   };
 
   @override
@@ -348,6 +349,8 @@ class DemoApi extends Api {
           userId: id,
           ageRange: person.ageRange,
           age: person.age,
+          name: person.name,
+          photosHidden: goal == 'casual' || person.photosAfterMatch,
           goal: goal,
           score: 92 - p * 7,
           explanation: _explain(shared),
@@ -638,6 +641,9 @@ class DemoApi extends Api {
             userId: c.userId,
             ageRange: c.ageRange,
             age: c.age,
+            name: c.name,
+            // Фото рядом с расстоянием до взаимности не показываем — как на сервере.
+            photosHidden: true,
             goal: c.goal,
             score: c.score,
             explanation: c.explanation,
@@ -825,7 +831,11 @@ class _Person {
     this.habits = const {},
     this.diet = '',
     this.extraInterests = const [],
+    this.photosAfterMatch = false,
   });
+
+  /// Человек сам решил открывать фото только после взаимного интереса.
+  final bool photosAfterMatch;
   final String name;
   final int age;
   final String ageRange;
@@ -886,6 +896,7 @@ const _people = [
     12,
     'Спокойный, домашний, но легко соглашаюсь на авантюры.',
     prompts: [Prompt('Лучший совет, который я получал', 'Не откладывать на понедельник')],
+    photosAfterMatch: true,
     extraInterests: ['Рыбалка', 'Кулинария'],
   ),
   _Person(

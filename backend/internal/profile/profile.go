@@ -37,6 +37,9 @@ var DefaultVisibility = map[string]string{
 	"weight":    MatchingOnly,
 	"body_type": MatchingOnly,
 	"religion":  Hidden,
+	// Фото видно в ленте сразу; можно открыть только после взаимного интереса.
+	// В «Рядом» и в цели «Без обязательств» фото до взаимности скрыто всегда (пакеты feed, nearby).
+	"photos": Anonymous,
 }
 
 // Допустимые привычки и их значения.
@@ -296,6 +299,9 @@ func (s *Service) SetVisibility(ctx context.Context, userID string, changes map[
 		}
 		if !slices.Contains([]string{Anonymous, AfterMatch, MatchingOnly, Hidden}, vis) {
 			return invalid(field, "неизвестная видимость")
+		}
+		if field == "photos" && vis != Anonymous && vis != AfterMatch {
+			return invalid(field, "фото можно показывать всем или только после взаимного интереса")
 		}
 		batch.Queue(`INSERT INTO profile_field_visibility (user_id, field, visibility) VALUES ($1, $2, $3)
 			ON CONFLICT (user_id, field) DO UPDATE SET visibility = $3`, userID, field, vis)

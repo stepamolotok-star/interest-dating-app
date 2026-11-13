@@ -303,6 +303,18 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ),
         ),
         _Section(
+          title: 'Фото',
+          hint: 'В «Рядом» и в цели «Без обязательств» фото до взаимного интереса скрыто всегда.',
+          child: SwitchListTile(
+            key: const Key('photos-after-match'),
+            contentPadding: EdgeInsets.zero,
+            value: _vis['photos'] == 'after_match',
+            onChanged: (v) => _setVis('photos', v ? 'after_match' : 'anonymous'),
+            title: const Text('Показывать фото только после взаимного интереса'),
+            subtitle: const Text('До этого в ленте будет силуэт с замком'),
+          ),
+        ),
+        _Section(
           title: 'Возраст',
           child: SwitchListTile(
             key: const Key('age-as-range'),
