@@ -369,7 +369,7 @@ class _Bubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = mine ? AppColors.ink : AppColors.surface;
+    final bg = mine ? AppColors.accent : AppColors.surface;
     final fg = mine ? Colors.white : AppColors.ink;
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
