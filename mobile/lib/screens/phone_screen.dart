@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app.dart';
 import '../models.dart';
@@ -35,6 +36,39 @@ class _PhoneScreenState extends State<PhoneScreen> {
     }
   }
 
+  static const _askedKey = 'autofill_call_asked';
+
+  /// Перед первым звонком на Android предлагаем подставлять код самим.
+  /// Спрашиваем один раз; отказ — просто вводите цифры вручную.
+  Future<void> _requestCall() async {
+    final state = AppScope.read(context);
+    final autofill = state.autofill;
+    final prefs = await SharedPreferences.getInstance();
+    if (autofill.supportsCall &&
+        !await autofill.hasCallPermission() &&
+        !(prefs.getBool(_askedKey) ?? false)) {
+      await prefs.setBool(_askedKey, true);
+      if (!mounted) return;
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Подставить код автоматически?'),
+          content: const Text(
+            'Код — последние 4 цифры номера, который вам позвонит. Чтобы не вводить их вручную, '
+            'разрешите приложению видеть номер входящего звонка. Мы смотрим только этот один звонок, '
+            'журнал звонков не читаем и ничего не сохраняем.',
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Введу сам')),
+            TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Разрешить')),
+          ],
+        ),
+      );
+      if (ok == true) await autofill.requestCallPermission();
+    }
+    await state.requestCode('+7$_digits');
+  }
+
   Future<void> _loginWith(AuthProvider p) async {
     setState(() => _busyProvider = p.id);
     try {
@@ -62,10 +96,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
       step: 1,
       title: 'Найди своих людей по интересам',
       subtitle: 'Войдите по номеру телефона. Регистрация займёт пару минут.',
-      button: BusyButton(
-        label: 'Получить звонок',
-        onPressed: _valid ? () => AppScope.read(context).requestCode('+7$_digits') : null,
-      ),
+      button: BusyButton(label: 'Получить звонок', onPressed: _valid ? _requestCall : null),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

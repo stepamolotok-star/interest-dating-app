@@ -6,6 +6,7 @@ import 'api/api.dart';
 import 'dart:convert';
 
 import 'auth_browser.dart';
+import 'code_autofill.dart';
 import 'contacts.dart';
 import 'location.dart';
 import 'models.dart';
@@ -15,12 +16,21 @@ enum Stage { loading, phone, code, about, goals, interests, home }
 
 /// Состояние приложения: сессия, шаг регистрации и данные профиля.
 class AppState extends ChangeNotifier {
-  AppState(this.api, {LocationSource? location, ContactsSource? contacts, AuthBrowser? browser})
-    : browser = browser ?? (api.isDemo ? const DemoAuthBrowser() : DeviceAuthBrowser()),
-      location = location ?? (api.isDemo ? const FixedLocation() : DeviceLocation()),
-      contacts = contacts ?? (api.isDemo ? const DemoContacts() : DeviceContacts());
+  AppState(
+    this.api, {
+    LocationSource? location,
+    ContactsSource? contacts,
+    AuthBrowser? browser,
+    CodeAutofill? autofill,
+  }) : autofill = autofill ?? (api.isDemo ? const DemoCodeAutofill() : DeviceCodeAutofill()),
+       browser = browser ?? (api.isDemo ? const DemoAuthBrowser() : DeviceAuthBrowser()),
+       location = location ?? (api.isDemo ? const FixedLocation() : DeviceLocation()),
+       contacts = contacts ?? (api.isDemo ? const DemoContacts() : DeviceContacts());
 
   final Api api;
+
+  /// Автоподстановка кода из звонка или SMS. В демо «звонок» приходит сам через 2 секунды.
+  final CodeAutofill autofill;
 
   /// Окно входа через VK ID / Яндекс ID. В демо — сразу «успешный вход».
   final AuthBrowser browser;

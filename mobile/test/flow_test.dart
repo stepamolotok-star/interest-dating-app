@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:svoi/api/demo_api.dart';
 import 'package:svoi/app.dart';
+import 'package:svoi/code_autofill.dart';
 import 'package:svoi/state.dart';
 
 /// Весь путь нового человека в демо-режиме: телефон → код → о себе → цели →
@@ -29,7 +30,7 @@ void main() {
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
 
-    final state = AppState(DemoApi());
+    final state = AppState(DemoApi(), autofill: const NoCodeAutofill());
     await tester.pumpWidget(SvoiApp(state: state..start()));
     await tester.pumpAndSettle();
 

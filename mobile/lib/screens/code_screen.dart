@@ -21,6 +21,7 @@ class _CodeScreenState extends State<CodeScreen> {
   int _left = 0;
   bool _busy = false;
   String? _error;
+  StreamSubscription<String>? _autofill;
 
   @override
   void initState() {
@@ -28,11 +29,13 @@ class _CodeScreenState extends State<CodeScreen> {
     _ctrl.addListener(_onChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startTimer(AppScope.read(context).challenge?.resendAfter ?? 60);
+      _listenForCode();
     });
   }
 
   @override
   void dispose() {
+    _autofill?.cancel();
     _timer?.cancel();
     _ctrl.dispose();
     super.dispose();
@@ -70,12 +73,24 @@ class _CodeScreenState extends State<CodeScreen> {
     }
   }
 
+  /// Ждём код из звонка или SMS и подставляем сам — дальше он отправится как при ручном вводе.
+  void _listenForCode() {
+    final state = AppScope.read(context);
+    final ch = state.challenge;
+    _autofill?.cancel();
+    _autofill = state.autofill.codes(method: ch?.method ?? 'call', length: _length).listen((code) {
+      if (!mounted || _busy || _ctrl.text == code) return;
+      _ctrl.text = code;
+    });
+  }
+
   Future<void> _resend(String method) async {
     final state = AppScope.read(context);
     try {
       await state.requestCode(state.phone, method: method);
       _ctrl.clear();
       _startTimer(state.challenge?.resendAfter ?? 60);
+      _listenForCode();
     } on ApiException catch (e) {
       if (!mounted) return;
       showError(context, e);
@@ -135,7 +150,9 @@ class _CodeScreenState extends State<CodeScreen> {
           if (_busy) ...[const SizedBox(height: 16), const Center(child: CircularProgressIndicator())],
           if (state.api.isDemo) ...[
             const SizedBox(height: 16),
-            const DemoBanner(text: 'Демо-режим: введите 1234.'),
+            const DemoBanner(
+              text: 'Демо-режим: код 1234 подставится сам через пару секунд — или введите его.',
+            ),
           ],
           const SizedBox(height: 16),
           TextButton(onPressed: state.changePhone, child: const Text('Изменить номер')),

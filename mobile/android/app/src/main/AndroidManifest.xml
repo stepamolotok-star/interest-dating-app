@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- «Скрыть меня от контактов»: читаем только номера, на сервер уходят их хеши. -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- Автоподстановка кода из звонка-сброса: номер входящего звонка (по согласию). -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <application
         android:label="Свои"
         android:name="${applicationName}"

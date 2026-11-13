@@ -58,3 +58,10 @@ func tail(phone string) string {
 	}
 	return "…" + phone[len(phone)-4:]
 }
+
+// SMSText — текст SMS с кодом. Код в начале и отдельным словом: так его находят
+// автоподстановка iPhone (над клавиатурой) и Android (SMS User Consent API).
+// Настоящий SMS-провайдер должен отправлять именно этот текст.
+func SMSText(code string) string {
+	return "Код для входа в «Свои»: " + code + ". Никому его не сообщайте."
+}
