@@ -14,6 +14,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/nearby"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/oauth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 )
 
@@ -27,6 +28,7 @@ type Deps struct {
 	Chat     *chat.Service
 	Nearby   *nearby.Service
 	Contacts *contacts.Service
+	OAuth    *oauth.Service
 	Log      *slog.Logger
 }
 
@@ -39,12 +41,13 @@ type Server struct {
 	chat     *chat.Service
 	nearby   *nearby.Service
 	contacts *contacts.Service
+	oauth    *oauth.Service
 	log      *slog.Logger
 }
 
 // New возвращает готовый http.Handler.
 func New(d Deps) http.Handler {
-	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, contacts: d.Contacts, log: d.Log}
+	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, contacts: d.Contacts, oauth: d.OAuth, log: d.Log}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.health)
 	mux.HandleFunc("GET /v1/interests/categories", s.categories)
@@ -60,6 +63,9 @@ func New(d Deps) http.Handler {
 		}
 		if s.contacts != nil {
 			s.registerContacts(mux)
+		}
+		if s.oauth != nil {
+			s.registerOAuth(mux)
 		}
 	}
 	return s.logging(mux)

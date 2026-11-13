@@ -2,6 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api/api.dart';
+
+import 'dart:convert';
+
+import 'auth_browser.dart';
 import 'contacts.dart';
 import 'location.dart';
 import 'models.dart';
@@ -11,11 +15,15 @@ enum Stage { loading, phone, code, about, goals, interests, home }
 
 /// Состояние приложения: сессия, шаг регистрации и данные профиля.
 class AppState extends ChangeNotifier {
-  AppState(this.api, {LocationSource? location, ContactsSource? contacts})
-    : location = location ?? (api.isDemo ? const FixedLocation() : DeviceLocation()),
+  AppState(this.api, {LocationSource? location, ContactsSource? contacts, AuthBrowser? browser})
+    : browser = browser ?? (api.isDemo ? const DemoAuthBrowser() : DeviceAuthBrowser()),
+      location = location ?? (api.isDemo ? const FixedLocation() : DeviceLocation()),
       contacts = contacts ?? (api.isDemo ? const DemoContacts() : DeviceContacts());
 
   final Api api;
+
+  /// Окно входа через VK ID / Яндекс ID. В демо — сразу «успешный вход».
+  final AuthBrowser browser;
 
   /// Откуда брать геопозицию для «Рядом». В демо — фиксированная точка.
   final LocationSource location;
@@ -93,12 +101,43 @@ class AppState extends ChangeNotifier {
 
   void changePhone() => _go(Stage.phone);
 
-  Future<void> verify(String code) async {
-    final s = await api.verify(phone, code);
+  Future<void> verify(String code) async => _signedIn(await api.verify(phone, code));
+
+  Future<void> _signedIn(Session s) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, s.token);
     if (!s.registered) return _go(Stage.about);
     await _resume();
+  }
+
+  /// Вход через VK ID / Яндекс ID. От провайдера берём только подтверждённый номер.
+  /// false — человек закрыл окно входа.
+  Future<bool> loginWith(String provider) async {
+    final start = await api.oauthStart(provider);
+    final scheme = Uri.parse(start.redirectUri).scheme;
+    final back = await browser.open(Uri.parse(start.url), scheme);
+    if (back == null) return false;
+    // VK ID на мобильных может вернуть параметры одним JSON в payload.
+    var params = Map<String, String>.of(back.queryParameters);
+    final payload = params['payload'];
+    if (payload != null) {
+      params = {for (final e in (jsonDecode(payload) as Map<String, dynamic>).entries) e.key: '${e.value}'};
+    }
+    if (params['error'] != null || params['code'] == null) {
+      throw const ApiException(400, 'Вход не подтверждён. Попробуйте ещё раз или войдите по звонку');
+    }
+    if (params['state'] != start.state) {
+      throw const ApiException(400, 'Ответ сервиса входа не совпал — попробуйте ещё раз');
+    }
+    await _signedIn(
+      await api.oauthFinish(
+        provider,
+        state: start.state,
+        code: params['code']!,
+        deviceId: params['device_id'] ?? '',
+      ),
+    );
+    return true;
   }
 
   Future<void> register(Registration r) async {

@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../app.dart';
+import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 
@@ -15,11 +16,34 @@ class PhoneScreen extends StatefulWidget {
 
 class _PhoneScreenState extends State<PhoneScreen> {
   final _ctrl = TextEditingController();
+  List<AuthProvider> _providers = const [];
+  String? _busyProvider;
 
   @override
   void initState() {
     super.initState();
     _ctrl.addListener(() => setState(() {}));
+    Future.microtask(_loadProviders);
+  }
+
+  Future<void> _loadProviders() async {
+    try {
+      final list = await AppScope.read(context).api.authProviders();
+      if (mounted) setState(() => _providers = list);
+    } catch (_) {
+      // Нет связи — остаётся вход по номеру.
+    }
+  }
+
+  Future<void> _loginWith(AuthProvider p) async {
+    setState(() => _busyProvider = p.id);
+    try {
+      await AppScope.read(context).loginWith(p.id);
+    } catch (e) {
+      if (mounted) showError(context, e);
+    } finally {
+      if (mounted) setState(() => _busyProvider = null);
+    }
   }
 
   @override
@@ -72,9 +96,49 @@ class _PhoneScreenState extends State<PhoneScreen> {
                 'Номер никто не увидит. Он нужен только для входа: по закону '
                 'регистрироваться можно лишь с российским номером.',
           ),
+          if (_providers.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                const Expanded(child: Divider()),
+                Flexible(
+                  flex: 3,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'или через',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ),
+                const Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: 14),
+            for (final p in _providers)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _ProviderButton(
+                  provider: p,
+                  busy: _busyProvider == p.id,
+                  onPressed: _busyProvider == null ? () => _loginWith(p) : null,
+                ),
+              ),
+            const _Note(
+              icon: Icons.verified_user_outlined,
+              text:
+                  'Из аккаунта нам нужен только номер телефона — чтобы подтвердить его. Больше ничего '
+                  'не сохраняем и ничего от вашего имени не публикуем, друзья ничего не увидят.',
+            ),
+          ],
           if (state.api.isDemo) ...[
             const SizedBox(height: 16),
-            const DemoBanner(text: 'Демо-режим: звонка не будет, код всегда 1234. Люди в ленте ненастоящие.'),
+            const DemoBanner(
+              text:
+                  'Демо-режим: звонка не будет, код всегда 1234; кнопки VK ID и Яндекс ID сразу пускают внутрь. '
+                  'Люди в ленте ненастоящие.',
+            ),
           ],
         ],
       ),
@@ -119,6 +183,37 @@ class _PhoneFormatter extends TextInputFormatter {
     return TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+}
+
+/// Кнопка входа через ID-сервис в его фирменном цвете.
+class _ProviderButton extends StatelessWidget {
+  const _ProviderButton({required this.provider, required this.busy, required this.onPressed});
+
+  final AuthProvider provider;
+  final bool busy;
+  final VoidCallback? onPressed;
+
+  static const _colors = {'vk': Color(0xFF0077FF), 'yandex': Color(0xFF000000)};
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton(
+      key: Key('login-${provider.id}'),
+      style: FilledButton.styleFrom(
+        backgroundColor: _colors[provider.id] ?? AppColors.ink,
+        disabledBackgroundColor: (_colors[provider.id] ?? AppColors.ink).withValues(alpha: 0.5),
+        disabledForegroundColor: Colors.white,
+      ),
+      onPressed: onPressed,
+      child: busy
+          ? const SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+            )
+          : Text('Войти через ${provider.name}'),
     );
   }
 }

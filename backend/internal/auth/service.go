@@ -204,8 +204,42 @@ func (s *Service) Verify(ctx context.Context, rawPhone, code string) (Session, e
 		return Session{}, err
 	}
 
+	sess, err := openSession(ctx, tx, phone, now)
+	if err != nil {
+		return Session{}, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return Session{}, err
+	}
+	return sess, nil
+}
+
+// SessionForPhone открывает сессию для номера, который уже подтвердил кто-то другой:
+// например, VK ID или Яндекс ID вернули подтверждённый номер. Номер должен быть
+// российским мобильным — как и при входе по звонку.
+func (s *Service) SessionForPhone(ctx context.Context, rawPhone string) (Session, error) {
+	phone, err := NormalizePhone(rawPhone)
+	if err != nil {
+		return Session{}, err
+	}
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		return Session{}, err
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+	sess, err := openSession(ctx, tx, phone, s.now())
+	if err != nil {
+		return Session{}, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return Session{}, err
+	}
+	return sess, nil
+}
+
+func openSession(ctx context.Context, tx pgx.Tx, phone string, now time.Time) (Session, error) {
 	var userID *string
-	err = tx.QueryRow(ctx, `SELECT id FROM users WHERE phone_e164 = $1 AND deleted_at IS NULL`, phone).Scan(&userID)
+	err := tx.QueryRow(ctx, `SELECT id FROM users WHERE phone_e164 = $1 AND deleted_at IS NULL`, phone).Scan(&userID)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return Session{}, err
 	}
@@ -217,9 +251,6 @@ func (s *Service) Verify(ctx context.Context, rawPhone, code string) (Session, e
 		INSERT INTO sessions (token_hash, phone_e164, user_id, created_at, expires_at)
 		VALUES ($1, $2, $3, $4, $5)`, tokenHash(token), phone, userID, now, now.Add(SessionTTL))
 	if err != nil {
-		return Session{}, err
-	}
-	if err := tx.Commit(ctx); err != nil {
 		return Session{}, err
 	}
 	return Session{Token: token, Registered: userID != nil}, nil

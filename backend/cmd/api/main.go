@@ -29,6 +29,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/httpapi"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/nearby"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/oauth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 	"github.com/stepamolotok-star/interest-dating-app/backend/migrations"
 )
@@ -103,6 +104,7 @@ func run(log *slog.Logger) error {
 		contactsSecret := envOr("CONTACTS_SECRET", secret)
 		deps.Auth.ContactsSecret = []byte(contactsSecret)
 		deps.Contacts = &contacts.Service{DB: db, Secret: []byte(contactsSecret)}
+		deps.OAuth = &oauth.Service{DB: db, Providers: oauthProviders()}
 		if n, err := deps.Contacts.Backfill(ctx); err != nil {
 			return err
 		} else if n > 0 {
@@ -165,4 +167,16 @@ func envOr(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// oauthProviders — способы входа, для которых заданы ключи. Без ключей кнопки не показываются.
+func oauthProviders() []oauth.Provider {
+	var out []oauth.Provider
+	if id := os.Getenv("VKID_CLIENT_ID"); id != "" {
+		out = append(out, oauth.VKID{ClientID: id, Redirect: envOr("VKID_REDIRECT_URI", "vk"+id+"://vk.ru/blank.html")})
+	}
+	if id := os.Getenv("YANDEX_CLIENT_ID"); id != "" {
+		out = append(out, oauth.YandexID{ClientID: id, Redirect: envOr("YANDEX_REDIRECT_URI", "ru.svoi://oauth/yandex")})
+	}
+	return out
 }

@@ -22,6 +22,7 @@ class DemoApi extends Api {
   List<GoalSetting> _goals = [];
   List<MyInterest> _interests = [];
   final _seen = <String>{};
+  final _oauthStates = <String>{};
   int _likes = 0;
   final _matches = <Match>[];
   final _messages = <String, List<Message>>{};
@@ -596,6 +597,38 @@ class DemoApi extends Api {
       throw const ApiException(400, 'рост и вес можно задавать только в романтических целях');
     }
     _prefs[goal] = prefs.toJson();
+  }
+
+  @override
+  Future<List<AuthProvider>> authProviders() async => const [
+    AuthProvider('vk', 'VK ID'),
+    AuthProvider('yandex', 'Яндекс ID'),
+  ];
+
+  @override
+  Future<OAuthStart> oauthStart(String provider) async {
+    final state = 'demo-${DateTime.now().microsecondsSinceEpoch}';
+    _oauthStates.add(state);
+    return OAuthStart(
+      'https://demo.invalid/$provider/authorize?state=$state',
+      state,
+      'ru.svoi://oauth/$provider',
+    );
+  }
+
+  @override
+  Future<Session> oauthFinish(
+    String provider, {
+    required String state,
+    required String code,
+    String deviceId = '',
+  }) async {
+    await _pause();
+    if (!_oauthStates.remove(state)) {
+      throw const ApiException(400, 'вход занял слишком много времени — попробуйте ещё раз');
+    }
+    token = 'demo-token';
+    return Session(token!, _registered);
   }
 }
 

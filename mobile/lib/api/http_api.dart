@@ -231,4 +231,27 @@ class HttpApi extends Api {
   @override
   Future<void> setPrefs(String goal, GoalPrefs prefs) =>
       _call('PUT', '/v1/me/prefs/$goal', body: prefs.toJson());
+
+  @override
+  Future<List<AuthProvider>> authProviders() async =>
+      _items(await _call('GET', '/v1/auth/providers')).map(AuthProvider.fromJson).toList();
+
+  @override
+  Future<OAuthStart> oauthStart(String provider) async =>
+      OAuthStart.fromJson(await _call('POST', '/v1/auth/oauth/$provider/start'));
+
+  @override
+  Future<Session> oauthFinish(
+    String provider, {
+    required String state,
+    required String code,
+    String deviceId = '',
+  }) async {
+    final j = await _call(
+      'POST',
+      '/v1/auth/oauth/$provider/finish',
+      body: {'state': state, 'code': code, 'device_id': deviceId},
+    );
+    return Session(j['token'] as String, j['registered'] as bool? ?? false);
+  }
 }

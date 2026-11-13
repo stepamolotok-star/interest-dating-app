@@ -29,6 +29,16 @@ abstract class Api {
   Future<Challenge> startAuth(String phone, {String method = 'call'});
   Future<Session> verify(String phone, String code);
   Future<void> register(Registration r);
+
+  /// Подключённые на сервере способы входа (VK ID, Яндекс ID). Пусто — только по номеру.
+  Future<List<AuthProvider>> authProviders();
+  Future<OAuthStart> oauthStart(String provider);
+  Future<Session> oauthFinish(
+    String provider, {
+    required String state,
+    required String code,
+    String deviceId = '',
+  });
   Future<void> logout();
   Future<Me> me();
 

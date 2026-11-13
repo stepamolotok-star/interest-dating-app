@@ -594,3 +594,27 @@ class GoalPrefs {
     religions.isNotEmpty,
   ].where((x) => x).length;
 }
+
+/// Способ входа через российский ID-сервис.
+class AuthProvider {
+  const AuthProvider(this.id, this.name);
+
+  factory AuthProvider.fromJson(Map<String, dynamic> j) =>
+      AuthProvider(j['id'] as String, j['name'] as String);
+
+  /// vk | yandex
+  final String id;
+  final String name;
+}
+
+/// Начало входа: ссылка для браузера и куда провайдер вернёт приложение.
+class OAuthStart {
+  const OAuthStart(this.url, this.state, this.redirectUri);
+
+  factory OAuthStart.fromJson(Map<String, dynamic> j) =>
+      OAuthStart(j['url'] as String, j['state'] as String, j['redirect_uri'] as String);
+
+  final String url;
+  final String state;
+  final String redirectUri;
+}

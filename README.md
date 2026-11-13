@@ -36,6 +36,11 @@ TEST_DATABASE_URL=postgres://app:app@localhost:5432/app_test \
 TEST_REDIS_URL=redis://localhost:6379/15 go test -p 1 ./...
 ```
 
+Вход через VK ID и Яндекс ID включается ключами: `VKID_CLIENT_ID` (и при необходимости
+`VKID_REDIRECT_URI`, по умолчанию `vk<ID>://vk.ru/blank.html`), `YANDEX_CLIENT_ID`
+(`YANDEX_REDIRECT_URI`, по умолчанию `ru.svoi://oauth/yandex`). Без ключей кнопок в приложении нет.
+У провайдеров запрашивается только номер телефона (`phone`, `login:default_phone`).
+
 Секреты: `AUTH_SECRET` — для кодов входа, `CONTACTS_SECRET` — для хешей контактов (если не задан,
 берётся `AUTH_SECRET`). `CONTACTS_SECRET` нельзя менять после запуска: загруженные контакты
 перестанут совпадать, пересчитать их не из чего.
@@ -52,6 +57,9 @@ TEST_REDIS_URL=redis://localhost:6379/15 go test -p 1 ./...
 | GET | `/v1/interests/search?q=` | Поиск увлечений с синонимами |
 | POST | `/v1/auth/start` | `{phone, method}` — звонок-сброс (по умолчанию) или `sms` |
 | POST | `/v1/auth/verify` | `{phone, code}` → `{token, registered}` |
+| GET | `/v1/auth/providers` | Подключённые способы входа: VK ID, Яндекс ID (только те, для которых заданы ключи) |
+| POST | `/v1/auth/oauth/{vk\|yandex}/start` | → `{url, state, redirect_uri}`: ссылка для браузера (OAuth 2.1 + PKCE) |
+| POST | `/v1/auth/oauth/{vk\|yandex}/finish` | `{state, code, device_id}` → `{token, registered}`: берём у провайдера только подтверждённый номер |
 | POST | `/v1/auth/register` | Имя, дата рождения, пол, город, согласия (нужен токен) |
 | POST | `/v1/auth/logout` | Выход |
 | GET | `/v1/me` | Свой аккаунт |
