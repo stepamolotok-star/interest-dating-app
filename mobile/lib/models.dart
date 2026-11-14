@@ -31,6 +31,7 @@ class Me {
     this.region = '',
     this.photoVerified = false,
     this.ageVerified = false,
+    this.warning = '',
   });
 
   factory Me.fromJson(Map<String, dynamic> j) => Me(
@@ -41,6 +42,7 @@ class Me {
     age: j['age'] as int? ?? 0,
     photoVerified: j['photo_verified'] as bool? ?? false,
     ageVerified: j['age_verified'] as bool? ?? false,
+    warning: j['warning'] as String? ?? '',
   );
 
   final String userId;
@@ -52,6 +54,9 @@ class Me {
   final int age;
   final bool photoVerified;
   final bool ageVerified;
+
+  /// Предупреждение модератора, которое человек ещё не видел. Пусто — нет.
+  final String warning;
 }
 
 class Registration {
@@ -118,13 +123,7 @@ class InterestNode {
 
 /// Интерес в профиле.
 class MyInterest {
-  MyInterest({
-    required this.id,
-    this.name = '',
-    this.level = 'doing',
-    this.seekingPartner = false,
-    this.kind = '',
-  });
+  MyInterest({required this.id, this.name = '', this.level = 'doing', this.seekingPartner = false, this.kind = ''});
 
   factory MyInterest.fromJson(Map<String, dynamic> j) => MyInterest(
     id: j['id'] as String,
@@ -224,9 +223,7 @@ class FeedCard {
     photoVerified: j['photo_verified'] as bool? ?? false,
     ageVerified: j['age_verified'] as bool? ?? false,
     about: j['about'] as String? ?? '',
-    prompts: ((j['prompts'] as List?) ?? const [])
-        .map((e) => Prompt.fromJson(e as Map<String, dynamic>))
-        .toList(),
+    prompts: ((j['prompts'] as List?) ?? const []).map((e) => Prompt.fromJson(e as Map<String, dynamic>)).toList(),
     habits: ((j['habits'] as Map?) ?? const {}).cast<String, String>(),
     diet: j['diet'] as String? ?? '',
     zodiac: j['zodiac'] as String? ?? '',
@@ -290,9 +287,7 @@ class Person {
     name: j['name'] as String? ?? '',
     age: j['age'] as int? ?? 0,
     about: j['about'] as String? ?? '',
-    prompts: ((j['prompts'] as List?) ?? const [])
-        .map((e) => Prompt.fromJson(e as Map<String, dynamic>))
-        .toList(),
+    prompts: ((j['prompts'] as List?) ?? const []).map((e) => Prompt.fromJson(e as Map<String, dynamic>)).toList(),
     interests: ((j['interests'] as List?) ?? const []).cast<String>(),
   );
 
@@ -366,9 +361,7 @@ class Match {
     goal: j['goal'] as String? ?? '',
     createdAt: DateTime.parse(j['created_at'] as String).toLocal(),
     other: Person.fromJson(j['other'] as Map<String, dynamic>),
-    lastMessage: j['last_message'] == null
-        ? null
-        : Message.fromJson(j['last_message'] as Map<String, dynamic>),
+    lastMessage: j['last_message'] == null ? null : Message.fromJson(j['last_message'] as Map<String, dynamic>),
   );
 
   final String matchId;
@@ -427,13 +420,7 @@ class NearbyVisibility {
 
 /// Личная зона: здесь человека не видно в «Рядом».
 class Zone {
-  const Zone({
-    required this.id,
-    required this.name,
-    required this.lat,
-    required this.lon,
-    required this.radiusM,
-  });
+  const Zone({required this.id, required this.name, required this.lat, required this.lon, required this.radiusM});
 
   factory Zone.fromJson(Map<String, dynamic> j) => Zone(
     id: j['id'] as String,
@@ -497,9 +484,7 @@ class ProfileFields {
 
   factory ProfileFields.fromJson(Map<String, dynamic> j) => ProfileFields(
     about: j['about'] as String? ?? '',
-    prompts: ((j['prompts'] as List?) ?? const [])
-        .map((e) => Prompt.fromJson(e as Map<String, dynamic>))
-        .toList(),
+    prompts: ((j['prompts'] as List?) ?? const []).map((e) => Prompt.fromJson(e as Map<String, dynamic>)).toList(),
     heightCm: j['height_cm'] as int?,
     weightKg: j['weight_kg'] as int?,
     bodyType: j['body_type'] as String? ?? '',
@@ -686,8 +671,7 @@ class GoalPrefs {
 class AuthProvider {
   const AuthProvider(this.id, this.name);
 
-  factory AuthProvider.fromJson(Map<String, dynamic> j) =>
-      AuthProvider(j['id'] as String, j['name'] as String);
+  factory AuthProvider.fromJson(Map<String, dynamic> j) => AuthProvider(j['id'] as String, j['name'] as String);
 
   /// vk | yandex
   final String id;

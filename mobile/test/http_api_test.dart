@@ -9,12 +9,11 @@ import 'package:svoi/models.dart';
 
 /// Клиент говорит с сервером в том же формате, что описан в README бэкенда.
 void main() {
-  http.Response json(Object body, [int status = 200, Map<String, String> headers = const {}]) =>
-      http.Response.bytes(
-        utf8.encode(jsonEncode(body)),
-        status,
-        headers: {'content-type': 'application/json; charset=utf-8', ...headers},
-      );
+  http.Response json(Object body, [int status = 200, Map<String, String> headers = const {}]) => http.Response.bytes(
+    utf8.encode(jsonEncode(body)),
+    status,
+    headers: {'content-type': 'application/json; charset=utf-8', ...headers},
+  );
 
   test('лента: токен в заголовке, поля карточки разбираются', () async {
     late http.Request seen;
@@ -58,9 +57,7 @@ void main() {
   test('ошибка сервера превращается в понятный текст', () async {
     final api = HttpApi(
       'https://api.test',
-      client: MockClient(
-        (_) async => json({'error': 'подождите перед новым кодом'}, 429, {'retry-after': '42'}),
-      ),
+      client: MockClient((_) async => json({'error': 'подождите перед новым кодом'}, 429, {'retry-after': '42'})),
     );
     await expectLater(
       api.startAuth('+79123456789'),
@@ -126,12 +123,7 @@ void main() {
         if (req.url.path == '/v1/nearby/radar') {
           return json({
             'items': [
-              {
-                'user_id': 'u3',
-                'goal': 'hobby',
-                'explanation': '1 общий интерес: эндуро',
-                'distance': 'до 1 км',
-              },
+              {'user_id': 'u3', 'goal': 'hobby', 'explanation': '1 общий интерес: эндуро', 'distance': 'до 1 км'},
             ],
           });
         }
@@ -151,5 +143,35 @@ void main() {
     expect(seen.single, contains('"hours":3'));
     final cards = await api.radar('hobby');
     expect(cards.single.distance, 'до 1 км');
+  });
+
+  test('блокировка: 403 с blocked и сроком, срабатывает onBlocked', () async {
+    ApiException? seen;
+    final api = HttpApi(
+      'https://api.test',
+      client: MockClient(
+        (req) async => json({
+          'error': 'аккаунт временно заблокирован за нарушение правил',
+          'blocked': true,
+          'until': '2026-11-21T10:05:00Z',
+        }, 403),
+      ),
+    )..token = 't0k';
+    api.onBlocked = (e) => seen = e;
+
+    await expectLater(api.me(), throwsA(isA<ApiException>().having((e) => e.blocked, 'blocked', isTrue)));
+    expect(seen?.until?.toUtc(), DateTime.utc(2026, 11, 21, 10, 5));
+    expect(seen?.notRegistered, isFalse);
+  });
+
+  test('лимит: 429 — текст для человека', () async {
+    final api = HttpApi(
+      'https://api.test',
+      client: MockClient((req) async => json({'error': 'слишком много сообщений подряд, передохните минуту'}, 429)),
+    )..token = 't0k';
+    await expectLater(
+      api.send('m1', 'привет'),
+      throwsA(isA<ApiException>().having((e) => e.message, 'message', contains('передохните'))),
+    );
   });
 }

@@ -30,6 +30,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/httpapi"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/moderation"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/nearby"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/oauth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
@@ -111,6 +112,16 @@ func run(log *slog.Logger) error {
 		deps.Auth.ContactsSecret = []byte(contactsSecret)
 		deps.Contacts = &contacts.Service{DB: db, Secret: []byte(contactsSecret)}
 		deps.OAuth = &oauth.Service{DB: db, Providers: oauthProviders()}
+		deps.Moderation = &moderation.Service{DB: db, PhoneSecret: []byte(contactsSecret)}
+		if deps.Nearby != nil {
+			deps.Moderation.Nearby = deps.Nearby
+		}
+		// Страница модератора /admin — только с длинным случайным ключом.
+		if t := os.Getenv("ADMIN_TOKEN"); len(t) >= 24 {
+			deps.AdminToken = t
+		} else if t != "" {
+			log.Warn("ADMIN_TOKEN короче 24 символов — страница модератора отключена")
+		}
 		if n, err := deps.Auth.BackfillCities(ctx); err != nil {
 			return err
 		} else if n > 0 {

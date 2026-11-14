@@ -374,3 +374,44 @@ func TestHideFromContacts(t *testing.T) {
 		t.Fatal("мусор вместо хэша должен отклоняться")
 	}
 }
+
+// Скрытые до проверки, временно и навсегда заблокированные в ленту не попадают,
+// и «Интересно» им нажать нельзя.
+func TestModeratedUsersHidden(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	hobby := []matching.Goal{matching.Hobby}
+	viewer := e.user(t, person{goals: hobby, interests: []string{bonsai}})
+	held := e.user(t, person{goals: hobby, interests: []string{bonsai}})
+	suspended := e.user(t, person{goals: hobby, interests: []string{bonsai}})
+	banned := e.user(t, person{goals: hobby, interests: []string{bonsai}})
+	ok := e.user(t, person{goals: hobby, interests: []string{bonsai}})
+	for q, id := range map[string]string{
+		`UPDATE users SET on_hold = true WHERE id = $1`:                              held,
+		`UPDATE users SET suspended_until = now() + interval '3 days' WHERE id = $1`: suspended,
+		`UPDATE users SET banned_at = now() WHERE id = $1`:                           banned,
+	} {
+		if _, err := e.db.Exec(ctx, q, id); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cards, err := e.feed.Feed(ctx, viewer, matching.Hobby, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := ids(cards); len(got) != 1 || got[0] != ok {
+		t.Fatalf("в ленте только обычный человек: %v (ждали %s)", got, ok)
+	}
+	for _, id := range []string{held, suspended, banned} {
+		if _, err := e.feed.Interest(ctx, viewer, id, matching.Hobby, ""); err != ErrNotAvailable {
+			t.Fatalf("«Интересно» скрытому %s: %v", id, err)
+		}
+	}
+	// Срок блокировки прошёл — человек снова виден.
+	if _, err := e.db.Exec(ctx, `UPDATE users SET suspended_until = now() - interval '1 minute' WHERE id = $1`, suspended); err != nil {
+		t.Fatal(err)
+	}
+	if cards, _ = e.feed.Feed(ctx, viewer, matching.Hobby, 10); len(cards) != 2 {
+		t.Fatalf("после срока блокировки: %v", ids(cards))
+	}
+}

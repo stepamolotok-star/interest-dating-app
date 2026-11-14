@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import 'screens/about_screen.dart';
+import 'screens/blocked_screen.dart';
 import 'screens/code_screen.dart';
 import 'screens/goals_screen.dart';
 import 'screens/home_screen.dart';
@@ -104,6 +105,7 @@ class _Root extends StatelessWidget {
       Stage.interests => const InterestsScreen(onboarding: true),
       Stage.profile => const ProfileStepScreen(),
       Stage.home => const HomeScreen(),
+      Stage.blocked => const BlockedScreen(),
     };
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 220),

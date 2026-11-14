@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../app.dart';
 import '../widgets/common.dart';
 import '../widgets/profile_blocks.dart';
+import 'blocked_screen.dart';
 import 'conversations_tabs.dart';
 import 'feed_tab.dart';
 import 'nearby_tab.dart';
@@ -23,6 +24,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     Future.microtask(_loadMatches);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showWarning());
+  }
+
+  Future<void> _showWarning() async {
+    final state = AppScope.read(context);
+    if (!mounted || state.warning.isEmpty) return;
+    await showModeratorWarning(context, state.warning);
+    await state.ackWarning();
   }
 
   Future<void> _loadMatches() async {
@@ -77,11 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const NavigationDestination(icon: Icon(Icons.radar), label: 'Рядом'),
             NavigationDestination(
-              icon: Badge(
-                isLabelVisible: fresh > 0,
-                label: Text('$fresh'),
-                child: const Icon(Icons.favorite_border),
-              ),
+              icon: Badge(isLabelVisible: fresh > 0, label: Text('$fresh'), child: const Icon(Icons.favorite_border)),
               selectedIcon: const Icon(Icons.favorite),
               // Короткое слово: «Совпадения» на телефонах с крупным шрифтом переносилось на две строки.
               label: 'Взаимно',

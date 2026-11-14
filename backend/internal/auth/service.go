@@ -54,6 +54,20 @@ var (
 	ErrConsentsRequired  = errors.New("нужны согласие с соглашением и на обработку персональных данных")
 )
 
+// BlockedError — аккаунт или номер заблокирован модератором. Until — до какого
+// времени (временное отстранение); nil — навсегда.
+type BlockedError struct {
+	Until  *time.Time
+	Reason string
+}
+
+func (e *BlockedError) Error() string {
+	if e.Until != nil {
+		return "аккаунт временно заблокирован за нарушение правил"
+	}
+	return "аккаунт заблокирован за нарушение правил"
+}
+
 // RetryError сообщает, через сколько можно повторить запрос.
 type RetryError struct {
 	Err   error
@@ -101,6 +115,9 @@ type Challenge struct {
 func (s *Service) Start(ctx context.Context, rawPhone string, method Method) (Challenge, error) {
 	phone, err := NormalizePhone(rawPhone)
 	if err != nil {
+		return Challenge{}, err
+	}
+	if err := s.checkPhone(ctx, phone); err != nil {
 		return Challenge{}, err
 	}
 	if method == "" {
@@ -206,6 +223,9 @@ func (s *Service) Verify(ctx context.Context, rawPhone, code string) (Session, e
 	if _, err := tx.Exec(ctx, `UPDATE auth_attempts SET consumed_at = $2 WHERE id = $1`, id, now); err != nil {
 		return Session{}, err
 	}
+	if err := s.checkPhone(ctx, phone); err != nil {
+		return Session{}, err
+	}
 
 	sess, err := openSession(ctx, tx, phone, now)
 	if err != nil {
@@ -223,6 +243,9 @@ func (s *Service) Verify(ctx context.Context, rawPhone, code string) (Session, e
 func (s *Service) SessionForPhone(ctx context.Context, rawPhone string) (Session, error) {
 	phone, err := NormalizePhone(rawPhone)
 	if err != nil {
+		return Session{}, err
+	}
+	if err := s.checkPhone(ctx, phone); err != nil {
 		return Session{}, err
 	}
 	tx, err := s.DB.Begin(ctx)
@@ -271,21 +294,56 @@ func (s *Service) Authenticate(ctx context.Context, token string) (Identity, err
 		return Identity{}, ErrUnauthorized
 	}
 	var id Identity
-	var userID *string
+	var userID, banReason *string
+	var bannedAt, suspendedUntil *time.Time
+	now := s.now()
 	err := s.DB.QueryRow(ctx, `
-		SELECT phone_e164, user_id FROM sessions
-		WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > $2`,
-		tokenHash(token), s.now()).Scan(&id.Phone, &userID)
+		SELECT s.phone_e164, s.user_id, u.banned_at, u.ban_reason, u.suspended_until
+		FROM sessions s LEFT JOIN users u ON u.id = s.user_id
+		WHERE s.token_hash = $1 AND s.revoked_at IS NULL AND s.expires_at > $2`,
+		tokenHash(token), now).Scan(&id.Phone, &userID, &bannedAt, &banReason, &suspendedUntil)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Identity{}, ErrUnauthorized
 	}
 	if err != nil {
 		return Identity{}, err
 	}
+	if bannedAt != nil {
+		return Identity{}, &BlockedError{Reason: deref(banReason)}
+	}
+	if suspendedUntil != nil && suspendedUntil.After(now) {
+		return Identity{}, &BlockedError{Until: suspendedUntil, Reason: deref(banReason)}
+	}
 	if userID != nil {
 		id.UserID = *userID
 	}
 	return id, nil
+}
+
+// checkPhone не пускает номера, заблокированные модератором (повторная регистрация).
+func (s *Service) checkPhone(ctx context.Context, phone string) error {
+	var banned bool
+	if err := s.DB.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM banned_phones WHERE phone_key = $1)`,
+		contacts.PhoneKey(s.contactsSecret(), phone)).Scan(&banned); err != nil {
+		return err
+	}
+	if banned {
+		return &BlockedError{}
+	}
+	return nil
+}
+
+// AckWarning — человек прочитал предупреждение модератора.
+func (s *Service) AckWarning(ctx context.Context, userID string) error {
+	_, err := s.DB.Exec(ctx, `UPDATE users SET warning = NULL WHERE id = $1`, userID)
+	return err
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }
 
 // Logout отзывает сессию.
@@ -438,6 +496,9 @@ type Me struct {
 	Age           int    `json:"age"`
 	PhotoVerified bool   `json:"photo_verified"`
 	AgeVerified   bool   `json:"age_verified"`
+
+	// Warning — предупреждение модератора; приложение показывает его один раз.
+	Warning string `json:"warning,omitempty"`
 }
 
 // Me возвращает данные аккаунта по userID.
@@ -446,9 +507,10 @@ func (s *Service) Me(ctx context.Context, userID string) (Me, error) {
 	var birth time.Time
 	var photo, gos *time.Time
 	err := s.DB.QueryRow(ctx, `
-		SELECT p.display_name, p.city, coalesce(p.city_id, ''), u.birth_date, u.photo_verified_at, u.gosuslugi_verified_at
+		SELECT p.display_name, p.city, coalesce(p.city_id, ''), u.birth_date, u.photo_verified_at, u.gosuslugi_verified_at,
+		       coalesce(u.warning, '')
 		FROM users u JOIN profiles p ON p.user_id = u.id
-		WHERE u.id = $1 AND u.deleted_at IS NULL`, userID).Scan(&m.Name, &m.City, &m.CityID, &birth, &photo, &gos)
+		WHERE u.id = $1 AND u.deleted_at IS NULL`, userID).Scan(&m.Name, &m.City, &m.CityID, &birth, &photo, &gos, &m.Warning)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Me{}, ErrUnauthorized
 	}

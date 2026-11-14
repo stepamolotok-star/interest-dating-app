@@ -21,6 +21,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/limits"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 )
 
@@ -262,6 +263,9 @@ func (s *Service) Send(ctx context.Context, userID, matchID, body string) (Messa
 	if !hasHistory && HasContacts(body) {
 		return Message{}, ErrContactsInHello
 	}
+	if err := s.checkLimits(ctx, tx, userID, body, !hasHistory); err != nil {
+		return Message{}, err
+	}
 	m := Message{Sender: userID, Kind: "text", Body: body}
 	if err := tx.QueryRow(ctx, `INSERT INTO messages (match_id, sender, kind, body, created_at)
 		VALUES ($1, $2, 'text', $3, $4) RETURNING id, created_at`, matchID, userID, body, s.now()).Scan(&m.ID, &m.CreatedAt); err != nil {
@@ -271,6 +275,64 @@ func (s *Service) Send(ctx context.Context, userID, matchID, body string) (Messa
 		return Message{}, err
 	}
 	return m, tx.Commit(ctx)
+}
+
+// checkLimits — защита от спама: скорость, число новых разговоров в сутки
+// и одинаковые первые сообщения многим людям.
+func (s *Service) checkLimits(ctx context.Context, q pgx.Tx, userID, body string, first bool) error {
+	now := s.now()
+	var lastMinute int
+	if err := q.QueryRow(ctx, `SELECT count(*) FROM messages WHERE sender = $1 AND created_at > $2`,
+		userID, now.Add(-time.Minute)).Scan(&lastMinute); err != nil {
+		return err
+	}
+	if lastMinute >= limits.MessagesPerMinute {
+		return limits.ErrTooFast
+	}
+	if !first {
+		return nil
+	}
+	// Первые сообщения за сутки: в своём совпадении до них никто не писал.
+	// Сравниваем тексты в Go: lower() в базе зависит от локали и может не понимать кириллицу.
+	rows, err := q.Query(ctx, `
+		SELECT coalesce(m.body, '') FROM messages m
+		WHERE m.sender = $1 AND m.kind = 'text' AND m.created_at > $2
+		  AND NOT EXISTS (SELECT 1 FROM messages e WHERE e.match_id = m.match_id AND e.kind <> 'system' AND e.id < m.id)
+		LIMIT 500`, userID, now.Add(-24*time.Hour))
+	if err != nil {
+		return err
+	}
+	norm := normalizeHello(body)
+	var firsts, same int
+	for rows.Next() {
+		var b string
+		if err := rows.Scan(&b); err != nil {
+			rows.Close()
+			return err
+		}
+		firsts++
+		if normalizeHello(b) == norm {
+			same++
+		}
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	if same >= limits.SameHelloPerDay {
+		return limits.ErrSameHello
+	}
+	if firsts >= limits.FirstMessagesPerDay {
+		return limits.ErrFirstMessages
+	}
+	return nil
+}
+
+var spaces = regexp.MustCompile(`\s+`)
+
+// normalizeHello приводит текст к виду для сравнения: регистр и пробелы не важны.
+func normalizeHello(s string) string {
+	return strings.ToLower(strings.TrimSpace(spaces.ReplaceAllString(s, " ")))
 }
 
 // End — «Разорвать совпадение»: доступ к профилю и переписке закрывается сразу для обоих.
@@ -329,6 +391,14 @@ func (s *Service) Report(ctx context.Context, reporter, target, reason, comment 
 	}
 	if utf8.RuneCountInString(comment) > 1000 {
 		comment = string([]rune(comment)[:1000])
+	}
+	var today int
+	if err := s.DB.QueryRow(ctx, `SELECT count(*) FROM reports WHERE reporter = $1 AND created_at > $2`,
+		reporter, s.now().Add(-24*time.Hour)).Scan(&today); err != nil {
+		return false, err
+	}
+	if today >= limits.ReportsPerDay {
+		return false, limits.ErrReports
 	}
 	err = s.DB.QueryRow(ctx, `INSERT INTO reports (reporter, target, reason, comment)
 		SELECT $1, id, $3, nullif($4, '') FROM users WHERE id = $2 RETURNING urgent`,

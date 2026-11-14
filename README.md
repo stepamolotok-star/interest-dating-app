@@ -45,6 +45,9 @@ TEST_REDIS_URL=redis://localhost:6379/15 go test -p 1 ./...
 берётся `AUTH_SECRET`). `CONTACTS_SECRET` нельзя менять после запуска: загруженные контакты
 перестанут совпадать, пересчитать их не из чего.
 
+Модерация: задайте `ADMIN_TOKEN` (не короче 24 символов) — появится страница
+`http://localhost:8080/admin/` для разбора жалоб. Без токена страницы нет.
+
 Проверка: `curl http://localhost:8080/healthz`,
 поиск по каталогу: `curl "http://localhost:8080/v1/interests/search?q=мото"`.
 
@@ -63,7 +66,8 @@ TEST_REDIS_URL=redis://localhost:6379/15 go test -p 1 ./...
 | POST | `/v1/auth/oauth/{vk\|yandex}/finish` | `{state, code, device_id}` → `{token, registered}`: берём у провайдера только подтверждённый номер |
 | POST | `/v1/auth/register` | Имя, дата рождения, пол, город, согласия (нужен токен) |
 | POST | `/v1/auth/logout` | Выход |
-| GET | `/v1/me` | Свой аккаунт |
+| GET | `/v1/me` | Свой аккаунт; `warning` — непрочитанное предупреждение модератора |
+| POST | `/v1/me/warning/ack` | Предупреждение прочитано |
 | GET/PUT | `/v1/me/profile` | Поля профиля; религия — только с `consents.special_category` |
 | GET/PUT/DELETE | `/v1/me/contacts` | «Скрыть меня от контактов»: `PUT {"hashes": [SHA-256 номеров +79…]}` включает, `DELETE` выключает и удаляет всё |
 | GET/PUT | `/v1/me/visibility` | Видимость полей: `anonymous`, `after_match`, `matching_only`, `hidden` |
@@ -78,6 +82,20 @@ TEST_REDIS_URL=redis://localhost:6379/15 go test -p 1 ./...
 | POST | `/v1/matches/{id}/end` | «Разорвать совпадение» — доступ закрывается сразу для обоих |
 | POST | `/v1/users/{id}/block` | Блокировка: взаимная невидимость и разрыв совпадений |
 | POST | `/v1/users/{id}/report` | Жалоба; угрозы, преследование, слежка и «похоже на несовершеннолетнего» — срочные |
+
+Заблокированный аккаунт на любой запрос получает `403 {"error", "blocked": true, "until"?}`.
+Лимиты (сообщения, «Интересно», жалобы) отвечают `429` с текстом для человека.
+
+### Модерация (нужен `ADMIN_TOKEN`, заголовок `Authorization: Bearer <токен>`)
+
+| Метод | Путь | Что делает |
+| --- | --- | --- |
+| GET | `/admin/` | Страница модератора |
+| GET | `/admin/api/stats` | Срочные, открытые, скрытые до проверки, заблокированные |
+| GET | `/admin/api/reports?status=open\|closed` | Очередь жалоб |
+| GET | `/admin/api/reports/{id}` | Жалоба: анкета, переписка этой пары, история |
+| POST | `/admin/api/reports/{id}/resolve` | `{action: dismiss\|warn\|suspend\|ban, days?, note?}` |
+| POST | `/admin/api/users/{id}/unban` | Снять блокировку |
 
 ### Режим «Рядом» (нужен `REDIS_URL`)
 

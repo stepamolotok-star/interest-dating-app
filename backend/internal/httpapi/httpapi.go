@@ -14,6 +14,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/cities"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/moderation"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/nearby"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/oauth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
@@ -32,6 +33,10 @@ type Deps struct {
 	OAuth    *oauth.Service
 	Cities   *cities.Catalog
 	Log      *slog.Logger
+
+	// Moderation и AdminToken включают страницу модератора /admin.
+	Moderation *moderation.Service
+	AdminToken string
 }
 
 // Server собирает обработчики.
@@ -46,11 +51,15 @@ type Server struct {
 	oauth    *oauth.Service
 	cities   *cities.Catalog
 	log      *slog.Logger
+
+	moderation *moderation.Service
+	adminToken string
 }
 
 // New возвращает готовый http.Handler.
 func New(d Deps) http.Handler {
-	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, contacts: d.Contacts, oauth: d.OAuth, cities: d.Cities, log: d.Log}
+	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, contacts: d.Contacts, oauth: d.OAuth, cities: d.Cities, log: d.Log,
+		moderation: d.Moderation, adminToken: d.AdminToken}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.health)
 	mux.HandleFunc("GET /v1/interests/categories", s.categories)
@@ -73,6 +82,9 @@ func New(d Deps) http.Handler {
 		if s.cities != nil {
 			mux.HandleFunc("GET /v1/cities/search", s.citySearch)
 		}
+	}
+	if s.moderation != nil && len(s.adminToken) >= 24 {
+		s.registerAdmin(mux)
 	}
 	return s.logging(mux)
 }

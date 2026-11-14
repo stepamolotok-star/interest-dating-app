@@ -24,6 +24,18 @@ func (s *Server) registerAuth(mux *http.ServeMux) {
 	mux.Handle("POST /v1/auth/register", s.withSession(http.HandlerFunc(s.authRegister)))
 	mux.Handle("POST /v1/auth/logout", s.withSession(http.HandlerFunc(s.authLogout)))
 	mux.Handle("GET /v1/me", s.withSession(http.HandlerFunc(s.me)))
+	mux.Handle("POST /v1/me/warning/ack", s.withSession(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := identity(r.Context())
+		if id.UserID == "" {
+			writeError(w, http.StatusForbidden, "сначала завершите регистрацию")
+			return
+		}
+		if err := s.auth.AckWarning(r.Context(), id.UserID); err != nil {
+			s.authError(w, err)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})))
 }
 
 func (s *Server) authStart(w http.ResponseWriter, r *http.Request) {
@@ -145,7 +157,15 @@ func bearer(r *http.Request) string {
 func (s *Server) authError(w http.ResponseWriter, err error) {
 	var retry *auth.RetryError
 	var invalid *auth.ValidationError
+	var blocked *auth.BlockedError
 	switch {
+	case errors.As(err, &blocked):
+		// Приложение по blocked=true показывает экран блокировки, а не «войдите заново».
+		body := map[string]any{"error": blocked.Error(), "blocked": true}
+		if blocked.Until != nil {
+			body["until"] = blocked.Until.UTC().Format(time.RFC3339)
+		}
+		writeJSON(w, http.StatusForbidden, body)
 	case errors.As(err, &retry):
 		w.Header().Set("Retry-After", strconv.Itoa(int(math.Ceil(retry.After.Seconds()))))
 		writeError(w, http.StatusTooManyRequests, err.Error())

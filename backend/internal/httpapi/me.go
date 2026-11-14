@@ -7,6 +7,7 @@ import (
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/limits"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/matching"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 )
@@ -157,7 +158,10 @@ func (s *Server) postSkip(w http.ResponseWriter, r *http.Request) {
 // respond пишет результат или переводит ошибку в понятный ответ.
 func (s *Server) respond(w http.ResponseWriter, v any, err error) {
 	var invalid *profile.ValidationError
+	var limit *limits.Error
 	switch {
+	case errors.As(err, &limit):
+		writeError(w, http.StatusTooManyRequests, limit.Message)
 	case err == nil && v == nil:
 		w.WriteHeader(http.StatusNoContent)
 	case err == nil:
@@ -218,5 +222,11 @@ func (s *Server) postReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	urgent, err := s.chat.Report(r.Context(), uid(r), r.PathValue("id"), req.Reason, req.Comment)
+	if err == nil && s.moderation != nil {
+		// Несколько срочных жалоб от разных людей — человек скрывается до решения модератора.
+		if _, herr := s.moderation.AfterReport(r.Context(), r.PathValue("id")); herr != nil {
+			s.log.Error("автоскрытие по жалобам", "err", herr)
+		}
+	}
 	s.respond(w, map[string]bool{"accepted": true, "urgent": urgent}, err)
 }

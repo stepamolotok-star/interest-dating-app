@@ -18,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/limits"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/matching"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 )
@@ -142,7 +143,7 @@ func (s *Service) rank(ctx context.Context, viewerID string, goal matching.Goal,
 		JOIN profiles p ON p.user_id = u.id
 		JOIN user_goals g ON g.user_id = u.id AND g.goal = $2 AND g.active
 		LEFT JOIN visibility_settings vs ON vs.user_id = u.id
-		WHERE u.id <> $1 AND u.deleted_at IS NULL
+		WHERE u.id <> $1 AND u.deleted_at IS NULL AND `+VisibleUserSQL+`
 		  AND ($3::text IS NULL OR coalesce(p.city_id, lower(p.city)) = $3)
 		  AND ($7::uuid[] IS NULL OR u.id = ANY($7::uuid[]))
 		  AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker = $1 AND b.blocked = u.id) OR (b.blocker = u.id AND b.blocked = $1))
@@ -255,6 +256,10 @@ type InterestResult struct {
 	MatchID string `json:"match_id,omitempty"`
 }
 
+// VisibleUserSQL — условие «человека можно показывать другим»: не заблокирован,
+// не отстранён и не скрыт до решения модератора. Алиас таблицы users — u.
+const VisibleUserSQL = `u.banned_at IS NULL AND (u.suspended_until IS NULL OR u.suspended_until <= now()) AND NOT u.on_hold`
+
 // Interest — «Интересно». Если вторая сторона уже нажала «Интересно»,
 // создаётся совпадение. Иначе вторая сторона ничего не узнает.
 func (s *Service) Interest(ctx context.Context, viewerID, targetID string, goal matching.Goal, interestID string) (InterestResult, error) {
@@ -272,6 +277,22 @@ func (s *Service) Interest(ctx context.Context, viewerID, targetID string, goal 
 	}
 	if !hasGoal(v.mp, goal) {
 		return InterestResult{}, ErrGoalNotActive
+	}
+	var visible bool
+	if err := s.DB.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM users u WHERE u.id = $1 AND `+VisibleUserSQL+`)`,
+		targetID).Scan(&visible); err != nil {
+		return InterestResult{}, err
+	}
+	if !visible {
+		return InterestResult{}, ErrNotAvailable
+	}
+	var likes int
+	if err := s.DB.QueryRow(ctx, `SELECT count(*) FROM interests_expressed WHERE from_user = $1 AND created_at > $2`,
+		viewerID, now.Add(-24*time.Hour)).Scan(&likes); err != nil {
+		return InterestResult{}, err
+	}
+	if likes >= limits.LikesPerDay {
+		return InterestResult{}, limits.ErrLikes
 	}
 	if ok, _ := matching.Eligible(v.mp, t.mp, goal); !ok {
 		return InterestResult{}, ErrNotAvailable

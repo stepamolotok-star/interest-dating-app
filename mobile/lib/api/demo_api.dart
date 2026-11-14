@@ -136,10 +136,7 @@ class DemoApi extends Api {
     _likes = j['likes'] as int? ?? 0;
     _matches.addAll(list('matches').map(Match.fromJson));
     for (final e in ((j['messages'] as Map?) ?? const {}).entries) {
-      _messages[e.key as String] = (e.value as List)
-          .cast<Map<String, dynamic>>()
-          .map(Message.fromJson)
-          .toList();
+      _messages[e.key as String] = (e.value as List).cast<Map<String, dynamic>>().map(Message.fromJson).toList();
     }
     _nextMessageId = j['next_message_id'] as int? ?? 1;
     _visibility = NearbyVisibility.fromJson((j['visibility'] as Map<String, dynamic>?) ?? const {});
@@ -158,8 +155,7 @@ class DemoApi extends Api {
   Future<List<_Node>> _catalog() async {
     if (_nodes != null) return _nodes!;
     // Не loadString: файлы больше 50 КБ он разбирает в отдельном isolate.
-    final raw =
-        catalogJson ?? utf8.decode((await rootBundle.load('assets/data/catalog.json')).buffer.asUint8List());
+    final raw = catalogJson ?? utf8.decode((await rootBundle.load('assets/data/catalog.json')).buffer.asUint8List());
     final data = jsonDecode(raw) as Map<String, dynamic>;
     final rawNodes = (data['nodes'] as List).cast<Map<String, dynamic>>();
     final byId = {for (final n in rawNodes) n['id'] as String: n};
@@ -204,8 +200,17 @@ class DemoApi extends Api {
 
   Future<void> _pause() => Future<void>.delayed(const Duration(milliseconds: 250));
 
+  /// Для проверок: предупреждение модератора и блокировка аккаунта.
+  String warning = '';
+  ApiException? blockedWith;
+
   void _needSession() {
     if (token == null) throw const ApiException(401, 'войдите заново');
+    final b = blockedWith;
+    if (b != null) {
+      onBlocked?.call(b);
+      throw b;
+    }
   }
 
   void _needUser() {
@@ -261,7 +266,20 @@ class DemoApi extends Api {
       age--;
     }
     final city = (await Cities.load()).byId(r.cityId);
-    return Me(userId: _myId, name: r.name, city: city?.name ?? r.city, region: city?.region ?? '', age: age);
+    return Me(
+      userId: _myId,
+      name: r.name,
+      city: city?.name ?? r.city,
+      region: city?.region ?? '',
+      age: age,
+      warning: warning,
+    );
+  }
+
+  @override
+  Future<void> ackWarning() async {
+    _needUser();
+    warning = '';
   }
 
   @override
@@ -313,13 +331,7 @@ class DemoApi extends Api {
     String kind(String id) => all.where((n) => n.id == id).firstOrNull?.kind ?? '';
     return [
       for (final i in _interests)
-        MyInterest(
-          id: i.id,
-          name: i.name,
-          level: i.level,
-          seekingPartner: i.seekingPartner,
-          kind: kind(i.id),
-        ),
+        MyInterest(id: i.id, name: i.name, level: i.level, seekingPartner: i.seekingPartner, kind: kind(i.id)),
     ];
   }
 
@@ -376,8 +388,7 @@ class DemoApi extends Api {
           age: person.age,
           name: person.name,
           // Кто прячет свои фото до взаимности, не видит и чужие — как на сервере.
-          photosHidden:
-              goal == 'casual' || person.photosAfterMatch || _fieldVisibility['photos'] == 'after_match',
+          photosHidden: goal == 'casual' || person.photosAfterMatch || _fieldVisibility['photos'] == 'after_match',
           goal: goal,
           score: 92 - p * 7,
           explanation: _explain(shared),
@@ -483,13 +494,7 @@ class DemoApi extends Api {
         'Познакомьтесь сначала здесь',
       );
     }
-    final m = Message(
-      id: _nextMessageId++,
-      sender: _myId,
-      kind: 'text',
-      body: text,
-      createdAt: DateTime.now(),
-    );
+    final m = Message(id: _nextMessageId++, sender: _myId, kind: 'text', body: text, createdAt: DateTime.now());
     list.add(m);
     // Собеседник отвечает на первое сообщение — чтобы в демо было с кем поговорить.
     if (list.where((x) => x.sender == _myId).length == 1) {
@@ -724,10 +729,7 @@ class DemoApi extends Api {
     await _pause();
     if (fields.about.length > 500) throw const ApiException(400, 'не длиннее 500 символов', field: 'about');
     if (fields.religion.isNotEmpty && !grantSpecial && !_specialConsent) {
-      throw const ApiException(
-        403,
-        'чтобы указать религию, нужно отдельное согласие на обработку таких данных',
-      );
+      throw const ApiException(403, 'чтобы указать религию, нужно отдельное согласие на обработку таких данных');
     }
     if (grantSpecial) _specialConsent = true;
     if (fields.religion.isEmpty) _specialConsent = false;
@@ -776,11 +778,7 @@ class DemoApi extends Api {
   Future<OAuthStart> oauthStart(String provider) async {
     final state = 'demo-${DateTime.now().microsecondsSinceEpoch}';
     _oauthStates.add(state);
-    return OAuthStart(
-      'https://demo.invalid/$provider/authorize?state=$state',
-      state,
-      'ru.svoi://oauth/$provider',
-    );
+    return OAuthStart('https://demo.invalid/$provider/authorize?state=$state', state, 'ru.svoi://oauth/$provider');
   }
 
   @override
@@ -822,8 +820,7 @@ double distanceM(double lat1, double lon1, double lat2, double lon2) {
   double rad(double d) => d * math.pi / 180;
   final dLat = rad(lat2 - lat1), dLon = rad(lon2 - lon1);
   final a =
-      math.pow(math.sin(dLat / 2), 2) +
-      math.cos(rad(lat1)) * math.cos(rad(lat2)) * math.pow(math.sin(dLon / 2), 2);
+      math.pow(math.sin(dLat / 2), 2) + math.cos(rad(lat1)) * math.cos(rad(lat2)) * math.pow(math.sin(dLon / 2), 2);
   return 2 * r * math.asin(math.sqrt(a));
 }
 

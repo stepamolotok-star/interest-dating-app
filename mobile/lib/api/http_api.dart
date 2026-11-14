@@ -36,12 +36,16 @@ class HttpApi extends Api {
     if (res.statusCode >= 200 && res.statusCode < 300) return data;
 
     final map = data is Map<String, dynamic> ? data : const <String, dynamic>{};
-    throw ApiException(
+    final e = ApiException(
       res.statusCode,
       map['error'] as String? ?? 'Что-то пошло не так, попробуйте ещё раз',
       field: map['field'] as String? ?? '',
       retryAfter: int.tryParse(res.headers['retry-after'] ?? '') ?? 0,
+      blocked: map['blocked'] == true,
+      until: DateTime.tryParse(map['until'] as String? ?? '')?.toLocal(),
     );
+    if (e.blocked) onBlocked?.call(e);
+    throw e;
   }
 
   List<Map<String, dynamic>> _items(dynamic data, [String key = 'items']) =>
@@ -65,6 +69,9 @@ class HttpApi extends Api {
 
   @override
   Future<Me> me() async => Me.fromJson(await _call('GET', '/v1/me'));
+
+  @override
+  Future<void> ackWarning() => _call('POST', '/v1/me/warning/ack');
 
   @override
   Future<List<InterestNode>> categories() async =>
@@ -100,9 +107,7 @@ class HttpApi extends Api {
 
   @override
   Future<List<FeedCard>> feed(String goal, {int limit = 20}) async =>
-      _items(await _call('GET', '/v1/feed', query: {'goal': goal, 'limit': '$limit'}))
-          .map(FeedCard.fromJson)
-          .toList();
+      _items(await _call('GET', '/v1/feed', query: {'goal': goal, 'limit': '$limit'})).map(FeedCard.fromJson).toList();
 
   @override
   Future<InterestResult> expressInterest(String userId, String goal, {String? interestId}) async =>
@@ -111,17 +116,16 @@ class HttpApi extends Api {
       );
 
   @override
-  Future<void> skip(String userId, String goal) =>
-      _call('POST', '/v1/feed/$userId/skip', body: {'goal': goal});
+  Future<void> skip(String userId, String goal) => _call('POST', '/v1/feed/$userId/skip', body: {'goal': goal});
 
   @override
-  Future<List<Match>> matches() async =>
-      _items(await _call('GET', '/v1/matches')).map(Match.fromJson).toList();
+  Future<List<Match>> matches() async => _items(await _call('GET', '/v1/matches')).map(Match.fromJson).toList();
 
   @override
-  Future<List<Message>> messages(String matchId, {int? before}) async => _items(
-    await _call('GET', '/v1/matches/$matchId/messages', query: before == null ? null : {'before': '$before'}),
-  ).map(Message.fromJson).toList();
+  Future<List<Message>> messages(String matchId, {int? before}) async =>
+      _items(await _call('GET', '/v1/matches/$matchId/messages', query: before == null ? null : {'before': '$before'}))
+          .map(Message.fromJson)
+          .toList();
 
   @override
   Future<Message> send(String matchId, String body) async =>
@@ -140,8 +144,7 @@ class HttpApi extends Api {
   }
 
   @override
-  Future<NearbyVisibility> visibility() async =>
-      NearbyVisibility.fromJson(await _call('GET', '/v1/nearby/visibility'));
+  Future<NearbyVisibility> visibility() async => NearbyVisibility.fromJson(await _call('GET', '/v1/nearby/visibility'));
 
   @override
   Future<NearbyVisibility> setVisibility({
@@ -168,34 +171,27 @@ class HttpApi extends Api {
   Future<void> disappear() => _call('POST', '/v1/nearby/disappear');
 
   @override
-  Future<List<Zone>> zones() async =>
-      _items(await _call('GET', '/v1/nearby/zones')).map(Zone.fromJson).toList();
+  Future<List<Zone>> zones() async => _items(await _call('GET', '/v1/nearby/zones')).map(Zone.fromJson).toList();
 
   @override
   Future<Zone> addZone(String name, double lat, double lon, int radiusM) async => Zone.fromJson(
-    await _call(
-      'POST',
-      '/v1/nearby/zones',
-      body: {'name': name, 'lat': lat, 'lon': lon, 'radius_m': radiusM},
-    ),
+    await _call('POST', '/v1/nearby/zones', body: {'name': name, 'lat': lat, 'lon': lon, 'radius_m': radiusM}),
   );
 
   @override
   Future<void> deleteZone(String id) => _call('DELETE', '/v1/nearby/zones/$id');
 
   @override
-  Future<LocationStatus> updateLocation(double lat, double lon, {bool mocked = false}) async =>
-      LocationStatus.fromJson(
-        await _call('POST', '/v1/nearby/location', body: {'lat': lat, 'lon': lon, 'mocked': mocked}),
-      );
+  Future<LocationStatus> updateLocation(double lat, double lon, {bool mocked = false}) async => LocationStatus.fromJson(
+    await _call('POST', '/v1/nearby/location', body: {'lat': lat, 'lon': lon, 'mocked': mocked}),
+  );
 
   @override
   Future<List<FeedCard>> radar(String goal) async =>
       _items(await _call('GET', '/v1/nearby/radar', query: {'goal': goal})).map(FeedCard.fromJson).toList();
 
   @override
-  Future<ContactsStatus> contactsStatus() async =>
-      ContactsStatus.fromJson(await _call('GET', '/v1/me/contacts'));
+  Future<ContactsStatus> contactsStatus() async => ContactsStatus.fromJson(await _call('GET', '/v1/me/contacts'));
 
   @override
   Future<ContactsStatus> uploadContacts(List<String> hashes) async =>
@@ -222,15 +218,13 @@ class HttpApi extends Api {
       ((await _call('GET', '/v1/me/visibility')) as Map<String, dynamic>).cast<String, String>();
 
   @override
-  Future<void> setFieldVisibility(Map<String, String> changes) =>
-      _call('PUT', '/v1/me/visibility', body: changes);
+  Future<void> setFieldVisibility(Map<String, String> changes) => _call('PUT', '/v1/me/visibility', body: changes);
 
   @override
   Future<GoalPrefs> prefs(String goal) async => GoalPrefs.fromJson(await _call('GET', '/v1/me/prefs/$goal'));
 
   @override
-  Future<void> setPrefs(String goal, GoalPrefs prefs) =>
-      _call('PUT', '/v1/me/prefs/$goal', body: prefs.toJson());
+  Future<void> setPrefs(String goal, GoalPrefs prefs) => _call('PUT', '/v1/me/prefs/$goal', body: prefs.toJson());
 
   @override
   Future<List<AuthProvider>> authProviders() async =>

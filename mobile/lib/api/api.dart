@@ -2,7 +2,14 @@ import '../models.dart';
 
 /// Ошибка API с текстом, который можно показать человеку.
 class ApiException implements Exception {
-  const ApiException(this.status, this.message, {this.field = '', this.retryAfter = 0});
+  const ApiException(
+    this.status,
+    this.message, {
+    this.field = '',
+    this.retryAfter = 0,
+    this.blocked = false,
+    this.until,
+  });
 
   final int status;
   final String message;
@@ -13,8 +20,12 @@ class ApiException implements Exception {
   /// Через сколько секунд можно повторить (для 429).
   final int retryAfter;
 
+  /// Аккаунт заблокирован модератором; [until] — до какого момента (null — навсегда).
+  final bool blocked;
+  final DateTime? until;
+
   bool get unauthorized => status == 401;
-  bool get notRegistered => status == 403 && message.contains('регистрац');
+  bool get notRegistered => status == 403 && !blocked && message.contains('регистрац');
 
   @override
   String toString() => message;
@@ -26,6 +37,9 @@ abstract class Api {
   /// Токен текущей сессии; null — не вошли.
   String? token;
 
+  /// Вызывается, когда сервер ответил «аккаунт заблокирован» на любой запрос.
+  void Function(ApiException e)? onBlocked;
+
   /// Подготовка при запуске (демо-режим поднимает сохранённые данные).
   Future<void> init() async {}
 
@@ -36,14 +50,12 @@ abstract class Api {
   /// Подключённые на сервере способы входа (VK ID, Яндекс ID). Пусто — только по номеру.
   Future<List<AuthProvider>> authProviders();
   Future<OAuthStart> oauthStart(String provider);
-  Future<Session> oauthFinish(
-    String provider, {
-    required String state,
-    required String code,
-    String deviceId = '',
-  });
+  Future<Session> oauthFinish(String provider, {required String state, required String code, String deviceId = ''});
   Future<void> logout();
   Future<Me> me();
+
+  /// Человек прочитал предупреждение модератора — больше не показываем.
+  Future<void> ackWarning();
 
   Future<List<InterestNode>> categories();
   Future<List<InterestNode>> children(String id);

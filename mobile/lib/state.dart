@@ -14,20 +14,17 @@ import 'models.dart';
 import 'widgets/profile_blocks.dart' show profileCompletion;
 
 /// Где человек сейчас: вход, шаги регистрации или основное приложение.
-enum Stage { loading, phone, code, about, goals, interests, profile, home }
+enum Stage { loading, phone, code, about, goals, interests, profile, home, blocked }
 
 /// Состояние приложения: сессия, шаг регистрации и данные профиля.
 class AppState extends ChangeNotifier {
-  AppState(
-    this.api, {
-    LocationSource? location,
-    ContactsSource? contacts,
-    AuthBrowser? browser,
-    CodeAutofill? autofill,
-  }) : autofill = autofill ?? (api.isDemo ? const DemoCodeAutofill() : DeviceCodeAutofill()),
-       browser = browser ?? (api.isDemo ? const DemoAuthBrowser() : DeviceAuthBrowser()),
-       location = location ?? (api.isDemo ? const FixedLocation() : DeviceLocation()),
-       contacts = contacts ?? (api.isDemo ? const DemoContacts() : DeviceContacts());
+  AppState(this.api, {LocationSource? location, ContactsSource? contacts, AuthBrowser? browser, CodeAutofill? autofill})
+    : autofill = autofill ?? (api.isDemo ? const DemoCodeAutofill() : DeviceCodeAutofill()),
+      browser = browser ?? (api.isDemo ? const DemoAuthBrowser() : DeviceAuthBrowser()),
+      location = location ?? (api.isDemo ? const FixedLocation() : DeviceLocation()),
+      contacts = contacts ?? (api.isDemo ? const DemoContacts() : DeviceContacts()) {
+    api.onBlocked = _blocked;
+  }
 
   final Api api;
 
@@ -74,6 +71,12 @@ class AppState extends ChangeNotifier {
   static const _onboardedKey = 'onboarding_done';
 
   Stage stage = Stage.loading;
+
+  /// Аккаунт заблокирован модератором: причина и срок (null — навсегда).
+  ApiException? block;
+
+  /// Предупреждение модератора, которое ещё не показали. Пусто — нет.
+  String warning = '';
   String phone = '';
   Challenge? challenge;
   Me? me;
@@ -109,6 +112,33 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _blocked(ApiException e) {
+    block = e;
+    _go(Stage.blocked);
+  }
+
+  /// С экрана блокировки: вдруг срок уже прошёл или модератор снял блокировку.
+  Future<void> retryBlocked() async {
+    try {
+      await _resume();
+      block = null;
+    } on ApiException catch (e) {
+      if (e.blocked) return;
+      rethrow;
+    }
+  }
+
+  /// Человек прочитал предупреждение. Если отметка не дошла до сервера — покажем ещё раз при следующем входе.
+  Future<void> ackWarning() async {
+    warning = '';
+    notifyListeners();
+    try {
+      await api.ackWarning();
+    } on ApiException {
+      // Не страшно.
+    }
+  }
+
   /// При запуске: восстанавливаем сессию и понимаем, на каком шаге человек остановился.
   Future<void> start() async {
     await api.init();
@@ -118,6 +148,7 @@ class AppState extends ChangeNotifier {
     try {
       await _resume();
     } on ApiException catch (e) {
+      if (e.blocked) return; // экран блокировки уже показан
       if (e.unauthorized) {
         await _forget();
         return _go(Stage.phone);
@@ -130,6 +161,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> _resume() async {
     me = await api.me();
+    warning = me!.warning;
     goals = await api.goals();
     interests = await api.interests();
     await loadProfile();
@@ -138,8 +170,7 @@ class AppState extends ChangeNotifier {
     final p = profile;
     // Вход на новом телефоне: если интересы и анкета уже есть, шаги не повторяем.
     final done =
-        (prefs.getBool(_onboardedKey) ?? false) ||
-        (interests.isNotEmpty && p != null && profileCompletion(p) > 0);
+        (prefs.getBool(_onboardedKey) ?? false) || (interests.isNotEmpty && p != null && profileCompletion(p) > 0);
     if (!done) {
       return _go(interests.isEmpty ? Stage.interests : Stage.profile);
     }
@@ -210,12 +241,7 @@ class AppState extends ChangeNotifier {
       throw const ApiException(400, 'Ответ сервиса входа не совпал — попробуйте ещё раз');
     }
     await _signedIn(
-      await api.oauthFinish(
-        provider,
-        state: start.state,
-        code: params['code']!,
-        deviceId: params['device_id'] ?? '',
-      ),
+      await api.oauthFinish(provider, state: start.state, code: params['code']!, deviceId: params['device_id'] ?? ''),
     );
     return true;
   }
@@ -260,6 +286,8 @@ class AppState extends ChangeNotifier {
     }
     await _forget();
     me = null;
+    block = null;
+    warning = '';
     goals = [];
     interests = [];
     profile = null;

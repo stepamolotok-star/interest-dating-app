@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Модерация — Свои</title>
+<link rel="icon" href="favicon.svg">
+<link rel="stylesheet" href="app.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<section id="login" class="login" hidden>
+  <form id="login-form" class="card">
+    <h1>Модерация</h1>
+    <p class="muted">Ключ модератора — значение ADMIN_TOKEN на сервере. Хранится только в этой вкладке.</p>
+    <label for="login-name">Ваше имя (попадёт в журнал решений)</label>
+    <input id="login-name" autocomplete="name" required maxlength="60">
+    <label for="login-token">Ключ модератора</label>
+    <input id="login-token" type="password" autocomplete="off" required>
+    <p id="login-error" class="error" role="alert"></p>
+    <button type="submit" class="primary">Войти</button>
+  </form>
+</section>
+
+<main id="app" hidden>
+  <header class="top">
+    <h1>Модерация</h1>
+    <div id="stats" class="stats" aria-live="polite"></div>
+    <div class="who"><span id="who"></span> <button id="logout" type="button" class="link">Выйти</button></div>
+  </header>
+  <div class="layout">
+    <section class="queue" aria-label="Жалобы">
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" data-status="open" aria-selected="true">Открытые</button>
+        <button type="button" role="tab" data-status="closed" aria-selected="false">Решённые</button>
+        <button type="button" id="refresh" class="link" aria-label="Обновить">Обновить</button>
+      </div>
+      <ul id="list" class="list"></ul>
+      <p id="empty" class="muted center" hidden>Жалоб нет</p>
+    </section>
+    <section id="detail" class="detail" aria-live="polite">
+      <p class="muted center">Выберите жалобу слева</p>
+    </section>
+  </div>
+</main>
+</body>
+</html>
