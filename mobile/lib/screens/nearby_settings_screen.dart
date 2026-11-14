@@ -216,10 +216,7 @@ class _NearbySettingsScreenState extends State<NearbySettingsScreen> {
                   contentPadding: EdgeInsets.zero,
                   value: v.active,
                   onChanged: _toggle,
-                  title: const Text(
-                    'Меня видно',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
-                  ),
+                  title: const Text('Меня видно', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
                   subtitle: Text(
                     v.active
                         ? 'Радиус ${radiusLabel(v.radiusM)}${v.verifiedOnly ? ' · только подтверждённым' : ''}'

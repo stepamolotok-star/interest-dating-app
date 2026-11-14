@@ -107,6 +107,15 @@ class AppState extends ChangeNotifier {
       if (g.active) g.goal,
   ];
 
+  /// Меняется, когда то, что видно в ленте, зависит от новых настроек
+  /// (фото после взаимности, интересы). Лента перезагружает карточки.
+  int feedVersion = 0;
+
+  void feedChanged() {
+    feedVersion++;
+    notifyListeners();
+  }
+
   void _go(Stage s) {
     stage = s;
     notifyListeners();
@@ -264,7 +273,7 @@ class AppState extends ChangeNotifier {
     await api.setInterests(items);
     interests = await api.interests();
     if (stage == Stage.interests) return _go(Stage.profile);
-    notifyListeners();
+    feedChanged();
   }
 
   Future<void> loadMatches() async {

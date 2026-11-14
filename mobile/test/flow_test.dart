@@ -41,10 +41,7 @@ void main() {
     expect(find.text('Найди своих людей по интересам'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('phone')), '912345');
     await tester.pump();
-    expect(
-      tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Получить звонок')).onPressed,
-      isNull,
-    );
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Получить звонок')).onPressed, isNull);
     await tester.enterText(find.byKey(const Key('phone')), '89123456789');
     await tester.pump();
     expect(find.text('912 345-67-89'), findsOneWidget);

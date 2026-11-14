@@ -150,9 +150,7 @@ class _CodeScreenState extends State<CodeScreen> {
           if (_busy) ...[const SizedBox(height: 16), const Center(child: CircularProgressIndicator())],
           if (state.api.isDemo) ...[
             const SizedBox(height: 16),
-            const DemoBanner(
-              text: 'Демо-режим: код 1234 подставится сам через пару секунд — или введите его.',
-            ),
+            const DemoBanner(text: 'Демо-режим: код 1234 подставится сам через пару секунд — или введите его.'),
           ],
           const SizedBox(height: 16),
           TextButton(onPressed: state.changePhone, child: const Text('Изменить номер')),

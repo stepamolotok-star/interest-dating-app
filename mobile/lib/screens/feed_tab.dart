@@ -28,6 +28,7 @@ class FeedTab extends StatefulWidget {
 class _FeedTabState extends State<FeedTab> {
   String? _goal;
   List<FeedCard> _cards = [];
+  int _feedVersion = 0;
   bool _loading = false;
   Object? _error;
   bool _acting = false;
@@ -63,13 +64,21 @@ class _FeedTabState extends State<FeedTab> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final active = AppScope.of(context).activeGoals;
+    final state = AppScope.of(context);
+    final active = state.activeGoals;
     if (_goal == null || !active.contains(_goal)) {
       final next = active.isEmpty ? null : active.first;
       if (next != _goal) {
         _goal = next;
+        _feedVersion = state.feedVersion;
         Future.microtask(_load);
+        return;
       }
+    }
+    // Поменялись настройки, от которых зависят карточки: уже загруженные устарели.
+    if (state.feedVersion != _feedVersion) {
+      _feedVersion = state.feedVersion;
+      Future.microtask(_load);
     }
   }
 
@@ -191,11 +200,7 @@ class _FeedTabState extends State<FeedTab> {
                         Expanded(
                           child: Text(
                             _notice!,
-                            style: TextStyle(
-                              color: AppColors.accent,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
+                            style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600, fontSize: 13),
                           ),
                         ),
                       ],
@@ -307,9 +312,7 @@ class _ReminderState extends State<_Reminder> {
     final text = noInterests
         ? 'Выберите интересы — без них подбор почти случайный'
         : 'Расскажите о себе — с анкетой проще начать разговор';
-    final Widget screen = noInterests
-        ? const InterestsScreen()
-        : const ProfileEditScreen(blocks: completionBlocks);
+    final Widget screen = noInterests ? const InterestsScreen() : const ProfileEditScreen(blocks: completionBlocks);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
       child: Material(
@@ -323,11 +326,7 @@ class _ReminderState extends State<_Reminder> {
             padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
             child: Row(
               children: [
-                Icon(
-                  noInterests ? Icons.interests_outlined : Icons.edit_note,
-                  size: 20,
-                  color: AppColors.accent,
-                ),
+                Icon(noInterests ? Icons.interests_outlined : Icons.edit_note, size: 20, color: AppColors.accent),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -475,10 +474,7 @@ class _PersonCardState extends State<PersonCard> {
                   key: const Key('more-interests'),
                   borderRadius: BorderRadius.circular(999),
                   onTap: card.others.isEmpty ? null : () => setState(() => _allInterests = true),
-                  child: Tag(
-                    'ещё ${card.otherInterests}',
-                    icon: card.others.isEmpty ? null : Icons.expand_more,
-                  ),
+                  child: Tag('ещё ${card.otherInterests}', icon: card.others.isEmpty ? null : Icons.expand_more),
                 ),
             ],
           ),

@@ -44,9 +44,7 @@ class DeviceLocation implements LocationSource {
       permission = await Geolocator.requestPermission();
     }
     if (permission == LocationPermission.denied) {
-      throw const LocationError(
-        'Без доступа к геолокации «Рядом» не работает. Разрешите доступ, когда спросим.',
-      );
+      throw const LocationError('Без доступа к геолокации «Рядом» не работает. Разрешите доступ, когда спросим.');
     }
     if (permission == LocationPermission.deniedForever) {
       throw const LocationError(
@@ -57,10 +55,7 @@ class DeviceLocation implements LocationSource {
     try {
       // Средней точности хватает: сервер всё равно округлит до ~150 м.
       final p = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
-          timeLimit: Duration(seconds: 20),
-        ),
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium, timeLimit: Duration(seconds: 20)),
       );
       return Fix(p.latitude, p.longitude, mocked: p.isMocked);
     } on Exception {

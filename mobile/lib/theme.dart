@@ -248,12 +248,7 @@ ThemeData buildTheme() {
       foregroundColor: AppColors.ink,
       elevation: 0,
       scrolledUnderElevation: 0,
-      titleTextStyle: TextStyle(
-        fontFamily: 'Manrope',
-        fontWeight: FontWeight.w800,
-        fontSize: 18,
-        color: AppColors.ink,
-      ),
+      titleTextStyle: TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.ink),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(

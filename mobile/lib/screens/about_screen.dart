@@ -142,11 +142,7 @@ class _AboutScreenState extends State<AboutScreen> {
               controller: _birth,
               keyboardType: TextInputType.number,
               inputFormatters: [_DateFormatter()],
-              decoration: InputDecoration(
-                labelText: 'Дата рождения',
-                hintText: 'ДД.ММ.ГГГГ',
-                errorText: _birthError,
-              ),
+              decoration: InputDecoration(labelText: 'Дата рождения', hintText: 'ДД.ММ.ГГГГ', errorText: _birthError),
             ),
           ),
           const SizedBox(height: 16),
@@ -274,10 +270,7 @@ class _Choice extends StatelessWidget {
           child: Center(
             child: Text(
               label,
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: selected ? AppColors.accent : AppColors.ink,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w700, color: selected ? AppColors.accent : AppColors.ink),
             ),
           ),
         ),
@@ -287,13 +280,7 @@ class _Choice extends StatelessWidget {
 }
 
 class _Consent extends StatelessWidget {
-  const _Consent({
-    super.key,
-    required this.value,
-    required this.onChanged,
-    required this.text,
-    this.error = false,
-  });
+  const _Consent({super.key, required this.value, required this.onChanged, required this.text, this.error = false});
 
   final bool error;
   final bool value;
@@ -392,10 +379,7 @@ class _CitySheetState extends State<_CitySheet> {
                 controller: _q,
                 autofocus: true,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  hintText: 'Начните вводить город',
-                  prefixIcon: Icon(Icons.search),
-                ),
+                decoration: const InputDecoration(hintText: 'Начните вводить город', prefixIcon: Icon(Icons.search)),
               ),
             ),
             Expanded(

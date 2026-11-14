@@ -150,11 +150,7 @@ class _BusyButtonState extends State<BusyButton> {
       style: widget.color == null ? null : FilledButton.styleFrom(backgroundColor: widget.color),
       onPressed: widget.onPressed == null || _busy ? null : _run,
       child: _busy
-          ? SizedBox(
-              width: 22,
-              height: 22,
-              child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.onFill),
-            )
+          ? SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.onFill))
           : Text(widget.label),
     );
   }

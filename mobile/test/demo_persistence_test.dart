@@ -26,10 +26,7 @@ void main() {
       ),
     );
     await first.saveGoals(['friendship']);
-    await first.saveInterests([
-      MyInterest(id: 'fitness.strength.yoga'),
-      MyInterest(id: 'society.inner.meditation'),
-    ]);
+    await first.saveInterests([MyInterest(id: 'fitness.strength.yoga'), MyInterest(id: 'society.inner.meditation')]);
     expect(first.stage, Stage.profile);
     await first.finishOnboarding();
     final card = (await first.api.feed('friendship')).first;

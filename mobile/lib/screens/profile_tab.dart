@@ -206,10 +206,7 @@ class _Completion extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Чем полнее анкета, тем точнее подбор и тем проще людям начать с вами разговор.',
-              style: t.bodySmall,
-            ),
+            Text('Чем полнее анкета, тем точнее подбор и тем проще людям начать с вами разговор.', style: t.bodySmall),
           ] else if (pct == 100)
             Row(
               children: [
@@ -238,8 +235,7 @@ class _Completion extends StatelessWidget {
 class _ProfileBlocks extends StatelessWidget {
   const _ProfileBlocks();
 
-  Future<void> _edit(BuildContext context, ProfileBlock b) =>
-      openScreen(context, ProfileEditScreen(blocks: [b]));
+  Future<void> _edit(BuildContext context, ProfileBlock b) => openScreen(context, ProfileEditScreen(blocks: [b]));
 
   @override
   Widget build(BuildContext context) {
@@ -305,11 +301,7 @@ class _ProfileBlocks extends StatelessWidget {
 class _Appearance extends StatelessWidget {
   const _Appearance();
 
-  static const _modes = {
-    ThemeMode.system: 'Как в телефоне',
-    ThemeMode.light: 'Светлая',
-    ThemeMode.dark: 'Тёмная',
-  };
+  static const _modes = {ThemeMode.system: 'Как в телефоне', ThemeMode.light: 'Светлая', ThemeMode.dark: 'Тёмная'};
 
   @override
   Widget build(BuildContext context) {
@@ -368,6 +360,8 @@ class _PrivacyState extends State<_Privacy> {
     setState(() => _vis = {...?_vis, 'photos': v});
     try {
       await api.setFieldVisibility({'photos': v});
+      // Правило взаимное: от этого зависит, видны ли чужие фото в ленте.
+      if (mounted) AppScope.read(context).feedChanged();
     } catch (e) {
       if (mounted) showError(context, e);
       await _load();
@@ -422,10 +416,7 @@ class _PrivacyState extends State<_Privacy> {
                 value: f?.ageAsRange ?? false,
                 onChanged: f == null ? null : (v) => _profileFlag((f) => f.ageAsRange = v),
                 title: const Text('Возраст диапазоном', style: TextStyle(fontWeight: FontWeight.w700)),
-                subtitle: Text(
-                  '«28–32» вместо «30 лет». Фильтры по возрасту работают как обычно.',
-                  style: t.bodySmall,
-                ),
+                subtitle: Text('«28–32» вместо «30 лет». Фильтры по возрасту работают как обычно.', style: t.bodySmall),
               ),
               Divider(height: 1, color: AppColors.line),
               SwitchListTile(
@@ -449,10 +440,7 @@ class _PrivacyState extends State<_Privacy> {
           const SizedBox(height: 12),
           const _HideFromContacts(),
           const SizedBox(height: 8),
-          Text(
-            'Кто видит каждый блок анкеты, настраивается внутри блока — значок с глазом.',
-            style: t.bodySmall,
-          ),
+          Text('Кто видит каждый блок анкеты, настраивается внутри блока — значок с глазом.', style: t.bodySmall),
         ],
       ),
     );
@@ -543,10 +531,7 @@ class _HideFromContactsState extends State<_HideFromContacts> {
     final st = await state.api.uploadContacts(hashContacts(numbers));
     if (!mounted) return;
     setState(() => _status = st);
-    showInfo(
-      context,
-      st.count == 0 ? 'В контактах нет российских мобильных номеров' : 'Учли номеров: ${st.count}',
-    );
+    showInfo(context, st.count == 0 ? 'В контактах нет российских мобильных номеров' : 'Учли номеров: ${st.count}');
   }
 
   Future<void> _toggle(bool on) async {
@@ -606,10 +591,7 @@ class _HideFromContactsState extends State<_HideFromContacts> {
               contentPadding: EdgeInsets.zero,
               value: st?.hide ?? false,
               onChanged: st == null || _busy ? null : _toggle,
-              title: const Text(
-                'Скрыть меня от моих контактов',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
+              title: const Text('Скрыть меня от моих контактов', style: TextStyle(fontWeight: FontWeight.w700)),
               subtitle: Text(
                 st?.hide ?? false
                     ? 'Номеров учтено: ${st!.count}. Эти люди не увидят вас ни в ленте, ни в «Рядом».'
@@ -618,10 +600,7 @@ class _HideFromContactsState extends State<_HideFromContacts> {
               ),
             ),
             if (st?.hide ?? false)
-              TextButton(
-                onPressed: _busy ? null : () => _run(_upload),
-                child: const Text('Обновить список контактов'),
-              ),
+              TextButton(onPressed: _busy ? null : () => _run(_upload), child: const Text('Обновить список контактов')),
           ],
         ),
       ),

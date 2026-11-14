@@ -23,12 +23,7 @@ class Avatar extends StatelessWidget {
       decoration: BoxDecoration(color: g.tint, shape: BoxShape.circle),
       child: Text(
         name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-        style: TextStyle(
-          fontFamily: 'Unbounded',
-          fontWeight: FontWeight.w700,
-          fontSize: size * 0.42,
-          color: g.color,
-        ),
+        style: TextStyle(fontFamily: 'Unbounded', fontWeight: FontWeight.w700, fontSize: size * 0.42, color: g.color),
       ),
     );
   }
@@ -94,8 +89,7 @@ Future<void> showPersonSheet(BuildContext context, Match match) {
                 spacing: 6,
                 runSpacing: 6,
                 children: [
-                  for (final i in p.interests)
-                    Tag(i, color: AppColors.accent, background: AppColors.accentTint),
+                  for (final i in p.interests) Tag(i, color: AppColors.accent, background: AppColors.accentTint),
                 ],
               ),
             ],
@@ -209,12 +203,7 @@ class _ReportSheetState extends State<_ReportSheet> {
 }
 
 /// Подтверждение действия. Возвращает true, если человек согласился.
-Future<bool> confirm(
-  BuildContext context, {
-  required String title,
-  required String text,
-  required String ok,
-}) async {
+Future<bool> confirm(BuildContext context, {required String title, required String text, required String ok}) async {
   final res = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(

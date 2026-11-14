@@ -44,9 +44,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
     final state = AppScope.read(context);
     final autofill = state.autofill;
     final prefs = await SharedPreferences.getInstance();
-    if (autofill.supportsCall &&
-        !await autofill.hasCallPermission() &&
-        !(prefs.getBool(_askedKey) ?? false)) {
+    if (autofill.supportsCall && !await autofill.hasCallPermission() && !(prefs.getBool(_askedKey) ?? false)) {
       await prefs.setBool(_askedKey, true);
       if (!mounted) return;
       final ok = await showDialog<bool>(
@@ -136,11 +134,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
                   flex: 3,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      'или через',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                    child: Text('или через', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
                   ),
                 ),
                 const Expanded(child: Divider()),

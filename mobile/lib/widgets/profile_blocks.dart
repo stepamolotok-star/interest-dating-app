@@ -49,8 +49,7 @@ String? blockSummary(ProfileBlock b, ProfileFields f) {
 
 /// Заполненность анкеты в процентах.
 int profileCompletion(ProfileFields f) =>
-    (completionBlocks.where((b) => blockSummary(b, f) != null).length * 100 / completionBlocks.length)
-        .round();
+    (completionBlocks.where((b) => blockSummary(b, f) != null).length * 100 / completionBlocks.length).round();
 
 /// Черновик анкеты: поля, видимость и текстовые контроллеры. Владелец вызывает [dispose].
 class ProfileDraft {
@@ -201,10 +200,7 @@ class _ProfileBlocksFormState extends State<ProfileBlocksForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [for (final b in widget.blocks) _block(b)],
-    );
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [for (final b in widget.blocks) _block(b)]);
   }
 
   Widget _block(ProfileBlock b) {
@@ -309,10 +305,7 @@ class _ProfileBlocksFormState extends State<ProfileBlocksForm> {
             for (final MapEntry(key: habit, value: options) in habitLabels.entries) ...[
               Padding(
                 padding: const EdgeInsets.only(top: 4, bottom: 6),
-                child: Text(
-                  habitTitles[habit] ?? habit,
-                  style: t.bodySmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
+                child: Text(habitTitles[habit] ?? habit, style: t.bodySmall?.copyWith(fontWeight: FontWeight.w700)),
               ),
               _Choices(
                 keyPrefix: 'habit-$habit',
@@ -414,11 +407,7 @@ class _Section extends StatelessWidget {
                             child: Text(
                               fieldVisibilityLabels[visibility] ?? visibility!,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: AppColors.accent,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                              ),
+                              style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600, fontSize: 13),
                             ),
                           ),
                         ],
@@ -439,12 +428,7 @@ class _Section extends StatelessWidget {
 
 /// Выбор одного значения; повторное нажатие снимает выбор.
 class _Choices extends StatelessWidget {
-  const _Choices({
-    required this.keyPrefix,
-    required this.options,
-    required this.selected,
-    required this.onChanged,
-  });
+  const _Choices({required this.keyPrefix, required this.options, required this.selected, required this.onChanged});
 
   final String keyPrefix;
   final Map<String, String> options;
@@ -525,10 +509,7 @@ class _PromptSheetState extends State<_PromptSheet> {
             decoration: const InputDecoration(hintText: 'Ваш ответ'),
           ),
           const SizedBox(height: 8),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(_ctrl.text.trim()),
-            child: const Text('Готово'),
-          ),
+          FilledButton(onPressed: () => Navigator.of(context).pop(_ctrl.text.trim()), child: const Text('Готово')),
         ],
       ),
     );

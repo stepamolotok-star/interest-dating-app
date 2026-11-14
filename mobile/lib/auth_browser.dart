@@ -11,10 +11,7 @@ class DeviceAuthBrowser implements AuthBrowser {
   @override
   Future<Uri?> open(Uri url, String callbackScheme) async {
     try {
-      final result = await FlutterWebAuth2.authenticate(
-        url: url.toString(),
-        callbackUrlScheme: callbackScheme,
-      );
+      final result = await FlutterWebAuth2.authenticate(url: url.toString(), callbackUrlScheme: callbackScheme);
       return Uri.parse(result);
     } on PlatformException catch (e) {
       if (e.code == 'CANCELED') return null;

@@ -26,13 +26,7 @@ class _InterestsScreenState extends State<InterestsScreen> {
   late final Api _api = AppScope.read(context).api;
   late final Map<String, MyInterest> _selected = {
     for (final i in AppScope.read(context).interests)
-      i.id: MyInterest(
-        id: i.id,
-        name: i.name,
-        level: i.level,
-        seekingPartner: i.seekingPartner,
-        kind: i.kind,
-      ),
+      i.id: MyInterest(id: i.id, name: i.name, level: i.level, seekingPartner: i.seekingPartner, kind: i.kind),
   };
   final _query = TextEditingController();
 
@@ -175,9 +169,7 @@ class _InterestsScreenState extends State<InterestsScreen> {
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: [
-                    for (final i in _selected.values) _SelectedChip(interest: i, onTap: () => _edit(i)),
-                  ],
+                  children: [for (final i in _selected.values) _SelectedChip(interest: i, onTap: () => _edit(i))],
                 ),
               ),
             ),
@@ -343,12 +335,7 @@ class _AutoLoadState extends State<_AutoLoad> {
 }
 
 class _CategoryBody extends StatelessWidget {
-  const _CategoryBody({
-    required this.nodes,
-    required this.kids,
-    required this.selected,
-    required this.onToggle,
-  });
+  const _CategoryBody({required this.nodes, required this.kids, required this.selected, required this.onToggle});
 
   final List<InterestNode> nodes;
   final Map<String, List<InterestNode>> kids;
@@ -507,12 +494,7 @@ class _SkipInterests extends StatelessWidget {
 }
 
 class _InterestSheet extends StatefulWidget {
-  const _InterestSheet({
-    required this.interest,
-    required this.onRemove,
-    required this.onChanged,
-    this.isNew = false,
-  });
+  const _InterestSheet({required this.interest, required this.onRemove, required this.onChanged, this.isNew = false});
 
   final MyInterest interest;
 

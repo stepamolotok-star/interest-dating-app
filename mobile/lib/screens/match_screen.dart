@@ -26,10 +26,7 @@ class MatchScreen extends StatelessWidget {
             children: [
               Align(
                 alignment: Alignment.centerRight,
-                child: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(false),
-                ),
+                child: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop(false)),
               ),
               const Spacer(),
               Icon(Icons.favorite, size: 48, color: g.color),
@@ -46,18 +43,13 @@ class MatchScreen extends StatelessWidget {
                 alignment: WrapAlignment.center,
                 spacing: 8,
                 runSpacing: 8,
-                children: [
-                  for (final s in card.shared) Tag(s.name, color: g.color, background: AppColors.surface),
-                ],
+                children: [for (final s in card.shared) Tag(s.name, color: g.color, background: AppColors.surface)],
               ),
               if (hint != null) ...[
                 const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                  decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -76,10 +68,7 @@ class MatchScreen extends StatelessWidget {
                 child: const Text('Написать'),
               ),
               const SizedBox(height: 10),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Смотреть дальше'),
-              ),
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Смотреть дальше')),
             ],
           ),
         ),

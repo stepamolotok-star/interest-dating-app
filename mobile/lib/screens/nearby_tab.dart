@@ -217,9 +217,7 @@ class _NearbyTabState extends State<NearbyTab> {
     if (v == null) {
       // Вкладку ещё не открывали — ничего не грузим и не крутим индикатор.
       if (!widget.active) return const SizedBox();
-      return _problem == null
-          ? const Center(child: CircularProgressIndicator())
-          : _Problem(_problem!, _start);
+      return _problem == null ? const Center(child: CircularProgressIndicator()) : _Problem(_problem!, _start);
     }
     if (!v.active) return _Intro(onTurnOn: _becomeVisible);
     return Column(
@@ -268,8 +266,7 @@ class _NearbyTabState extends State<NearbyTab> {
       return const _Message(
         icon: Icons.shield_moon_outlined,
         title: 'Вы в личной зоне',
-        text:
-            'Здесь вас никто не видит — и вы тоже не видите других. Выйдете из зоны — «Рядом» включится сам.',
+        text: 'Здесь вас никто не видит — и вы тоже не видите других. Выйдете из зоны — «Рядом» включится сам.',
       );
     }
     if (_loading && _cards.isEmpty) return const Center(child: CircularProgressIndicator());
@@ -381,12 +378,7 @@ class _Intro extends StatelessWidget {
 }
 
 class _StatusStrip extends StatelessWidget {
-  const _StatusStrip({
-    required this.vis,
-    required this.status,
-    required this.onDisappear,
-    required this.onChange,
-  });
+  const _StatusStrip({required this.vis, required this.status, required this.onDisappear, required this.onChange});
 
   final NearbyVisibility vis;
   final LocationStatus? status;
@@ -409,11 +401,7 @@ class _StatusStrip extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            hidden ? Icons.shield_moon_outlined : Icons.circle,
-            size: hidden ? 18 : 10,
-            color: AppColors.accent,
-          ),
+          Icon(hidden ? Icons.shield_moon_outlined : Icons.circle, size: hidden ? 18 : 10, color: AppColors.accent),
           const SizedBox(width: 8),
           Expanded(
             child: InkWell(

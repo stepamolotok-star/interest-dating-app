@@ -42,9 +42,7 @@ class DeviceContacts implements ContactsSource {
   Future<List<String>> phoneNumbers() async {
     final status = await FlutterContacts.permissions.request(PermissionType.read);
     if (status != PermissionStatus.granted && status != PermissionStatus.limited) {
-      throw const ContactsError(
-        'Без доступа к контактам скрыться от них не получится. Разрешите доступ в настройках.',
-      );
+      throw const ContactsError('Без доступа к контактам скрыться от них не получится. Разрешите доступ в настройках.');
     }
     final contacts = await FlutterContacts.getAll(properties: {ContactProperty.phone});
     return [
@@ -59,9 +57,5 @@ class DemoContacts implements ContactsSource {
   const DemoContacts();
 
   @override
-  Future<List<String>> phoneNumbers() async => const [
-    '8 (914) 123-45-67',
-    '+7 924 000-11-22',
-    '+1 202 555 0100',
-  ];
+  Future<List<String>> phoneNumbers() async => const ['8 (914) 123-45-67', '+7 924 000-11-22', '+1 202 555 0100'];
 }

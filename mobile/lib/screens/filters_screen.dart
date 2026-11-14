@@ -53,8 +53,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
     _p = GoalPrefs(interests: old.interests, interestsRequired: old.interestsRequired);
   });
 
-  void _toggleIn(List<String> list, String v) =>
-      setState(() => list.contains(v) ? list.remove(v) : list.add(v));
+  void _toggleIn(List<String> list, String v) => setState(() => list.contains(v) ? list.remove(v) : list.add(v));
 
   @override
   Widget build(BuildContext context) {
@@ -64,8 +63,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
       appBar: AppBar(
         title: Text('Фильтры: ${goalShort[g.id] ?? g.label}'),
         actions: [
-          if (p != null)
-            TextButton(key: const Key('reset-filters'), onPressed: _reset, child: const Text('Сбросить')),
+          if (p != null) TextButton(key: const Key('reset-filters'), onPressed: _reset, child: const Text('Сбросить')),
         ],
       ),
       body: p == null
@@ -127,8 +125,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
             max: _ageMax,
             value: p.age,
             // Сервер принимает возраст только с нижней границей: «до 30» = «18–30».
-            onChanged: (r) =>
-                setState(() => p.age = r.isEmpty ? r : IntRange(r.min == 0 ? _ageMin : r.min, r.max)),
+            onChanged: (r) => setState(() => p.age = r.isEmpty ? r : IntRange(r.min == 0 ? _ageMin : r.min, r.max)),
           ),
         ),
         _Block(
@@ -186,19 +183,14 @@ class _FiltersScreenState extends State<FiltersScreen> {
         _Block(
           title: 'Привычки',
           required: p.habitsRequired,
-          onRequired: p.habits.values.any((v) => v.isNotEmpty)
-              ? (v) => setState(() => p.habitsRequired = v)
-              : null,
+          onRequired: p.habits.values.any((v) => v.isNotEmpty) ? (v) => setState(() => p.habitsRequired = v) : null,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               for (final MapEntry(key: habit, value: options) in habitLabels.entries) ...[
                 Padding(
                   padding: const EdgeInsets.only(top: 6, bottom: 4),
-                  child: Text(
-                    habitTitles[habit] ?? habit,
-                    style: t.bodySmall?.copyWith(fontWeight: FontWeight.w700),
-                  ),
+                  child: Text(habitTitles[habit] ?? habit, style: t.bodySmall?.copyWith(fontWeight: FontWeight.w700)),
                 ),
                 _Multi(
                   keyPrefix: 'habit-$habit',
@@ -264,14 +256,7 @@ String _rangeText(IntRange r, int min, int max, String unit) {
 }
 
 class _Block extends StatelessWidget {
-  const _Block({
-    required this.title,
-    required this.child,
-    this.hint,
-    this.trailing,
-    this.required,
-    this.onRequired,
-  });
+  const _Block({required this.title, required this.child, this.hint, this.trailing, this.required, this.onRequired});
 
   final String title;
   final String? hint;
@@ -303,9 +288,7 @@ class _Block extends StatelessWidget {
                   children: [
                     Text(
                       'Обязательно',
-                      style: t.bodySmall?.copyWith(
-                        color: onRequired == null ? AppColors.line : AppColors.muted,
-                      ),
+                      style: t.bodySmall?.copyWith(color: onRequired == null ? AppColors.line : AppColors.muted),
                     ),
                     Switch(key: Key('required-$title'), value: required!, onChanged: onRequired),
                   ],
@@ -322,12 +305,7 @@ class _Block extends StatelessWidget {
 }
 
 class _Multi extends StatelessWidget {
-  const _Multi({
-    required this.keyPrefix,
-    required this.options,
-    required this.selected,
-    required this.onToggle,
-  });
+  const _Multi({required this.keyPrefix, required this.options, required this.selected, required this.onToggle});
 
   final String keyPrefix;
   final Map<String, String> options;
@@ -356,13 +334,7 @@ class _Multi extends StatelessWidget {
 
 /// Ползунок «от–до». Крайние положения = граница не задана.
 class _Range extends StatelessWidget {
-  const _Range({
-    super.key,
-    required this.min,
-    required this.max,
-    required this.value,
-    required this.onChanged,
-  });
+  const _Range({super.key, required this.min, required this.max, required this.value, required this.onChanged});
 
   final int min;
   final int max;

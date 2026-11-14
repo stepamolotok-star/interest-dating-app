@@ -293,10 +293,7 @@ class _ChatScreenState extends State<ChatScreen> {
               const SizedBox(width: 6),
               IconButton.filled(
                 key: const Key('send'),
-                style: IconButton.styleFrom(
-                  backgroundColor: goalInfo(m.goal).fill,
-                  foregroundColor: Colors.white,
-                ),
+                style: IconButton.styleFrom(backgroundColor: goalInfo(m.goal).fill, foregroundColor: Colors.white),
                 onPressed: _input.text.trim().isEmpty || _sending ? null : _send,
                 icon: const Icon(Icons.arrow_upward),
               ),
@@ -398,10 +395,7 @@ class _Bubble extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 _hhmm(msg.createdAt),
-                style: TextStyle(
-                  color: mine ? AppColors.onFill.withValues(alpha: 0.7) : AppColors.muted,
-                  fontSize: 11,
-                ),
+                style: TextStyle(color: mine ? AppColors.onFill.withValues(alpha: 0.7) : AppColors.muted, fontSize: 11),
               ),
             ],
           ),
