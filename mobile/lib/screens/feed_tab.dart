@@ -255,7 +255,7 @@ class _FeedTabState extends State<FeedTab> {
               Expanded(
                 child: FilledButton.icon(
                   key: const Key('like'),
-                  style: FilledButton.styleFrom(backgroundColor: g.color),
+                  style: FilledButton.styleFrom(backgroundColor: g.fill, foregroundColor: Colors.white),
                   onPressed: _acting ? null : () => _act(card, interested: true),
                   icon: const Icon(Icons.favorite_border),
                   label: const Text('Интересно'),
@@ -360,8 +360,8 @@ class _GoalChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? goal.color : AppColors.surface,
-      shape: StadiumBorder(side: BorderSide(color: selected ? goal.color : AppColors.line)),
+      color: selected ? goal.fill : AppColors.surface,
+      shape: StadiumBorder(side: BorderSide(color: selected ? goal.fill : AppColors.line)),
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: onTap,
@@ -370,10 +370,7 @@ class _GoalChip extends StatelessWidget {
           child: Center(
             child: Text(
               goalShort[goal.id] ?? goal.label,
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: selected ? AppColors.onAccent : AppColors.ink,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w700, color: selected ? Colors.white : AppColors.ink),
             ),
           ),
         ),

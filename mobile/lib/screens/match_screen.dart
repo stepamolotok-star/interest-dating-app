@@ -71,7 +71,7 @@ class MatchScreen extends StatelessWidget {
               const Spacer(),
               FilledButton(
                 key: const Key('write'),
-                style: FilledButton.styleFrom(backgroundColor: g.color),
+                style: FilledButton.styleFrom(backgroundColor: g.fill, foregroundColor: Colors.white),
                 onPressed: () => Navigator.of(context).pop(true),
                 child: const Text('Написать'),
               ),

@@ -11,6 +11,8 @@ class Palette {
     required this.accent,
     required this.accentTint,
     required this.onAccent,
+    required this.fill,
+    required this.onFill,
     required this.error,
     required this.warnBg,
     required this.warnFg,
@@ -24,8 +26,12 @@ class Palette {
   final Color accent;
   final Color accentTint;
 
-  /// Текст и значки на заливке акцентным цветом (кнопки, свои сообщения).
+  /// Текст на заливке акцентным цветом (выбранные цели и т. п.).
   final Color onAccent;
+
+  /// Заливка главных кнопок и своих сообщений — тот же бирюзовый, что на значке приложения.
+  final Color fill;
+  final Color onFill;
   final Color error;
 
   /// Плашка «демо-режим» и другие предупреждения.
@@ -42,6 +48,8 @@ const lightPalette = Palette(
   accent: Color(0xFF0E7A6A),
   accentTint: Color(0xFFDDF1EC),
   onAccent: Color(0xFFFFFFFF),
+  fill: Color(0xFF0E7A6A),
+  onFill: Color(0xFFFFFFFF),
   error: Color(0xFFB42318),
   warnBg: Color(0xFFFFF4D6),
   warnFg: Color(0xFF8A5A00),
@@ -57,6 +65,8 @@ const darkPalette = Palette(
   accent: Color(0xFF4CC3AC),
   accentTint: Color(0xFF173A33),
   onAccent: Color(0xFF0B1F1B),
+  fill: Color(0xFF0E7A6A),
+  onFill: Color(0xFFFFFFFF),
   error: Color(0xFFF97066),
   warnBg: Color(0xFF33290F),
   warnFg: Color(0xFFF2C66D),
@@ -77,6 +87,8 @@ abstract final class AppColors {
   static Color get accent => p.accent;
   static Color get accentTint => p.accentTint;
   static Color get onAccent => p.onAccent;
+  static Color get fill => p.fill;
+  static Color get onFill => p.onFill;
   static Color get error => p.error;
   static Color get warnBg => p.warnBg;
   static Color get warnFg => p.warnFg;
@@ -95,6 +107,10 @@ class GoalInfo {
   final (Color, Color) _dark;
 
   Color get color => (AppColors.dark ? _dark : _light).$1;
+
+  /// Заливка кнопок цели («Интересно», «Написать»): насыщенный цвет с белым текстом
+  /// в обеих темах — как зелёные кнопки, а не пастельный вариант для текста.
+  Color get fill => _light.$1;
   Color get tint => (AppColors.dark ? _dark : _light).$2;
 
   bool get needsVerification => id == 'casual';
@@ -241,8 +257,8 @@ ThemeData buildTheme() {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.accent,
-        foregroundColor: AppColors.onAccent,
+        backgroundColor: AppColors.fill,
+        foregroundColor: AppColors.onFill,
         disabledBackgroundColor: AppColors.line,
         disabledForegroundColor: AppColors.muted,
         minimumSize: const Size.fromHeight(54),

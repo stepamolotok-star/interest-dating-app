@@ -498,7 +498,7 @@ class _Support extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.fill),
             onPressed: () => showInfo(context, 'Скоро: перевод через СБП'),
             child: const Text('Поблагодарить'),
           ),

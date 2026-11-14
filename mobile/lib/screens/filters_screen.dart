@@ -80,7 +80,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                   Expanded(child: _form(p)),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-                    child: BusyButton(label: 'Показать людей', color: g.color, onPressed: _save),
+                    child: BusyButton(label: 'Показать людей', color: g.fill, onPressed: _save),
                   ),
                 ],
               ),

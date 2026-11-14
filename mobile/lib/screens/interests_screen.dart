@@ -102,6 +102,9 @@ class _InterestsScreenState extends State<InterestsScreen> {
   }
 
   Future<void> _edit(MyInterest i, {bool isNew = false}) async {
+    // Убираем клавиатуру поиска совсем, а не только прячем: иначе после закрытия
+    // панели фокус вернётся в поле поиска и клавиатура выскочит снова.
+    FocusManager.instance.primaryFocus?.unfocus();
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -140,6 +143,8 @@ class _InterestsScreenState extends State<InterestsScreen> {
       ),
       secondary: widget.onboarding ? _SkipInterests(selected: _selected.values.toList()) : null,
       child: CustomScrollView(
+        // Начали листать — клавиатура уходит, как в обычных приложениях.
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         // Строим с запасом за краем экрана, чтобы при быстрой прокрутке не собирать плитки на лету.
         scrollCacheExtent: const ScrollCacheExtent.pixels(800),
         slivers: [

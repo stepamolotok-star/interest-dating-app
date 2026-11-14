@@ -370,7 +370,7 @@ class _Intro extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
           child: FilledButton(
             key: const Key('become-visible'),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.fill),
             onPressed: onTurnOn,
             child: const Text('Стать видимым'),
           ),
@@ -424,10 +424,16 @@ class _StatusStrip extends StatelessWidget {
               ),
             ),
           ),
-          TextButton(
+          // Как остальные второстепенные кнопки: в рамке, без красного.
+          OutlinedButton(
             key: const Key('disappear'),
             onPressed: onDisappear,
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, 36),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              backgroundColor: AppColors.surface,
+              textStyle: const TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.w700, fontSize: 14),
+            ),
             child: const Text('Исчезнуть'),
           ),
         ],
@@ -509,7 +515,8 @@ class _NearbyCard extends StatelessWidget {
                 child: FilledButton(
                   key: Key('nearby-like-${card.userId}'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: g.color,
+                    backgroundColor: g.fill,
+                    foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(44),
                   ),
                   onPressed: busy ? null : onLike,

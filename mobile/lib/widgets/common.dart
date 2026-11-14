@@ -73,7 +73,11 @@ class StepScaffold extends StatelessWidget {
           children: [
             Expanded(
               child: scrollable
-                  ? SingleChildScrollView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 20), child: content)
+                  ? SingleChildScrollView(
+                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                      child: content,
+                    )
                   : Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 0), child: content),
             ),
             Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, secondary == null ? 16 : 4), child: button),
@@ -149,7 +153,7 @@ class _BusyButtonState extends State<BusyButton> {
           ? SizedBox(
               width: 22,
               height: 22,
-              child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.onAccent),
+              child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.onFill),
             )
           : Text(widget.label),
     );
