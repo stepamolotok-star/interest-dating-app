@@ -268,7 +268,7 @@ class _ChatScreenState extends State<ChatScreen> {
           if (_sendError != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-              child: Text(_sendError!, style: const TextStyle(color: AppColors.error, fontSize: 13)),
+              child: Text(_sendError!, style: TextStyle(color: AppColors.error, fontSize: 13)),
             ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -281,12 +281,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   maxLines: 5,
                   maxLength: 2000,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Сообщение',
                     counterText: '',
                     filled: true,
                     fillColor: AppColors.bg,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                 ),
               ),
@@ -370,7 +370,7 @@ class _Bubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = mine ? AppColors.accent : AppColors.surface;
-    final fg = mine ? Colors.white : AppColors.ink;
+    final fg = mine ? AppColors.onAccent : AppColors.ink;
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
       child: ConstrainedBox(
@@ -395,7 +395,10 @@ class _Bubble extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 _hhmm(msg.createdAt),
-                style: TextStyle(color: mine ? Colors.white70 : AppColors.muted, fontSize: 11),
+                style: TextStyle(
+                  color: mine ? AppColors.onAccent.withValues(alpha: 0.7) : AppColors.muted,
+                  fontSize: 11,
+                ),
               ),
             ],
           ),
@@ -441,7 +444,7 @@ class _Hello extends StatelessWidget {
           color: AppColors.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: AppColors.line),
+            side: BorderSide(color: AppColors.line),
           ),
           child: InkWell(
             key: const Key('use-hint'),
@@ -463,7 +466,7 @@ class _Hello extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.shield_outlined, size: 16, color: AppColors.muted),
+            Icon(Icons.shield_outlined, size: 16, color: AppColors.muted),
             const SizedBox(width: 6),
             Expanded(
               child: Text(

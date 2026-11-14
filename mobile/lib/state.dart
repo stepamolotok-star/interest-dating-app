@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:material_ui/material_ui.dart' show ThemeMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api/api.dart';
@@ -43,6 +44,30 @@ class AppState extends ChangeNotifier {
   final ContactsSource contacts;
 
   static const _tokenKey = 'session_token';
+  static const _themeKey = 'theme_mode';
+
+  /// Тема: как в системе, светлая или тёмная. Хранится на телефоне.
+  ThemeMode themeMode = ThemeMode.system;
+
+  /// Читает сохранённую тему. Вызывается до первого кадра, чтобы не мигнуть светлой.
+  Future<void> loadThemeMode() async {
+    try {
+      final saved = (await SharedPreferences.getInstance()).getString(_themeKey);
+      themeMode = ThemeMode.values.firstWhere((m) => m.name == saved, orElse: () => ThemeMode.system);
+    } catch (_) {
+      themeMode = ThemeMode.system;
+    }
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    themeMode = mode;
+    notifyListeners();
+    try {
+      await (await SharedPreferences.getInstance()).setString(_themeKey, mode.name);
+    } catch (_) {
+      // Не сохранилось — тема всё равно сменится до перезапуска.
+    }
+  }
 
   /// Человек прошёл (или пропустил) шаги интересов и анкеты. Пока нет —
   /// при входе возвращаем к ним; потом только напоминаем.

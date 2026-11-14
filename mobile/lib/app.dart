@@ -21,19 +21,65 @@ class AppScope extends InheritedNotifier<AppState> {
   static AppState read(BuildContext context) => context.getInheritedWidgetOfExactType<AppScope>()!.notifier!;
 }
 
-class SvoiApp extends StatelessWidget {
+class SvoiApp extends StatefulWidget {
   const SvoiApp({super.key, required this.state});
 
   final AppState state;
 
   @override
+  State<SvoiApp> createState() => _SvoiAppState();
+}
+
+/// Следит за темой: выбор в профиле или, если «как в системе», настройка телефона.
+/// Цвета [AppColors] не константы, поэтому при смене темы перестраиваем всё дерево.
+class _SvoiAppState extends State<SvoiApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    widget.state.addListener(_applyTheme);
+    AppColors.dark = _wantDark;
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    widget.state.removeListener(_applyTheme);
+    super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() => _applyTheme();
+
+  bool get _wantDark => switch (widget.state.themeMode) {
+    ThemeMode.dark => true,
+    ThemeMode.light => false,
+    ThemeMode.system => WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark,
+  };
+
+  void _applyTheme() {
+    final dark = _wantDark;
+    if (dark == AppColors.dark || !mounted) return;
+    AppColors.dark = dark;
+    void rebuild(Element e) {
+      e.markNeedsBuild();
+      e.visitChildren(rebuild);
+    }
+
+    (context as Element).visitChildren(rebuild);
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AppScope(
-      state: state,
+      state: widget.state,
       child: MaterialApp(
         title: 'Свои',
         debugShowCheckedModeBanner: false,
         theme: buildTheme(),
+        // Тему перестраиваем целиком — без плавного перехода, иначе часть цветов поменяется раньше.
+        themeAnimationDuration: Duration.zero,
         locale: const Locale('ru'),
         supportedLocales: const [Locale('ru')],
         localizationsDelegates: GlobalMaterialLocalizations.delegates,

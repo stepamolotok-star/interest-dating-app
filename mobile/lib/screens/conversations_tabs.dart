@@ -126,7 +126,7 @@ class _MatchCard extends StatelessWidget {
       color: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: AppColors.line),
+        side: BorderSide(color: AppColors.line),
       ),
       child: InkWell(
         key: Key('match-${match.matchId}'),

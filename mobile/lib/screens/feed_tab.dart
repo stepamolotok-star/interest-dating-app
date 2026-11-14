@@ -186,12 +186,12 @@ class _FeedTabState extends State<FeedTab> {
                     padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
                     child: Row(
                       children: [
-                        const Icon(Icons.check_circle_outline, size: 16, color: AppColors.accent),
+                        Icon(Icons.check_circle_outline, size: 16, color: AppColors.accent),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             _notice!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.accent,
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
@@ -332,17 +332,13 @@ class _ReminderState extends State<_Reminder> {
                 Expanded(
                   child: Text(
                     text,
-                    style: const TextStyle(
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600, fontSize: 13),
                   ),
                 ),
                 IconButton(
                   tooltip: 'Скрыть',
                   visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.close, size: 18, color: AppColors.muted),
+                  icon: Icon(Icons.close, size: 18, color: AppColors.muted),
                   onPressed: _close,
                 ),
               ],
@@ -374,7 +370,10 @@ class _GoalChip extends StatelessWidget {
           child: Center(
             child: Text(
               goalShort[goal.id] ?? goal.label,
-              style: TextStyle(fontWeight: FontWeight.w700, color: selected ? Colors.white : AppColors.ink),
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: selected ? AppColors.onAccent : AppColors.ink,
+              ),
             ),
           ),
         ),
@@ -448,17 +447,9 @@ class _PersonCardState extends State<PersonCard> {
                         if (card.name.isEmpty && card.ageLabel.isNotEmpty) Tag(card.ageLabel),
                         if (card.distance.isNotEmpty) Tag(card.distance, icon: Icons.near_me_outlined),
                         if (card.ageVerified)
-                          const Tag(
-                            'Возраст подтверждён',
-                            icon: Icons.verified_outlined,
-                            color: AppColors.accent,
-                          ),
+                          Tag('Возраст подтверждён', icon: Icons.verified_outlined, color: AppColors.accent),
                         if (card.photoVerified)
-                          const Tag(
-                            'Фото проверено',
-                            icon: Icons.photo_camera_outlined,
-                            color: AppColors.accent,
-                          ),
+                          Tag('Фото проверено', icon: Icons.photo_camera_outlined, color: AppColors.accent),
                       ],
                     ),
                   ],
@@ -509,7 +500,7 @@ class _PersonCardState extends State<PersonCard> {
             const SizedBox(height: 18),
             Row(
               children: [
-                const Icon(Icons.lock_outline, size: 16, color: AppColors.muted),
+                Icon(Icons.lock_outline, size: 16, color: AppColors.muted),
                 const SizedBox(width: 6),
                 Expanded(child: Text('Фото откроется, если интерес будет взаимным', style: t.bodySmall)),
               ],
@@ -590,7 +581,7 @@ class HiddenAvatar extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.line),
               ),
-              child: const Icon(Icons.lock_outline, size: 14, color: AppColors.muted),
+              child: Icon(Icons.lock_outline, size: 14, color: AppColors.muted),
             ),
           ),
         ],

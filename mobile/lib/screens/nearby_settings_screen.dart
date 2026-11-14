@@ -239,7 +239,7 @@ class _NearbySettingsScreenState extends State<NearbySettingsScreen> {
                   for (final z in _zones!)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.shield_moon_outlined, color: AppColors.accent),
+                      leading: Icon(Icons.shield_moon_outlined, color: AppColors.accent),
                       title: Text(z.name, style: const TextStyle(fontWeight: FontWeight.w700)),
                       subtitle: Text('Радиус ${radiusLabel(z.radiusM)}'),
                       trailing: IconButton(

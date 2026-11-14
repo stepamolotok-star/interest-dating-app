@@ -52,7 +52,7 @@ class _ProfileTabState extends State<ProfileTab> {
             runSpacing: 6,
             children: [
               if (me?.ageVerified ?? false)
-                const Tag('Возраст подтверждён', icon: Icons.verified_outlined, color: AppColors.accent)
+                Tag('Возраст подтверждён', icon: Icons.verified_outlined, color: AppColors.accent)
               else
                 const Tag('Возраст не подтверждён', icon: Icons.info_outline),
             ],
@@ -98,6 +98,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
           ),
           const _Privacy(),
+          const _Appearance(),
           const SizedBox(height: 16),
           _Support(),
           const SizedBox(height: 16),
@@ -164,7 +165,7 @@ class _Nudge extends StatelessWidget {
               Icon(icon, color: AppColors.accent),
               const SizedBox(width: 10),
               Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
-              const Icon(Icons.chevron_right, color: AppColors.accent),
+              Icon(Icons.chevron_right, color: AppColors.accent),
             ],
           ),
         ),
@@ -212,7 +213,7 @@ class _Completion extends StatelessWidget {
           ] else if (pct == 100)
             Row(
               children: [
-                const Icon(Icons.check_circle, color: AppColors.accent, size: 20),
+                Icon(Icons.check_circle, color: AppColors.accent, size: 20),
                 const SizedBox(width: 8),
                 Expanded(child: Text('Анкета заполнена', style: t.titleMedium)),
               ],
@@ -251,12 +252,12 @@ class _ProfileBlocks extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.line),
+          side: BorderSide(color: AppColors.line),
         ),
         child: Column(
           children: [
             for (final (i, b) in ProfileBlock.values.indexed) ...[
-              if (i > 0) const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.line),
+              if (i > 0) Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.line),
               _blockRow(context, b, f == null ? null : blockSummary(b, f), t),
             ],
           ],
@@ -292,9 +293,43 @@ class _ProfileBlocks extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.muted),
+            Icon(Icons.chevron_right, color: AppColors.muted),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Оформление: тема как в телефоне, светлая или тёмная.
+class _Appearance extends StatelessWidget {
+  const _Appearance();
+
+  static const _modes = {
+    ThemeMode.system: 'Как в телефоне',
+    ThemeMode.light: 'Светлая',
+    ThemeMode.dark: 'Тёмная',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppScope.of(context);
+    return _Section(
+      title: 'Оформление',
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final MapEntry(key: mode, value: label) in _modes.entries)
+            ChoiceChip(
+              key: Key('theme-${mode.name}'),
+              label: Text(label),
+              selected: state.themeMode == mode,
+              showCheckmark: false,
+              selectedColor: AppColors.accentTint,
+              onSelected: (_) => state.setThemeMode(mode),
+            ),
+        ],
       ),
     );
   }
@@ -380,7 +415,7 @@ class _PrivacyState extends State<_Privacy> {
                   style: t.bodySmall,
                 ),
               ),
-              const Divider(height: 1, color: AppColors.line),
+              Divider(height: 1, color: AppColors.line),
               SwitchListTile(
                 key: const Key('age-as-range'),
                 contentPadding: EdgeInsets.zero,
@@ -392,7 +427,7 @@ class _PrivacyState extends State<_Privacy> {
                   style: t.bodySmall,
                 ),
               ),
-              const Divider(height: 1, color: AppColors.line),
+              Divider(height: 1, color: AppColors.line),
               SwitchListTile(
                 key: const Key('show-zodiac'),
                 contentPadding: EdgeInsets.zero,
@@ -401,12 +436,12 @@ class _PrivacyState extends State<_Privacy> {
                 title: const Text('Показывать знак зодиака', style: TextStyle(fontWeight: FontWeight.w700)),
                 subtitle: Text('Считаем по дате рождения, саму дату никто не видит.', style: t.bodySmall),
               ),
-              const Divider(height: 1, color: AppColors.line),
+              Divider(height: 1, color: AppColors.line),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Видимость в «Рядом»', style: TextStyle(fontWeight: FontWeight.w700)),
                 subtitle: Text('Кому и на каком расстоянии вас показывать, личные зоны.', style: t.bodySmall),
-                trailing: const Icon(Icons.chevron_right, color: AppColors.muted),
+                trailing: Icon(Icons.chevron_right, color: AppColors.muted),
                 onTap: () => openScreen(context, const NearbySettingsScreen()),
               ),
             ],
@@ -435,7 +470,7 @@ class _Card extends StatelessWidget {
     clipBehavior: Clip.antiAlias,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(20),
-      side: const BorderSide(color: AppColors.line),
+      side: BorderSide(color: AppColors.line),
     ),
     child: Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 12, 4),
@@ -559,7 +594,7 @@ class _HideFromContactsState extends State<_HideFromContacts> {
       color: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: AppColors.line),
+        side: BorderSide(color: AppColors.line),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),

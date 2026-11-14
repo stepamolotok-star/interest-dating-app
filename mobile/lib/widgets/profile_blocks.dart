@@ -241,7 +241,7 @@ class _ProfileBlocksFormState extends State<ProfileBlocksForm> {
                 margin: const EdgeInsets.only(bottom: 8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
-                  side: const BorderSide(color: AppColors.line),
+                  side: BorderSide(color: AppColors.line),
                 ),
                 child: ListTile(
                   title: Text(p.question, style: t.bodySmall?.copyWith(fontWeight: FontWeight.w700)),
@@ -408,13 +408,13 @@ class _Section extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.visibility_outlined, size: 16, color: AppColors.accent),
+                          Icon(Icons.visibility_outlined, size: 16, color: AppColors.accent),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               fieldVisibilityLabels[visibility] ?? visibility!,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.accent,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,

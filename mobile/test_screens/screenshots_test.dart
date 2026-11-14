@@ -57,6 +57,8 @@ void main() {
     }
 
     final state = AppState(DemoApi(), autofill: const NoCodeAutofill());
+    // flutter test test_screens --dart-define=DARK=true — снимки в тёмной теме.
+    if (const bool.fromEnvironment('DARK')) state.themeMode = ThemeMode.dark;
     await tester.pumpWidget(
       RepaintBoundary(
         key: root,

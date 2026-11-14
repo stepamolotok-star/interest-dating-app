@@ -226,7 +226,7 @@ class _SelectedChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.accentTint,
-      shape: const StadiumBorder(side: BorderSide(color: AppColors.accent)),
+      shape: StadiumBorder(side: BorderSide(color: AppColors.accent)),
       child: InkWell(
         key: Key('chip-${interest.id}'),
         customBorder: const StadiumBorder(),
@@ -237,7 +237,7 @@ class _SelectedChip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (interest.seekingPartner) ...[
-                const Icon(Icons.people_alt_outlined, size: 15, color: AppColors.accent),
+                Icon(Icons.people_alt_outlined, size: 15, color: AppColors.accent),
                 const SizedBox(width: 4),
               ],
               Flexible(
@@ -255,7 +255,7 @@ class _SelectedChip extends StatelessWidget {
                         ),
                     ],
                   ),
-                  style: const TextStyle(color: AppColors.accent),
+                  style: TextStyle(color: AppColors.accent),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -497,7 +497,7 @@ class _SkipInterests extends StatelessWidget {
   Widget build(BuildContext context) => TextButton(
     key: const Key('skip-interests'),
     onPressed: () => _skip(context),
-    child: const Text('Пропустить, выберу потом', style: TextStyle(color: AppColors.muted)),
+    child: Text('Пропустить, выберу потом', style: TextStyle(color: AppColors.muted)),
   );
 }
 

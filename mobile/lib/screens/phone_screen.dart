@@ -107,7 +107,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
             keyboardType: TextInputType.phone,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: 0.5),
             inputFormatters: [_PhoneFormatter()],
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               prefixText: '+7 ',
               prefixStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.ink),
               hintText: '900 000-00-00',
@@ -232,10 +232,14 @@ class _ProviderButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FilledButton(
       key: Key('login-${provider.id}'),
+      // Фирменные цвета VK и Яндекса — в обеих темах; текст всегда белый.
+      // Чёрная кнопка Яндекса в тёмной теме слилась бы с фоном — даём ей тонкую рамку.
       style: FilledButton.styleFrom(
-        backgroundColor: _colors[provider.id] ?? AppColors.ink,
-        disabledBackgroundColor: (_colors[provider.id] ?? AppColors.ink).withValues(alpha: 0.5),
+        backgroundColor: _colors[provider.id] ?? AppColors.accent,
+        foregroundColor: Colors.white,
+        disabledBackgroundColor: (_colors[provider.id] ?? AppColors.accent).withValues(alpha: 0.5),
         disabledForegroundColor: Colors.white,
+        side: AppColors.dark && provider.id == 'yandex' ? const BorderSide(color: Color(0x40FFFFFF)) : null,
       ),
       onPressed: onPressed,
       child: busy

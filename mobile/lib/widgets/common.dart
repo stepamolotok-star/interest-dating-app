@@ -146,10 +146,10 @@ class _BusyButtonState extends State<BusyButton> {
       style: widget.color == null ? null : FilledButton.styleFrom(backgroundColor: widget.color),
       onPressed: widget.onPressed == null || _busy ? null : _run,
       child: _busy
-          ? const SizedBox(
+          ? SizedBox(
               width: 22,
               height: 22,
-              child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+              child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.onAccent),
             )
           : Text(widget.label),
     );
@@ -158,18 +158,16 @@ class _BusyButtonState extends State<BusyButton> {
 
 /// Небольшая плашка: цель, бейдж, привычка.
 class Tag extends StatelessWidget {
-  const Tag(
-    this.text, {
-    super.key,
-    this.color = AppColors.muted,
-    this.background = AppColors.surface,
-    this.icon,
-  });
+  const Tag(this.text, {super.key, this._color, this._background, this.icon});
 
   final String text;
-  final Color color;
-  final Color background;
+  final Color? _color;
+  final Color? _background;
   final IconData? icon;
+
+  /// По умолчанию — приглушённый текст на белой (в тёмной теме — тёмной) плашке.
+  Color get color => _color ?? AppColors.muted;
+  Color get background => _background ?? AppColors.surface;
 
   @override
   Widget build(BuildContext context) {
@@ -207,13 +205,13 @@ class DemoBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: const Color(0xFFFFF4D6), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: AppColors.warnBg, borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
-          const Icon(Icons.science_outlined, size: 18, color: Color(0xFF8A5A00)),
+          Icon(Icons.science_outlined, size: 18, color: AppColors.warnFg),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text, style: const TextStyle(color: Color(0xFF8A5A00), fontSize: 13)),
+            child: Text(text, style: TextStyle(color: AppColors.warnFg, fontSize: 13)),
           ),
         ],
       ),

@@ -64,7 +64,7 @@ class _ProfileStepScreenState extends State<ProfileStepScreen> {
       secondary: TextButton(
         key: const Key('skip-profile'),
         onPressed: () => AppScope.read(context).finishOnboarding(),
-        child: const Text('Пропустить, заполню потом', style: TextStyle(color: AppColors.muted)),
+        child: Text('Пропустить, заполню потом', style: TextStyle(color: AppColors.muted)),
       ),
       child: d == null
           ? Padding(

@@ -16,7 +16,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _highRefreshRate();
   final Api api = apiUrl.isEmpty ? DemoApi() : HttpApi(apiUrl);
-  runApp(SvoiApp(state: AppState(api)..start()));
+  final state = AppState(api);
+  await state.loadThemeMode();
+  runApp(SvoiApp(state: state..start()));
 }
 
 /// Многие Android-телефоны (особенно Xiaomi, Realme, Poco) держат сторонние приложения

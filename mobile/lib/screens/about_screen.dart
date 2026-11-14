@@ -239,7 +239,7 @@ class _ErrorLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(left: 4, top: 6),
-    child: Text(text, style: const TextStyle(color: AppColors.error, fontSize: 13)),
+    child: Text(text, style: TextStyle(color: AppColors.error, fontSize: 13)),
   );
 }
 

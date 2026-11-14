@@ -346,7 +346,7 @@ class _Intro extends StatelessWidget {
                       Container(
                         width: 40,
                         height: 40,
-                        decoration: const BoxDecoration(color: AppColors.accentTint, shape: BoxShape.circle),
+                        decoration: BoxDecoration(color: AppColors.accentTint, shape: BoxShape.circle),
                         child: Icon(icon, size: 20, color: AppColors.accent),
                       ),
                       const SizedBox(width: 14),
@@ -420,7 +420,7 @@ class _StatusStrip extends StatelessWidget {
               onTap: onChange,
               child: Text(
                 hidden ? 'Личная зона — вас не видно' : 'Вас видно · $until · ${radiusLabel(vis.radiusM)}',
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.ink),
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.ink),
               ),
             ),
           ),
@@ -471,7 +471,7 @@ class _NearbyCard extends StatelessWidget {
                 ),
               if (card.ageVerified) ...[
                 const SizedBox(width: 6),
-                const Icon(Icons.verified_outlined, size: 16, color: AppColors.accent),
+                Icon(Icons.verified_outlined, size: 16, color: AppColors.accent),
               ],
             ],
           ),
