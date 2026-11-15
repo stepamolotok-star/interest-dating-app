@@ -1,6 +1,6 @@
 :root {
   --bg: #f6f4f0; --surface: #fff; --ink: #1b1a1f; --muted: #5e5b66; --line: #e4e0d9;
-  --accent: #0f5b4c; --accent-tint: #ddece7; --error: #b42318; --error-tint: #fde8e6;
+  --accent: #0e7a6a; --accent-tint: #ddf1ec; --error: #b42318; --error-tint: #fde8e6;
   --warn: #8a5a00; --warn-tint: #fff4d6;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--ink); background: var(--bg);
