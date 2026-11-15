@@ -159,6 +159,15 @@ class DemoApi extends Api {
     final data = jsonDecode(raw) as Map<String, dynamic>;
     final rawNodes = (data['nodes'] as List).cast<Map<String, dynamic>>();
     final byId = {for (final n in rawNodes) n['id'] as String: n};
+    // Подпись «Ищу, с кем…» — как на сервере: наследуется от подкатегории, «-» — переключателя нет.
+    String togetherOf(Map<String, dynamic> n) {
+      for (Map<String, dynamic>? cur = n; cur != null; cur = byId[cur['parent']]) {
+        final t = cur['together'] as String? ?? '';
+        if (t.isNotEmpty) return t == '-' ? '' : t;
+      }
+      return '';
+    }
+
     String kindOf(Map<String, dynamic> n) {
       for (Map<String, dynamic>? cur = n; cur != null; cur = byId[cur['parent']]) {
         final k = cur['kind'] as String? ?? '';
@@ -175,6 +184,7 @@ class DemoApi extends Api {
           n['name'] as String,
           ((n['synonyms'] as List?) ?? const []).cast<String>(),
           kindOf(n),
+          togetherOf(n),
         ),
     ];
     return _nodes!;
@@ -195,6 +205,7 @@ class DemoApi extends Api {
       hasChildren: all.any((x) => x.parent == n.id),
       path: path,
       kind: n.kind,
+      together: n.together,
     );
   }
 
@@ -328,10 +339,17 @@ class DemoApi extends Api {
   Future<List<MyInterest>> interests() async {
     _needUser();
     final all = await _catalog();
-    String kind(String id) => all.where((n) => n.id == id).firstOrNull?.kind ?? '';
     return [
       for (final i in _interests)
-        MyInterest(id: i.id, name: i.name, level: i.level, seekingPartner: i.seekingPartner, kind: kind(i.id)),
+        if (all.where((n) => n.id == i.id).firstOrNull case final n?)
+          MyInterest(
+            id: i.id,
+            name: i.name,
+            level: i.level,
+            seekingPartner: i.seekingPartner && n.together.isNotEmpty,
+            kind: n.kind,
+            together: n.together,
+          ),
     ];
   }
 
@@ -347,8 +365,9 @@ class DemoApi extends Api {
             id: i.id,
             name: n.name,
             level: n.kind == 'fan' ? 'curious' : i.level,
-            seekingPartner: i.seekingPartner,
+            seekingPartner: i.seekingPartner && n.together.isNotEmpty,
             kind: n.kind,
+            together: n.together,
           ),
     ];
     _save();
@@ -798,12 +817,13 @@ class DemoApi extends Api {
 }
 
 class _Node {
-  const _Node(this.id, this.parent, this.name, this.synonyms, this.kind);
+  const _Node(this.id, this.parent, this.name, this.synonyms, this.kind, this.together);
   final String id;
   final String parent;
   final String name;
   final List<String> synonyms;
   final String kind;
+  final String together;
 }
 
 /// Упрощённая проверка на ссылки и контакты — как на сервере (chat.HasContacts).

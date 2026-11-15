@@ -300,6 +300,30 @@ func TestProfileRules(t *testing.T) {
 	if err := e.prof.SetInterests(ctx, id, []profile.Interest{{ID: "transport.moto", Level: matching.Doing}}); err == nil {
 		t.Fatal("подкатегорию нельзя выбрать как увлечение")
 	}
+
+	// «Ищу, с кем» есть не у всех увлечений: у сыра отметку не храним.
+	if err := e.prof.SetInterests(ctx, id, []profile.Interest{
+		{ID: "food.tasting.cheese", SeekingPartner: true},
+		{ID: "outdoor.water.fishing", Level: matching.Doing, SeekingPartner: true},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	its, err := e.prof.Interests(ctx, id)
+	if err != nil || len(its) != 2 {
+		t.Fatalf("Interests: %+v %v", its, err)
+	}
+	for _, it := range its {
+		switch it.ID {
+		case "food.tasting.cheese":
+			if it.SeekingPartner || it.Together != "" {
+				t.Errorf("сыр: %+v", it)
+			}
+		case "outdoor.water.fishing":
+			if !it.SeekingPartner || it.Together != "Ищу, с кем рыбачить" {
+				t.Errorf("рыбалка: %+v", it)
+			}
+		}
+	}
 }
 
 func TestAgeRangeAndZodiac(t *testing.T) {

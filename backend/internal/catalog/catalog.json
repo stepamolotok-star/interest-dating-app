@@ -1,5 +1,5 @@
 {
- "version": 3,
+ "version": 4,
  "nodes": [
   {
    "id": "sport_team",
@@ -11,7 +11,8 @@
    "id": "sport_team.ball",
    "parent": "sport_team",
    "name": "Игры с мячом",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем играть"
   },
   {
    "id": "sport_team.ball.football",
@@ -97,7 +98,8 @@
    "id": "sport_team.racket",
    "parent": "sport_team",
    "name": "Ракетки",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем играть"
   },
   {
    "id": "sport_team.racket.tennis",
@@ -145,7 +147,8 @@
    "id": "sport_team.precision",
    "parent": "sport_team",
    "name": "Меткость",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем играть"
   },
   {
    "id": "sport_team.precision.billiards",
@@ -180,7 +183,8 @@
    "name": "Стрельба из лука",
    "synonyms": [
     "лук"
-   ]
+   ],
+   "together": "Ищу, с кем ходить на стрельбище"
   },
   {
    "id": "sport_team.precision.shooting",
@@ -188,7 +192,8 @@
    "name": "Стрелковый спорт",
    "synonyms": [
     "стрельба"
-   ]
+   ],
+   "together": "Ищу, с кем ходить на стрельбище"
   },
   {
    "id": "sport_team.precision.curling",
@@ -200,7 +205,8 @@
    "id": "sport_team.extreme",
    "parent": "sport_team",
    "name": "Экстрим",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем кататься"
   },
   {
    "id": "sport_team.extreme.skateboarding",
@@ -222,7 +228,8 @@
    "id": "sport_team.extreme.parkour",
    "parent": "sport_team.extreme",
    "name": "Паркур",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем тренироваться"
   },
   {
    "id": "sport_team.extreme.skydiving",
@@ -230,7 +237,8 @@
    "name": "Парашютный спорт",
    "synonyms": [
     "прыжки с парашютом"
-   ]
+   ],
+   "together": "Ищу, с кем прыгать"
   },
   {
    "id": "sport_team.extreme.wakeboarding",
@@ -262,7 +270,8 @@
    "id": "fitness.endurance",
    "parent": "fitness",
    "name": "Выносливость",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем тренироваться"
   },
   {
    "id": "fitness.endurance.running",
@@ -324,7 +333,8 @@
    "id": "fitness.endurance.nordic_walking",
    "parent": "fitness.endurance",
    "name": "Скандинавская ходьба",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить"
   },
   {
    "id": "fitness.endurance.rowing",
@@ -344,7 +354,8 @@
    "id": "fitness.strength",
    "parent": "fitness",
    "name": "Сила и тело",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем тренироваться"
   },
   {
    "id": "fitness.strength.gym",
@@ -377,7 +388,8 @@
    "name": "Скалолазание",
    "synonyms": [
     "боулдеринг"
-   ]
+   ],
+   "together": "Ищу, с кем лазать"
   },
   {
    "id": "fitness.strength.pilates",
@@ -433,7 +445,8 @@
    "id": "fitness.martial",
    "parent": "fitness",
    "name": "Единоборства",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем тренироваться"
   },
   {
    "id": "fitness.martial.boxing",
@@ -524,7 +537,8 @@
    "id": "fitness.wellness",
    "parent": "fitness",
    "name": "Здоровье",
-   "synonyms": []
+   "synonyms": [],
+   "together": "-"
   },
   {
    "id": "fitness.wellness.healthy_eating",
@@ -551,7 +565,8 @@
    "synonyms": [
     "закаливание",
     "обливания"
-   ]
+   ],
+   "together": "Ищу, с кем закаляться"
   },
   {
    "id": "fitness.wellness.biohacking",
@@ -577,7 +592,8 @@
    "id": "outdoor.mountains",
    "parent": "outdoor",
    "name": "Горы",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить в горы"
   },
   {
    "id": "outdoor.mountains.hiking",
@@ -586,7 +602,8 @@
    "synonyms": [
     "трекинг",
     "хайкинг"
-   ]
+   ],
+   "together": "Ищу, с кем ходить в походы"
   },
   {
    "id": "outdoor.mountains.alpinism",
@@ -600,25 +617,29 @@
    "name": "Горные лыжи",
    "synonyms": [
     "лыжи"
-   ]
+   ],
+   "together": "Ищу, с кем кататься"
   },
   {
    "id": "outdoor.mountains.snowboard",
    "parent": "outdoor.mountains",
    "name": "Сноуборд",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем кататься"
   },
   {
    "id": "outdoor.mountains.ski_touring",
    "parent": "outdoor.mountains",
    "name": "Ски-тур",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем кататься"
   },
   {
    "id": "outdoor.mountains.freeride",
    "parent": "outdoor.mountains",
    "name": "Фрирайд",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем кататься"
   },
   {
    "id": "outdoor.mountains.trekking",
@@ -626,19 +647,22 @@
    "name": "Треккинг",
    "synonyms": [
     "многодневные походы"
-   ]
+   ],
+   "together": "Ищу, с кем ходить в походы"
   },
   {
    "id": "outdoor.water",
    "parent": "outdoor",
    "name": "Вода",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем выходить на воду"
   },
   {
    "id": "outdoor.water.fishing",
    "parent": "outdoor.water",
    "name": "Рыбалка",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем рыбачить"
   },
   {
    "id": "outdoor.water.rafting",
@@ -646,7 +670,8 @@
    "name": "Сплав",
    "synonyms": [
     "рафтинг"
-   ]
+   ],
+   "together": "Ищу, с кем сплавляться"
   },
   {
    "id": "outdoor.water.surfing",
@@ -654,7 +679,8 @@
    "name": "Сёрфинг",
    "synonyms": [
     "серфинг"
-   ]
+   ],
+   "together": "Ищу, с кем кататься"
   },
   {
    "id": "outdoor.water.sup",
@@ -672,7 +698,8 @@
    "synonyms": [
     "яхтинг",
     "яхты"
-   ]
+   ],
+   "together": "Ищу, с кем ходить под парусом"
   },
   {
    "id": "outdoor.water.kayaking",
@@ -686,13 +713,15 @@
    "id": "outdoor.water.snorkeling",
    "parent": "outdoor.water",
    "name": "Снорклинг",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем нырять"
   },
   {
    "id": "outdoor.water.spearfishing",
    "parent": "outdoor.water",
    "name": "Подводная охота",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу напарника"
   },
   {
    "id": "outdoor.water.boats",
@@ -704,13 +733,15 @@
    "id": "outdoor.wild",
    "parent": "outdoor",
    "name": "Дикая природа",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем выбираться на природу"
   },
   {
    "id": "outdoor.wild.hunting",
    "parent": "outdoor.wild",
    "name": "Охота",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу напарника на охоту"
   },
   {
    "id": "outdoor.wild.camping",
@@ -718,13 +749,15 @@
    "name": "Кемпинг",
    "synonyms": [
     "палатки"
-   ]
+   ],
+   "together": "Ищу, с кем ездить с палатками"
   },
   {
    "id": "outdoor.wild.birdwatching",
    "parent": "outdoor.wild",
    "name": "Наблюдение за птицами",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем наблюдать за птицами"
   },
   {
    "id": "outdoor.wild.mushrooms",
@@ -733,7 +766,8 @@
    "synonyms": [
     "тихая охота",
     "грибы"
-   ]
+   ],
+   "together": "Ищу, с кем ходить за грибами"
   },
   {
    "id": "outdoor.wild.bushcraft",
@@ -741,13 +775,15 @@
    "name": "Бушкрафт и выживание",
    "synonyms": [
     "выживание"
-   ]
+   ],
+   "together": "Ищу, с кем ходить в лес"
   },
   {
    "id": "outdoor.wild.geocaching",
    "parent": "outdoor.wild",
    "name": "Геокэшинг",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем искать тайники"
   },
   {
    "id": "outdoor.wild.caving",
@@ -755,7 +791,8 @@
    "name": "Спелеология",
    "synonyms": [
     "пещеры"
-   ]
+   ],
+   "together": "Ищу, с кем ходить в пещеры"
   },
   {
    "id": "outdoor.wild.foraging",
@@ -763,13 +800,15 @@
    "name": "Сбор ягод и трав",
    "synonyms": [
     "травы"
-   ]
+   ],
+   "together": "Ищу, с кем ходить за ягодами"
   },
   {
    "id": "outdoor.winter",
    "parent": "outdoor",
    "name": "Зима",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем кататься"
   },
   {
    "id": "outdoor.winter.skating",
@@ -783,7 +822,8 @@
    "id": "outdoor.winter.ice_fishing",
    "parent": "outdoor.winter",
    "name": "Зимняя рыбалка",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем рыбачить"
   },
   {
    "id": "outdoor.winter.snowmobile",
@@ -809,7 +849,8 @@
    "id": "transport.moto",
    "parent": "transport",
    "name": "Мотоциклы",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ездить"
   },
   {
    "id": "transport.moto.enduro",
@@ -840,13 +881,15 @@
    "name": "Кастом-байки",
    "synonyms": [
     "чопперы"
-   ]
+   ],
+   "together": "Ищу, с кем возиться с техникой"
   },
   {
    "id": "transport.moto.scooters",
    "parent": "transport.moto",
    "name": "Скутеры и мопеды",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем кататься"
   },
   {
    "id": "transport.moto.motocross",
@@ -858,13 +901,15 @@
    "id": "transport.moto.moto_repair",
    "parent": "transport.moto",
    "name": "Ремонт мотоциклов",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем возиться с техникой"
   },
   {
    "id": "transport.auto",
    "parent": "transport",
    "name": "Автомобили",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ездить"
   },
   {
    "id": "transport.auto.car_tuning",
@@ -872,7 +917,8 @@
    "name": "Автотюнинг",
    "synonyms": [
     "тюнинг"
-   ]
+   ],
+   "together": "Ищу, с кем возиться с техникой"
   },
   {
    "id": "transport.auto.offroad",
@@ -895,13 +941,15 @@
    "id": "transport.auto.drift",
    "parent": "transport.auto",
    "name": "Дрифт",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем гонять"
   },
   {
    "id": "transport.auto.karting",
    "parent": "transport.auto",
    "name": "Картинг",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем гонять"
   },
   {
    "id": "transport.auto.classic_cars",
@@ -910,7 +958,8 @@
    "synonyms": [
     "ретро",
     "классика"
-   ]
+   ],
+   "together": "Ищу, с кем возиться с техникой"
   },
   {
    "id": "transport.auto.car_repair",
@@ -918,7 +967,8 @@
    "name": "Ремонт автомобилей",
    "synonyms": [
     "гараж"
-   ]
+   ],
+   "together": "Ищу, с кем возиться с техникой"
   },
   {
    "id": "transport.auto.rally",
@@ -930,7 +980,8 @@
    "id": "transport.air",
    "parent": "transport",
    "name": "Небо",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем летать"
   },
   {
    "id": "transport.air.drones",
@@ -955,7 +1006,8 @@
    "name": "Авиация",
    "synonyms": [
     "самолёты"
-   ]
+   ],
+   "together": "Ищу, с кем ходить на авиашоу"
   },
   {
    "id": "transport.air.rc_models",
@@ -963,7 +1015,8 @@
    "name": "Авиамоделизм",
    "synonyms": [
     "радиоуправляемые модели"
-   ]
+   ],
+   "together": "Ищу, с кем запускать модели"
   },
   {
    "id": "transport.air.balloons",
@@ -976,7 +1029,8 @@
    "parent": "transport",
    "name": "Рельсы",
    "synonyms": [],
-   "kind": "fan"
+   "kind": "fan",
+   "together": "Ищу, с кем ездить и исследовать"
   },
   {
    "id": "transport.rail.railways",
@@ -990,7 +1044,8 @@
    "id": "transport.rail.metro",
    "parent": "transport.rail",
    "name": "Метро",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем исследовать метро"
   },
   {
    "id": "tech",
@@ -1002,7 +1057,8 @@
    "id": "tech.software",
    "parent": "tech",
    "name": "Программирование",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем делать проекты"
   },
   {
    "id": "tech.software.coding",
@@ -1081,7 +1137,8 @@
    "id": "tech.hardware",
    "parent": "tech",
    "name": "Железо",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем мастерить"
   },
   {
    "id": "tech.hardware.electronics",
@@ -1140,7 +1197,8 @@
    "id": "tech.hardware.gadgets",
    "parent": "tech.hardware",
    "name": "Гаджеты",
-   "synonyms": []
+   "synonyms": [],
+   "together": "-"
   },
   {
    "id": "tech.hardware.vr",
@@ -1149,7 +1207,8 @@
    "synonyms": [
     "vr",
     "ar"
-   ]
+   ],
+   "together": "Ищу, с кем играть"
   },
   {
    "id": "tech.hardware.retro_tech",
@@ -1167,7 +1226,8 @@
    "id": "games.video",
    "parent": "games",
    "name": "Видеоигры",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем играть"
   },
   {
    "id": "games.video.pc_games",
@@ -1247,7 +1307,8 @@
    "id": "games.table",
    "parent": "games",
    "name": "Настольные игры",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем играть"
   },
   {
    "id": "games.table.boardgames",
@@ -1276,7 +1337,8 @@
    "id": "games.table.quests",
    "parent": "games.table",
    "name": "Квесты",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить на квесты"
   },
   {
    "id": "games.table.go",
@@ -1306,7 +1368,8 @@
    "name": "Головоломки",
    "synonyms": [
     "пазлы"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "games.table.crosswords",
@@ -1314,7 +1377,8 @@
    "name": "Кроссворды",
    "synonyms": [
     "сканворды"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "games.table.quiz",
@@ -1322,7 +1386,8 @@
    "name": "Квизы",
    "synonyms": [
     "что где когда"
-   ]
+   ],
+   "together": "Ищу команду для квизов"
   },
   {
    "id": "games.table.cards",
@@ -1348,7 +1413,8 @@
    "id": "games.live",
    "parent": "games",
    "name": "Живые игры",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем играть"
   },
   {
    "id": "games.live.larp",
@@ -1387,7 +1453,8 @@
    "id": "home.garden",
    "parent": "home",
    "name": "Сад и растения",
-   "synonyms": []
+   "synonyms": [],
+   "together": "-"
   },
   {
    "id": "home.garden.gardening",
@@ -1452,7 +1519,8 @@
    "id": "home.craft",
    "parent": "home",
    "name": "Ремёсла",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем мастерить"
   },
   {
    "id": "home.craft.woodwork",
@@ -1516,7 +1584,8 @@
    "parent": "home",
    "name": "Дом и быт",
    "synonyms": [],
-   "kind": "fan"
+   "kind": "fan",
+   "together": "-"
   },
   {
    "id": "home.house.interior",
@@ -1556,7 +1625,8 @@
    "id": "creative.visual",
    "parent": "creative",
    "name": "Изобразительное",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем делать проекты"
   },
   {
    "id": "creative.visual.painting",
@@ -1564,7 +1634,8 @@
    "name": "Живопись",
    "synonyms": [
     "рисование"
-   ]
+   ],
+   "together": "Ищу, с кем рисовать"
   },
   {
    "id": "creative.visual.photography",
@@ -1572,7 +1643,8 @@
    "name": "Фотография",
    "synonyms": [
     "фото"
-   ]
+   ],
+   "together": "Ищу, с кем ходить на фотопрогулки"
   },
   {
    "id": "creative.visual.video_making",
@@ -1580,7 +1652,8 @@
    "name": "Видеосъёмка",
    "synonyms": [
     "видео"
-   ]
+   ],
+   "together": "Ищу, с кем снимать"
   },
   {
    "id": "creative.visual.design",
@@ -1595,7 +1668,8 @@
    "synonyms": [
     "скетчинг",
     "рисую"
-   ]
+   ],
+   "together": "Ищу, с кем рисовать"
   },
   {
    "id": "creative.visual.digital_art",
@@ -1611,7 +1685,8 @@
    "name": "Каллиграфия",
    "synonyms": [
     "леттеринг"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "creative.visual.street_art",
@@ -1619,7 +1694,8 @@
    "name": "Граффити и стрит-арт",
    "synonyms": [
     "граффити"
-   ]
+   ],
+   "together": "Ищу, с кем рисовать"
   },
   {
    "id": "creative.visual.film_photo",
@@ -1627,7 +1703,8 @@
    "name": "Плёночная фотография",
    "synonyms": [
     "плёнка"
-   ]
+   ],
+   "together": "Ищу, с кем ходить на фотопрогулки"
   },
   {
    "id": "creative.visual.animation",
@@ -1648,7 +1725,8 @@
    "id": "creative.handmade",
    "parent": "creative",
    "name": "Рукоделие",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем мастерить"
   },
   {
    "id": "creative.handmade.ceramics",
@@ -1736,7 +1814,8 @@
    "id": "creative.writing",
    "parent": "creative",
    "name": "Слово",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем обсуждать тексты"
   },
   {
    "id": "creative.writing.writing",
@@ -1751,7 +1830,8 @@
    "id": "creative.writing.blogging",
    "parent": "creative.writing",
    "name": "Блогинг",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем делать проекты"
   },
   {
    "id": "creative.writing.poetry",
@@ -1767,7 +1847,8 @@
    "name": "Ведение дневника",
    "synonyms": [
     "дневник"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "creative.writing.screenwriting",
@@ -1779,19 +1860,22 @@
    "id": "creative.writing.translation",
    "parent": "creative.writing",
    "name": "Переводы",
-   "synonyms": []
+   "synonyms": [],
+   "together": "-"
   },
   {
    "id": "creative.writing.journalism",
    "parent": "creative.writing",
    "name": "Журналистика",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем делать проекты"
   },
   {
    "id": "creative.performing",
    "parent": "creative",
    "name": "Выступления",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем заниматься"
   },
   {
    "id": "creative.performing.acting",
@@ -1815,13 +1899,15 @@
    "name": "Ораторское искусство",
    "synonyms": [
     "публичные выступления"
-   ]
+   ],
+   "together": "Ищу, с кем тренироваться"
   },
   {
    "id": "creative.performing.cosplay",
    "parent": "creative.performing",
    "name": "Косплей",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить на фестивали"
   },
   {
    "id": "creative.performing.magic",
@@ -1843,7 +1929,8 @@
    "id": "creative.media",
    "parent": "creative",
    "name": "Медиа",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем делать проекты"
   },
   {
    "id": "creative.media.podcasts",
@@ -1878,7 +1965,8 @@
    "id": "music.play",
    "parent": "music",
    "name": "Играю сам",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем играть вместе"
   },
   {
    "id": "music.play.guitar",
@@ -1900,7 +1988,8 @@
    "name": "Вокал",
    "synonyms": [
     "пение"
-   ]
+   ],
+   "together": "Ищу, с кем петь"
   },
   {
    "id": "music.play.djing",
@@ -1956,7 +2045,8 @@
    "id": "music.play.choir",
    "parent": "music.play",
    "name": "Хор",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем петь"
   },
   {
    "id": "music.play.production",
@@ -1965,7 +2055,8 @@
    "synonyms": [
     "продакшн",
     "битмейкинг"
-   ]
+   ],
+   "together": "Ищу, с кем делать музыку"
   },
   {
    "id": "music.play.folk_instruments",
@@ -1980,14 +2071,16 @@
    "id": "music.play.karaoke",
    "parent": "music.play",
    "name": "Караоке",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить в караоке"
   },
   {
    "id": "music.listen",
    "parent": "music",
    "name": "Слушаю",
    "synonyms": [],
-   "kind": "fan"
+   "kind": "fan",
+   "together": "Ищу, с кем ходить на концерты"
   },
   {
    "id": "music.listen.rock",
@@ -2074,7 +2167,8 @@
    "id": "music.listen.opera",
    "parent": "music.listen",
    "name": "Опера",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить в оперу"
   },
   {
    "id": "music.listen.blues",
@@ -2088,7 +2182,8 @@
    "name": "Музыкальные фестивали",
    "synonyms": [
     "фестивали"
-   ]
+   ],
+   "together": "Ищу, с кем ездить на фестивали"
   },
   {
    "id": "screen_books",
@@ -2101,7 +2196,8 @@
    "parent": "screen_books",
    "name": "Кино и сериалы",
    "synonyms": [],
-   "kind": "fan"
+   "kind": "fan",
+   "together": "Ищу, с кем смотреть и обсуждать"
   },
   {
    "id": "screen_books.cinema.movies",
@@ -2170,7 +2266,8 @@
    "parent": "screen_books",
    "name": "Книги",
    "synonyms": [],
-   "kind": "fan"
+   "kind": "fan",
+   "together": "Ищу, с кем обсуждать книги"
   },
   {
    "id": "screen_books.books.fiction",
@@ -2196,7 +2293,8 @@
    "id": "screen_books.books.book_club",
    "parent": "screen_books.books",
    "name": "Книжные клубы",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить в книжный клуб"
   },
   {
    "id": "screen_books.books.fantasy",
@@ -2237,13 +2335,15 @@
    "parent": "screen_books",
    "name": "Сцена",
    "synonyms": [],
-   "kind": "fan"
+   "kind": "fan",
+   "together": "Ищу, с кем ходить"
   },
   {
    "id": "screen_books.stage.theatre",
    "parent": "screen_books.stage",
    "name": "Театр",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить в театр"
   },
   {
    "id": "screen_books.stage.standup",
@@ -2251,19 +2351,22 @@
    "name": "Стендап",
    "synonyms": [
     "стэндап"
-   ]
+   ],
+   "together": "Ищу, с кем ходить на стендап"
   },
   {
    "id": "screen_books.stage.musicals",
    "parent": "screen_books.stage",
    "name": "Мюзиклы",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить на мюзиклы"
   },
   {
    "id": "screen_books.stage.ballet",
    "parent": "screen_books.stage",
    "name": "Балет",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить на балет"
   },
   {
    "id": "screen_books.stage.museums",
@@ -2272,13 +2375,15 @@
    "synonyms": [
     "выставки",
     "музеи"
-   ]
+   ],
+   "together": "Ищу, с кем ходить на выставки"
   },
   {
    "id": "screen_books.stage.kvn",
    "parent": "screen_books.stage",
    "name": "КВН",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить на КВН"
   },
   {
    "id": "food",
@@ -2290,7 +2395,8 @@
    "id": "food.cooking",
    "parent": "food",
    "name": "Готовлю",
-   "synonyms": []
+   "synonyms": [],
+   "together": "-"
   },
   {
    "id": "food.cooking.cooking",
@@ -2374,7 +2480,8 @@
    "parent": "food",
    "name": "Пробую",
    "synonyms": [],
-   "kind": "fan"
+   "kind": "fan",
+   "together": "-"
   },
   {
    "id": "food.tasting.coffee",
@@ -2456,7 +2563,8 @@
    "id": "travel.ways",
    "parent": "travel",
    "name": "Как путешествую",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу попутчиков"
   },
   {
    "id": "travel.ways.hitchhiking",
@@ -2482,7 +2590,8 @@
    "id": "travel.ways.diving",
    "parent": "travel.ways",
    "name": "Дайвинг",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу напарника для погружений"
   },
   {
    "id": "travel.ways.solo",
@@ -2490,7 +2599,8 @@
    "name": "Путешествия в одиночку",
    "synonyms": [
     "соло"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "travel.ways.cruises",
@@ -2543,7 +2653,8 @@
    "parent": "travel",
    "name": "Куда",
    "synonyms": [],
-   "kind": "fan"
+   "kind": "fan",
+   "together": "Ищу попутчиков"
   },
   {
    "id": "travel.where.russia",
@@ -2603,7 +2714,8 @@
    "id": "science.knowledge",
    "parent": "science",
    "name": "Знания",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем обсуждать"
   },
   {
    "id": "science.knowledge.astronomy",
@@ -2611,7 +2723,8 @@
    "name": "Астрономия",
    "synonyms": [
     "космос"
-   ]
+   ],
+   "together": "Ищу, с кем смотреть на звёзды"
   },
   {
    "id": "science.knowledge.history",
@@ -2659,13 +2772,15 @@
    "id": "science.knowledge.archaeology",
    "parent": "science.knowledge",
    "name": "Археология",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ездить в экспедиции"
   },
   {
    "id": "science.knowledge.local_history",
    "parent": "science.knowledge",
    "name": "Краеведение",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем гулять и изучать город"
   },
   {
    "id": "science.knowledge.economics",
@@ -2685,7 +2800,8 @@
    "name": "Генеалогия",
    "synonyms": [
     "родословная"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "science.knowledge.medicine",
@@ -2705,7 +2821,8 @@
    "id": "science.languages",
    "parent": "science",
    "name": "Языки",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу собеседника для практики"
   },
   {
    "id": "science.languages.lang_english",
@@ -2789,7 +2906,8 @@
    "id": "science.learning",
    "parent": "science",
    "name": "Учёба",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем учиться вместе"
   },
   {
    "id": "science.learning.online_courses",
@@ -2803,7 +2921,8 @@
    "name": "Лекции и научпоп",
    "synonyms": [
     "научпоп"
-   ]
+   ],
+   "together": "Ищу, с кем ходить на лекции"
   },
   {
    "id": "science.learning.teaching",
@@ -2811,13 +2930,15 @@
    "name": "Преподавание",
    "synonyms": [
     "репетиторство"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "science.learning.debates",
    "parent": "science.learning",
    "name": "Дебаты",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем дебатировать"
   },
   {
    "id": "animals",
@@ -2830,13 +2951,15 @@
    "parent": "animals",
    "name": "Питомцы",
    "synonyms": [],
-   "kind": "fan"
+   "kind": "fan",
+   "together": "-"
   },
   {
    "id": "animals.pets.dogs",
    "parent": "animals.pets",
    "name": "Собаки",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем гулять с собаками"
   },
   {
    "id": "animals.pets.cats",
@@ -2883,13 +3006,15 @@
    "synonyms": [
     "кинология",
     "аджилити"
-   ]
+   ],
+   "together": "Ищу, с кем тренировать собак"
   },
   {
    "id": "animals.riding",
    "parent": "animals",
    "name": "Верховая езда",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем кататься"
   },
   {
    "id": "animals.riding.horses",
@@ -2909,7 +3034,8 @@
    "id": "animals.help",
    "parent": "animals",
    "name": "Помощь животным",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем помогать вместе"
   },
   {
    "id": "animals.help.shelter_volunteer",
@@ -2933,7 +3059,8 @@
    "id": "animals.farm",
    "parent": "animals",
    "name": "Хозяйство",
-   "synonyms": []
+   "synonyms": [],
+   "together": "-"
   },
   {
    "id": "animals.farm.beekeeping",
@@ -2969,7 +3096,8 @@
    "id": "business.work",
    "parent": "business",
    "name": "Дело",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу единомышленников по делу"
   },
   {
    "id": "business.work.entrepreneurship",
@@ -2989,7 +3117,8 @@
    "id": "business.work.investing",
    "parent": "business.work",
    "name": "Инвестиции",
-   "synonyms": []
+   "synonyms": [],
+   "together": "-"
   },
   {
    "id": "business.work.marketing",
@@ -3001,7 +3130,8 @@
    "id": "business.work.networking",
    "parent": "business.work",
    "name": "Нетворкинг",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить на встречи"
   },
   {
    "id": "business.work.personal_finance",
@@ -3009,7 +3139,8 @@
    "name": "Личные финансы",
    "synonyms": [
     "финансовая грамотность"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "business.work.sales",
@@ -3029,13 +3160,15 @@
    "id": "business.work.freelance",
    "parent": "business.work",
    "name": "Фриланс",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем делать проекты"
   },
   {
    "id": "business.work.real_estate",
    "parent": "business.work",
    "name": "Недвижимость",
-   "synonyms": []
+   "synonyms": [],
+   "together": "-"
   },
   {
    "id": "business.work.ecommerce",
@@ -3051,7 +3184,8 @@
    "name": "Карьера и профразвитие",
    "synonyms": [
     "карьера"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "business.work.social_business",
@@ -3069,13 +3203,15 @@
    "id": "society.community",
    "parent": "society",
    "name": "Сообщество",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем участвовать"
   },
   {
    "id": "society.community.volunteering",
    "parent": "society.community",
    "name": "Волонтёрство",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем волонтёрить"
   },
   {
    "id": "society.community.ecology",
@@ -3083,7 +3219,8 @@
    "name": "Экология",
    "synonyms": [
     "раздельный сбор"
-   ]
+   ],
+   "together": "Ищу, с кем ходить на эко-акции"
   },
   {
    "id": "society.community.charity",
@@ -3097,7 +3234,8 @@
    "name": "Урбанистика",
    "synonyms": [
     "город"
-   ]
+   ],
+   "together": "Ищу, с кем гулять и обсуждать город"
   },
   {
    "id": "society.community.reenactment",
@@ -3105,7 +3243,8 @@
    "name": "Историческая реконструкция",
    "synonyms": [
     "реконструкция"
-   ]
+   ],
+   "together": "Ищу, с кем ездить на фестивали"
   },
   {
    "id": "society.community.search_teams",
@@ -3114,7 +3253,8 @@
    "synonyms": [
     "лизаалерт",
     "поиск людей"
-   ]
+   ],
+   "together": "Ищу, с кем выходить на поиски"
   },
   {
    "id": "society.community.donation",
@@ -3122,7 +3262,8 @@
    "name": "Донорство крови",
    "synonyms": [
     "донорство"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "society.community.mentoring",
@@ -3130,13 +3271,15 @@
    "name": "Наставничество",
    "synonyms": [
     "менторство"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "society.inner",
    "parent": "society",
    "name": "Внутренний мир и развитие",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем практиковать"
   },
   {
    "id": "society.inner.meditation",
@@ -3157,7 +3300,8 @@
     "развитие себя",
     "личная эффективность",
     "самосовершенствование"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "society.inner.spiritual",
@@ -3186,7 +3330,8 @@
     "цигун",
     "тайцзи",
     "тай-чи"
-   ]
+   ],
+   "together": "Ищу, с кем заниматься"
   },
   {
    "id": "society.inner.retreats",
@@ -3194,7 +3339,8 @@
    "name": "Ретриты",
    "synonyms": [
     "ретрит"
-   ]
+   ],
+   "together": "Ищу, с кем ездить на ретриты"
   },
   {
    "id": "society.inner.astrology",
@@ -3202,7 +3348,8 @@
    "name": "Астрология",
    "synonyms": [
     "гороскопы"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "society.inner.mindfulness",
@@ -3210,7 +3357,8 @@
    "name": "Осознанность",
    "synonyms": [
     "майндфулнес"
-   ]
+   ],
+   "together": "-"
   },
   {
    "id": "collecting",
@@ -3223,7 +3371,8 @@
    "parent": "collecting",
    "name": "Что собираю",
    "synonyms": [],
-   "kind": "fan"
+   "kind": "fan",
+   "together": "Ищу, с кем меняться и обсуждать"
   },
   {
    "id": "collecting.items.coins",
@@ -3303,7 +3452,8 @@
    "name": "LEGO",
    "synonyms": [
     "лего"
-   ]
+   ],
+   "together": "Ищу, с кем собирать"
   },
   {
    "id": "collecting.items.trading_cards",
@@ -3334,7 +3484,8 @@
    "parent": "style",
    "name": "Образ",
    "synonyms": [],
-   "kind": "fan"
+   "kind": "fan",
+   "together": "-"
   },
   {
    "id": "style.look.fashion",
@@ -3418,7 +3569,8 @@
    "id": "dance.pair",
    "parent": "dance",
    "name": "Парные",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу партнёра по танцам"
   },
   {
    "id": "dance.pair.salsa",
@@ -3480,7 +3632,8 @@
    "id": "dance.solo",
    "parent": "dance",
    "name": "Сольные",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу, с кем ходить на занятия"
   },
   {
    "id": "dance.solo.contemporary",
@@ -3569,7 +3722,8 @@
    "parent": "family",
    "name": "Родительство",
    "synonyms": [],
-   "kind": "fan"
+   "kind": "fan",
+   "together": "Ищу семьи для прогулок и занятий"
   },
   {
    "id": "family.parents.young_parents",
@@ -3581,7 +3735,8 @@
    "id": "family.parents.family_trips",
    "parent": "family.parents",
    "name": "Семейный отдых",
-   "synonyms": []
+   "synonyms": [],
+   "together": "Ищу семьи для совместного отдыха"
   },
   {
    "id": "family.parents.development",

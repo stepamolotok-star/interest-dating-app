@@ -98,3 +98,35 @@ func TestFanKindInherited(t *testing.T) {
 		t.Fatalf("rock fan=%v, guitar fan=%v", rock.IsFan(), guitar.IsFan())
 	}
 }
+
+func TestTogetherInherited(t *testing.T) {
+	c, err := Default()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cases := map[string]string{
+		"sport_team.ball.football": "Ищу, с кем играть",            // от подкатегории
+		"outdoor.water.fishing":    "Ищу, с кем рыбачить",          // своя подпись
+		"food.tasting.cheese":      "",                             // у подкатегории «-»
+		"animals.pets.cats":        "",                             //
+		"animals.pets.dogs":        "Ищу, с кем гулять с собаками", // своя при «-» у подкатегории
+		"travel.ways.solo":         "",                             // своё «-» при подписи у подкатегории
+		"dance.pair.tango":         "Ищу партнёра по танцам",
+	}
+	for id, want := range cases {
+		n, ok := c.Get(id)
+		if !ok {
+			t.Fatalf("нет %s", id)
+		}
+		if n.Together != want {
+			t.Errorf("%s: together=%q, want %q", id, n.Together, want)
+		}
+	}
+}
+
+func TestTogetherRequired(t *testing.T) {
+	_, err := Parse([]byte(`{"nodes":[{"id":"a","name":"A"},{"id":"a.b","parent":"a","name":"B"},{"id":"a.b.c","parent":"a.b","name":"C"}]}`))
+	if err == nil {
+		t.Fatal("каталог без together должен отклоняться")
+	}
+}

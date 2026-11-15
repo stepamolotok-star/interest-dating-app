@@ -120,7 +120,7 @@ void main() {
       await tap(find.byKey(Key('result-$id')));
       if (id.endsWith('yoga')) {
         await tap(find.text('Увлечён всерьёз'));
-        await tap(find.text('Ищу партнёра'));
+        await tap(find.text('Ищу, с кем тренироваться'));
         await shot('06_interest_sheet');
       }
       await tap(find.text('Добавить'));

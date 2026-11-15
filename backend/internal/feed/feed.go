@@ -477,6 +477,9 @@ func (s *Service) load(ctx context.Context, ids []string, now time.Time) (map[st
 			if err := r.Scan(&id, &ui.ID, &ui.Level, &ui.SeekingPartner); err != nil {
 				return err
 			}
+			if n, ok := s.Catalog.Get(ui.ID); ok && n.Together == "" {
+				ui.SeekingPartner = false // у «сыра» переключателя больше нет
+			}
 			if c := out[id]; c != nil {
 				c.mp.Interests = append(c.mp.Interests, ui)
 			}

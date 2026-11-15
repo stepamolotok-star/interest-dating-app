@@ -12,7 +12,7 @@ const minInterests = 3;
 const maxInterests = 50;
 
 /// Выбор интересов: поиск по каталогу или по категориям.
-/// У каждого интереса — уровень и отметка «ищу партнёра».
+/// У каждого интереса — уровень и, где уместно, отметка «Ищу, с кем…».
 class InterestsScreen extends StatefulWidget {
   const InterestsScreen({super.key, this.onboarding = false});
 
@@ -26,7 +26,14 @@ class _InterestsScreenState extends State<InterestsScreen> {
   late final Api _api = AppScope.read(context).api;
   late final Map<String, MyInterest> _selected = {
     for (final i in AppScope.read(context).interests)
-      i.id: MyInterest(id: i.id, name: i.name, level: i.level, seekingPartner: i.seekingPartner, kind: i.kind),
+      i.id: MyInterest(
+        id: i.id,
+        name: i.name,
+        level: i.level,
+        seekingPartner: i.seekingPartner,
+        kind: i.kind,
+        together: i.together,
+      ),
   };
   final _query = TextEditingController();
 
@@ -81,7 +88,7 @@ class _InterestsScreenState extends State<InterestsScreen> {
     });
   }
 
-  /// Нажатие на интерес: новый — добавляем и сразу спрашиваем уровень и «ищу партнёра»
+  /// Нажатие на интерес: новый — добавляем и сразу спрашиваем уровень и «Ищу, с кем…»
   /// (иначе до настройки мало кто доберётся), уже выбранный — открываем его настройки.
   Future<void> _toggle(InterestNode n) async {
     final existing = _selected[n.id];
@@ -90,8 +97,16 @@ class _InterestsScreenState extends State<InterestsScreen> {
       showInfo(context, 'Не больше $maxInterests интересов — оставьте самые важные');
       return;
     }
-    final i = MyInterest(id: n.id, name: n.name, kind: n.kind, level: n.kind == 'fan' ? 'curious' : 'doing');
+    final i = MyInterest(
+      id: n.id,
+      name: n.name,
+      kind: n.kind,
+      together: n.together,
+      level: n.kind == 'fan' ? 'curious' : 'doing',
+    );
     setState(() => _selected[n.id] = i);
+    // «Сыр»: ни степени, ни «Ищу, с кем» — настраивать нечего, просто отмечаем.
+    if (i.isFan && i.together.isEmpty) return;
     await _edit(i, isNew: true);
   }
 
@@ -549,24 +564,21 @@ class _InterestSheetState extends State<_InterestSheet> {
                 ],
               ),
             ],
-            const SizedBox(height: 12),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: i.seekingPartner,
-              onChanged: (v) {
-                setState(() => i.seekingPartner = v);
-                widget.onChanged();
-              },
-              title: Text(
-                i.isFan ? 'Ищу компанию' : 'Ищу партнёра',
-                style: const TextStyle(fontWeight: FontWeight.w700),
+            // Подпись своя у каждой подкатегории; у «сыра» и «кошек» переключателя нет.
+            if (i.together.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              SwitchListTile(
+                key: const Key('together'),
+                contentPadding: EdgeInsets.zero,
+                value: i.seekingPartner,
+                onChanged: (v) {
+                  setState(() => i.seekingPartner = v);
+                  widget.onChanged();
+                },
+                title: Text(i.together, style: const TextStyle(fontWeight: FontWeight.w700)),
+                subtitle: const Text('Таких людей поднимем выше в ленте'),
               ),
-              subtitle: Text(
-                i.isFan
-                    ? 'С кем сходить, обсудить, разделить — таких поднимем выше в ленте'
-                    : 'Такие совпадения поднимем выше в ленте',
-              ),
-            ),
+            ],
             const SizedBox(height: 8),
             Row(
               children: [

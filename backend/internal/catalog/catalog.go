@@ -27,7 +27,17 @@ type Node struct {
 	// (слушаю рок, смотрю кино, кошки): у таких нет степени увлечённости.
 	// Задаётся на подкатегории и наследуется увлечениями.
 	Kind string `json:"kind,omitempty"`
+
+	// Together — подпись переключателя «ищу, с кем этим заниматься»
+	// («Ищу, с кем играть», «Ищу попутчиков»). Задаётся на подкатегории,
+	// увлечение может переопределить. В файле «-» — переключателя нет:
+	// у сыра или комнатных растений искать «с кем» незачем. После загрузки
+	// пустая строка значит «переключателя нет».
+	Together string `json:"together,omitempty"`
 }
+
+// NoTogether — в файле каталога: у увлечения нет переключателя «ищу, с кем».
+const NoTogether = "-"
 
 // KindFan — увлечение «слушаю/смотрю/люблю», без степени увлечённости.
 const KindFan = "fan"
@@ -88,6 +98,24 @@ func Parse(data []byte) (*Catalog, error) {
 		for p := n.Parent; n.Kind == "" && p != ""; p = c.nodes[p].Parent {
 			n.Kind = c.nodes[p].Kind
 		}
+	}
+	// Подписи наследуем снизу вверх по исходным значениям, «-» убираем в самом конце.
+	together := map[string]string{}
+	for id, n := range c.nodes {
+		t := n.Together
+		for p := n.Parent; t == "" && p != ""; p = c.nodes[p].Parent {
+			t = c.nodes[p].Together
+		}
+		if n.Depth == 2 && t == "" {
+			return nil, fmt.Errorf("catalog: у %q не задано together (подпись или %q)", n.ID, NoTogether)
+		}
+		together[id] = t
+	}
+	for id, t := range together {
+		if t == NoTogether {
+			t = ""
+		}
+		c.nodes[id].Together = t
 	}
 	return c, nil
 }

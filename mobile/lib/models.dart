@@ -100,6 +100,7 @@ class InterestNode {
     this.hasChildren = false,
     this.path = const [],
     this.kind = '',
+    this.together = '',
   });
 
   factory InterestNode.fromJson(Map<String, dynamic> j) => InterestNode(
@@ -108,11 +109,15 @@ class InterestNode {
     hasChildren: j['has_children'] as bool? ?? false,
     path: (j['path'] as List?)?.cast<String>() ?? const [],
     kind: j['kind'] as String? ?? '',
+    together: j['together'] as String? ?? '',
   );
 
   final String id;
   final String name;
   final bool hasChildren;
+
+  /// Подпись переключателя «Ищу, с кем…»; пусто — переключателя нет (сыр, кошки).
+  final String together;
 
   /// 'fan' — «слушаю рок», «кошки»: без степени увлечённости.
   final String kind;
@@ -123,7 +128,14 @@ class InterestNode {
 
 /// Интерес в профиле.
 class MyInterest {
-  MyInterest({required this.id, this.name = '', this.level = 'doing', this.seekingPartner = false, this.kind = ''});
+  MyInterest({
+    required this.id,
+    this.name = '',
+    this.level = 'doing',
+    this.seekingPartner = false,
+    this.kind = '',
+    this.together = '',
+  });
 
   factory MyInterest.fromJson(Map<String, dynamic> j) => MyInterest(
     id: j['id'] as String,
@@ -131,6 +143,7 @@ class MyInterest {
     level: j['level'] as String? ?? 'doing',
     seekingPartner: j['seeking_partner'] as bool? ?? false,
     kind: j['kind'] as String? ?? '',
+    together: j['together'] as String? ?? '',
   );
 
   final String id;
@@ -138,6 +151,9 @@ class MyInterest {
   String level;
   bool seekingPartner;
   final String kind;
+
+  /// Подпись переключателя «Ищу, с кем…» («Ищу попутчиков»); пусто — переключателя нет.
+  final String together;
 
   /// «Слушаю рок», «кошки» — степень увлечённости не спрашиваем.
   bool get isFan => kind == 'fan';

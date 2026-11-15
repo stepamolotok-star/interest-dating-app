@@ -110,11 +110,11 @@ void main() {
       await tester.enterText(find.byKey(const Key('interest-search')), query);
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
       await tapKey(tester, 'result-$id');
-      // Сразу после выбора — уровень и «ищу партнёра».
+      // Сразу после выбора — уровень и «Ищу, с кем…».
       expect(find.text('Насколько увлечены'), findsOneWidget);
       if (id == 'fitness.strength.yoga') {
         await tapText(tester, 'Профи');
-        await tapText(tester, 'Ищу партнёра');
+        await tapText(tester, 'Ищу, с кем тренироваться');
       }
       await tapText(tester, 'Добавить');
     }

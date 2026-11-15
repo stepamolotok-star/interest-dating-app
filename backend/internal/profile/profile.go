@@ -315,7 +315,8 @@ type Interest struct {
 	Name           string         `json:"name,omitempty"`
 	Level          matching.Level `json:"level"`
 	SeekingPartner bool           `json:"seeking_partner"`
-	Kind           string         `json:"kind,omitempty"` // catalog.KindFan — без степени увлечённости
+	Kind           string         `json:"kind,omitempty"`     // catalog.KindFan — без степени увлечённости
+	Together       string         `json:"together,omitempty"` // подпись «Ищу, с кем…»; пусто — переключателя нет
 }
 
 // SetInterests заменяет список увлечений. Только конкретные увлечения
@@ -339,6 +340,10 @@ func (s *Service) SetInterests(ctx context.Context, userID string, items []Inter
 			items[i].Level = matching.Curious
 		} else if !matching.ValidLevel(it.Level) {
 			return invalid("items", "неизвестный уровень у "+it.ID)
+		}
+		if n.Together == "" {
+			// «Сыр», «кошки»: искать «с кем» тут нечего — отметку не храним.
+			items[i].SeekingPartner = false
 		}
 	}
 	tx, err := s.DB.Begin(ctx)
@@ -392,7 +397,10 @@ func (s *Service) Interests(ctx context.Context, userID string) ([]Interest, err
 			return nil, err
 		}
 		if n, ok := s.Catalog.Get(it.ID); ok {
-			it.Name, it.Kind = n.Name, n.Kind
+			it.Name, it.Kind, it.Together = n.Name, n.Kind, n.Together
+			if n.Together == "" {
+				it.SeekingPartner = false // отметка из старой версии каталога
+			}
 		}
 		out = append(out, it)
 	}

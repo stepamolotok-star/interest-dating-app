@@ -96,10 +96,11 @@ type interestDTO struct {
 	Path     []string `json:"path,omitempty"`
 	HasChild bool     `json:"has_children"`
 	Kind     string   `json:"kind,omitempty"`
+	Together string   `json:"together,omitempty"`
 }
 
 func (s *Server) dto(n catalog.Node, withPath bool) interestDTO {
-	d := interestDTO{ID: n.ID, Name: n.Name, Depth: n.Depth, HasChild: len(s.cat.Children(n.ID)) > 0, Kind: n.Kind}
+	d := interestDTO{ID: n.ID, Name: n.Name, Depth: n.Depth, HasChild: len(s.cat.Children(n.ID)) > 0, Kind: n.Kind, Together: n.Together}
 	if withPath {
 		d.Path = s.cat.Path(n.ID)
 	}

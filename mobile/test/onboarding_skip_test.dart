@@ -65,15 +65,21 @@ void main() {
     await reveal(tester, find.byKey(const Key('add-interests')));
     expect(find.byKey(const Key('add-interests')), findsOneWidget);
 
-    // «Слушаю → Рок»: без степени увлечённости, вместо «ищу партнёра» — «ищу компанию».
+    // «Слушаю → Рок»: без степени увлечённости, своя подпись переключателя.
     await tap(find.byKey(const Key('add-interests')));
     await tester.enterText(find.byKey(const Key('interest-search')), 'рок');
     await tester.pumpAndSettle(const Duration(milliseconds: 300));
     await tap(find.byKey(const Key('result-music.listen.rock')));
     expect(find.text('Насколько увлечены'), findsNothing);
-    expect(find.text('Ищу компанию'), findsOneWidget);
-    await tap(find.text('Ищу компанию'));
+    expect(find.text('Ищу, с кем ходить на концерты'), findsOneWidget);
+    await tap(find.text('Ищу, с кем ходить на концерты'));
     await tap(find.text('Добавить'));
+    // «Сыр»: ни степени, ни «Ищу, с кем» — отмечается сразу, без панели.
+    await tester.enterText(find.byKey(const Key('interest-search')), 'сыр');
+    await tester.pumpAndSettle(const Duration(milliseconds: 300));
+    await tap(find.byKey(const Key('result-food.tasting.cheese')));
+    expect(find.text('Добавить'), findsNothing);
+    expect(find.byKey(const Key('together')), findsNothing);
     // А у гитары степень есть.
     await tester.enterText(find.byKey(const Key('interest-search')), 'гитар');
     await tester.pumpAndSettle(const Duration(milliseconds: 300));
@@ -89,6 +95,9 @@ void main() {
     final rock = state.interests.firstWhere((i) => i.id == 'music.listen.rock');
     expect(rock.isFan, isTrue);
     expect(rock.seekingPartner, isTrue);
+    final cheese = state.interests.firstWhere((i) => i.id == 'food.tasting.cheese');
+    expect(cheese.seekingPartner, isFalse);
+    expect(cheese.together, isEmpty);
     expect(find.byKey(const Key('add-interests')), findsNothing);
 
     // Перезапуск: шаги регистрации не повторяются.
