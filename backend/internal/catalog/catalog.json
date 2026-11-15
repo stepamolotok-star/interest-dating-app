@@ -1,5 +1,5 @@
 {
- "version": 4,
+ "version": 5,
  "nodes": [
   {
    "id": "sport_team",
@@ -2661,6 +2661,18 @@
    "parent": "travel.where",
    "name": "Путешествия по России",
    "synonyms": []
+  },
+  {
+   "id": "travel.where.abroad",
+   "parent": "travel.where",
+   "name": "Путешествия за границу",
+   "synonyms": [
+    "заграница",
+    "за границу",
+    "за рубеж",
+    "зарубежные поездки",
+    "другие страны"
+   ]
   },
   {
    "id": "travel.where.north",
