@@ -280,6 +280,9 @@ func TestProfileRules(t *testing.T) {
 	e := setup(t)
 	ctx := context.Background()
 	id := e.user(t, person{goals: []matching.Goal{matching.Hobby}})
+	if f, err := e.prof.Get(ctx, id); err != nil || !f.ShowZodiac {
+		t.Fatalf("знак зодиака по умолчанию виден: %+v %v", f.ShowZodiac, err)
+	}
 	if err := e.prof.SetPrefs(ctx, id, matching.Hobby, matching.Prefs{Height: matching.Range{Min: 170}}); err == nil {
 		t.Fatal("рост в фильтрах «Хобби» недопустим")
 	}

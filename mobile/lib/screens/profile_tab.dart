@@ -420,12 +420,15 @@ class _PrivacyState extends State<_Privacy> {
               ),
               Divider(height: 1, color: AppColors.line),
               SwitchListTile(
-                key: const Key('show-zodiac'),
+                key: const Key('hide-zodiac'),
                 contentPadding: EdgeInsets.zero,
-                value: f?.showZodiac ?? false,
-                onChanged: f == null ? null : (v) => _profileFlag((f) => f.showZodiac = v),
-                title: const Text('Показывать знак зодиака', style: TextStyle(fontWeight: FontWeight.w700)),
-                subtitle: Text('Считаем по дате рождения, саму дату никто не видит.', style: t.bodySmall),
+                value: !(f?.showZodiac ?? true),
+                onChanged: f == null ? null : (v) => _profileFlag((f) => f.showZodiac = !v),
+                title: const Text('Скрыть знак зодиака', style: TextStyle(fontWeight: FontWeight.w700)),
+                subtitle: Text(
+                  'Знак считаем по дате рождения, саму дату никто не видит. Скрытый знак не участвует и в подборе.',
+                  style: t.bodySmall,
+                ),
               ),
               Divider(height: 1, color: AppColors.line),
               ListTile(

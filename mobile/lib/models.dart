@@ -491,7 +491,7 @@ class ProfileFields {
     this.diet = '',
     this.religion = '',
     this.religionForMatching = false,
-    this.showZodiac = false,
+    this.showZodiac = true,
     this.ageAsRange = false,
     List<Map<String, dynamic>>? languages,
   }) : prompts = prompts ?? [],
@@ -508,7 +508,7 @@ class ProfileFields {
     diet: j['diet'] as String? ?? '',
     religion: j['religion'] as String? ?? '',
     religionForMatching: j['religion_for_matching'] as bool? ?? false,
-    showZodiac: j['show_zodiac'] as bool? ?? false,
+    showZodiac: j['show_zodiac'] as bool? ?? true,
     ageAsRange: j['age_as_range'] as bool? ?? false,
     languages: List.of(((j['languages'] as List?) ?? const []).cast<Map<String, dynamic>>()),
   );
