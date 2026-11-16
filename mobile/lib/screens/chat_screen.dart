@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../api/api.dart';
 import '../app.dart';
+import '../state.dart';
 import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -51,10 +52,14 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     Future.microtask(_refresh);
     _poll = Timer.periodic(ChatScreen.pollEvery, (_) => _refresh());
+    _state = AppScope.read(context)..openChatId = m.matchId;
   }
+
+  late final AppState _state;
 
   @override
   void dispose() {
+    if (_state.openChatId == m.matchId) _state.openChatId = null;
     _poll?.cancel();
     _input.dispose();
     super.dispose();
@@ -182,7 +187,7 @@ class _ChatScreenState extends State<ChatScreen> {
           onTap: () => showPersonSheet(context, m),
           child: Row(
             children: [
-              Avatar(name: m.other.name, goal: m.goal, size: 38),
+              Avatar(name: m.other.name, goal: m.goal, size: 38, photo: m.other.photos.firstOrNull),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -425,7 +430,7 @@ class _Hello extends StatelessWidget {
       children: [
         const SizedBox(height: 24),
         Center(
-          child: Avatar(name: match.other.name, goal: match.goal, size: 80),
+          child: Avatar(name: match.other.name, goal: match.goal, size: 80, photo: match.other.photos.firstOrNull),
         ),
         const SizedBox(height: 14),
         Text('${match.other.name}, ${match.other.age}', style: t.headlineSmall, textAlign: TextAlign.center),

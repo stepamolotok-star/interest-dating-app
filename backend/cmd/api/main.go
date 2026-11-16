@@ -32,7 +32,9 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/httpapi"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/moderation"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/nearby"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/notify"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/oauth"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/photos"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 	"github.com/stepamolotok-star/interest-dating-app/backend/migrations"
 )
@@ -78,6 +80,21 @@ func run(log *slog.Logger) error {
 		deps.Profile = prof
 		deps.Feed = &feed.Service{DB: db, Catalog: cat}
 		deps.Chat = &chat.Service{DB: db, Catalog: cat}
+		// Фото пока лежат в папке на сервере; потом — объектное хранилище в России.
+		photoDir := envOr("PHOTOS_DIR", "data/photos")
+		deps.Photos = &photos.Service{DB: db, Store: photos.DiskStore{Dir: photoDir}}
+		log.Info("фото хранятся в папке", "dir", photoDir)
+
+		// Push: RuStore, если заданы проект и сервисный токен; иначе — только в журнал.
+		var sender notify.Sender = notify.LogSender{Log: log}
+		if pid, tok := os.Getenv("RUSTORE_PROJECT_ID"), os.Getenv("RUSTORE_PUSH_TOKEN"); pid != "" && tok != "" {
+			sender = notify.RuStore{ProjectID: pid, Token: tok}
+			log.Info("push через RuStore включены")
+		} else {
+			log.Warn("RUSTORE_PROJECT_ID / RUSTORE_PUSH_TOKEN не заданы — push только в журнал")
+		}
+		deps.Notify = &notify.Service{DB: db, Sender: sender, Log: log}
+		defer deps.Notify.Wait()
 
 		if rurl := os.Getenv("REDIS_URL"); rurl != "" {
 			opt, err := redis.ParseURL(rurl)
@@ -86,7 +103,7 @@ func run(log *slog.Logger) error {
 			}
 			rdb := redis.NewClient(opt)
 			defer rdb.Close()
-			nb := &nearby.Service{DB: db, Redis: rdb, Feed: deps.Feed, Push: nearby.LogPusher{Log: log}}
+			nb := &nearby.Service{DB: db, Redis: rdb, Feed: deps.Feed, Push: deps.Notify}
 			deps.Nearby = nb
 			go notifyLoop(ctx, nb, log)
 		} else {

@@ -52,6 +52,7 @@ class _ProfilePreviewScreenState extends State<ProfilePreviewScreen> {
       age: f.ageAsRange ? 0 : me.age,
       ageRange: _ageRange(me.age),
       photosHidden: vis['photos'] == 'after_match' || goal == 'casual',
+      photos: vis['photos'] == 'after_match' || goal == 'casual' ? const [] : [for (final p in state.photos) p.id],
       goal: goal,
       score: 0,
       explanation: names.isEmpty ? 'Интересы не выбраны' : 'Тут будет, что у вас общего',

@@ -405,6 +405,7 @@ func (s *Service) nearbyCards(ctx context.Context, viewerID string, goal matchin
 		cards[i].Distance = b.Label()
 		// Фото рядом с «до 500 м» позволяет найти человека глазами — до взаимности не показываем.
 		cards[i].PhotosHidden = true
+		cards[i].Photos = nil
 	}
 	sort.SliceStable(cards, func(i, j int) bool {
 		bi, bj := buckets[cards[i].UserID], buckets[cards[j].UserID]

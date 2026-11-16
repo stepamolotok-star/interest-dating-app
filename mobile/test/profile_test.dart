@@ -7,7 +7,7 @@ import 'helpers.dart';
 /// Анкета блоками в профиле: каждый блок правится отдельно, приватность — своим разделом.
 void main() {
   testWidgets('анкета по блокам, приватность и религия', (tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.physicalSize = const Size(1080, 3600); // фото и все блоки анкеты на одном экране
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
 
@@ -36,7 +36,7 @@ void main() {
     await tester.pumpAndSettle();
     await tap(find.text('Профиль'));
 
-    // Пустая анкета: 0 %, у каждого блока видно, что он не заполнен.
+    // Пустая анкета: 0 %, у каждого блока видно, что он не заполнен. Фото — шестая часть процента.
     await see(find.text('Анкета заполнена на 0%'));
     expect(find.text('Не заполнено — добавить'), findsNWidgets(5));
 
@@ -46,7 +46,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('about')), 'Хожу в походы и пеку хлеб');
     await save();
     await see(find.text('Хожу в походы и пеку хлеб'));
-    await see(find.text('Анкета заполнена на 20%'));
+    await see(find.text('Анкета заполнена на 17%'));
 
     await tap(find.byKey(const Key('block-prompts')));
     await tap(find.byKey(const Key('add-prompt')));
@@ -68,7 +68,8 @@ void main() {
     await tester.enterText(find.byKey(const Key('height')), '168');
     await save();
     await see(find.text('рост 168 см'));
-    await see(find.text('Анкета заполнена'));
+    // Все блоки заполнены, нет только фото.
+    await see(find.text('Анкета заполнена на 83%'));
 
     // Приватность: переключатели сохраняются сразу.
     await tap(find.byKey(const Key('photos-after-match')));

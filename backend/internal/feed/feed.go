@@ -20,6 +20,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/limits"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/matching"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/photos"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 )
 
@@ -58,8 +59,10 @@ type Card struct {
 	Name   string `json:"name"`
 	// PhotosHidden — фото до взаимного интереса размыто: так решил сам человек,
 	// это цель «Без обязательств» или карточка из «Рядом».
-	PhotosHidden bool   `json:"photos_hidden"`
-	AgeRange     string `json:"age_range"`
+	PhotosHidden bool `json:"photos_hidden"`
+	// Photos — id фото по порядку (GET /v1/photos/{id}); пусто, если фото скрыты.
+	Photos   []string `json:"photos,omitempty"`
+	AgeRange string   `json:"age_range"`
 	// Age — точный возраст; 0 (нет в JSON), если человек показывает возраст диапазоном.
 	Age           int                       `json:"age,omitempty"`
 	Goal          matching.Goal             `json:"goal"`
@@ -192,7 +195,30 @@ func (s *Service) rank(ctx context.Context, viewerID string, goal matching.Goal,
 	if len(cards) > limit {
 		cards = cards[:limit]
 	}
+	if err := s.attachPhotos(ctx, cards); err != nil {
+		return nil, err
+	}
 	return cards, nil
+}
+
+// attachPhotos добавляет id фото тем карточкам, где фото не скрыты.
+func (s *Service) attachPhotos(ctx context.Context, cards []Card) error {
+	ids := []string{}
+	for _, c := range cards {
+		if !c.PhotosHidden {
+			ids = append(ids, c.UserID)
+		}
+	}
+	ph, err := photos.IDs(ctx, s.DB, ids)
+	if err != nil {
+		return err
+	}
+	for i := range cards {
+		if !cards[i].PhotosHidden {
+			cards[i].Photos = ph[cards[i].UserID]
+		}
+	}
+	return nil
 }
 
 func (s *Service) card(c *candidate, goal matching.Goal, r matching.Result) Card {

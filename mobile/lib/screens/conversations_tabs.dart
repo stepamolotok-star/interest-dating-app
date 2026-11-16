@@ -137,7 +137,7 @@ class _MatchCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Avatar(name: p.name, goal: match.goal, size: 56),
+              Avatar(name: p.name, goal: match.goal, size: 56, photo: p.photos.firstOrNull),
               const SizedBox(height: 10),
               Text(
                 '${p.name}, ${p.age}',
@@ -189,7 +189,7 @@ class ChatsTab extends StatelessWidget {
             return ListTile(
               key: Key('chat-${m.matchId}'),
               contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-              leading: Avatar(name: m.other.name, goal: m.goal, size: 52),
+              leading: Avatar(name: m.other.name, goal: m.goal, size: 52, photo: m.other.photos.firstOrNull),
               title: Text(m.other.name, style: const TextStyle(fontWeight: FontWeight.w800)),
               subtitle: Text(
                 '${last.sender == me ? 'Вы: ' : ''}${last.body}',

@@ -24,7 +24,22 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     Future.microtask(_loadMatches);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _showWarning());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _showWarning();
+      await _askNotifications();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Нажали на уведомление — открываем переписку.
+    final state = AppScope.of(context);
+    final id = state.pendingChat;
+    if (id != null) {
+      state.pendingChat = null;
+      Future.microtask(() => _onMatched(id, true));
+    }
   }
 
   Future<void> _showWarning() async {
@@ -32,6 +47,40 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted || state.warning.isEmpty) return;
     await showModeratorWarning(context, state.warning);
     await state.ackWarning();
+  }
+
+  /// Один раз объясняем, зачем уведомления, и только потом показываем системный запрос.
+  Future<void> _askNotifications() async {
+    final state = AppScope.read(context);
+    if (!mounted || !await state.shouldAskNotifications() || !mounted) return;
+    final yes = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.notifications_active_outlined),
+        title: const Text('Сообщать о взаимном интересе?'),
+        content: const Text(
+          'Пришлём уведомление, когда кто-то ответит взаимностью или напишет. '
+          'Имя и текст на экране блокировки не показываем — это можно включить в профиле.',
+        ),
+        actions: [
+          TextButton(
+            key: const Key('notif-later'),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Не сейчас'),
+          ),
+          FilledButton(
+            key: const Key('notif-yes'),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Включить'),
+          ),
+        ],
+      ),
+    );
+    if (yes == true) {
+      await state.askNotifications();
+    } else {
+      await state.declineNotifications();
+    }
   }
 
   Future<void> _loadMatches() async {
@@ -62,7 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final fresh = state.newMatches.length;
     // Точка на «Профиле»: не выбраны интересы или анкета почти пустая.
     final profile = state.profile;
-    final todo = state.interests.isEmpty || (profile != null && profileCompletion(profile) < 40);
+    final todo =
+        state.interests.isEmpty ||
+        (profile != null && profileCompletion(profile, photos: state.photos.isNotEmpty) < 40);
     final tabs = [
       FeedTab(onMatched: _onMatched),
       NearbyTab(active: _tab == 1, onMatched: _onMatched),

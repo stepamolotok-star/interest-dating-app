@@ -22,6 +22,7 @@ import (
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/limits"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/photos"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 )
 
@@ -66,6 +67,8 @@ type Person struct {
 	About     string           `json:"about,omitempty"`
 	Prompts   []profile.Prompt `json:"prompts,omitempty"`
 	Interests []string         `json:"interests"`
+	// Photos — id фото: после совпадения их видно всегда.
+	Photos []string `json:"photos"`
 }
 
 // MatchSummary — строка в списке совпадений.
@@ -133,7 +136,12 @@ func (s *Service) Matches(ctx context.Context, userID string) ([]MatchSummary, e
 
 // person — профиль уровня 1: только поля с видимостью «анонимно» или «после совпадения».
 func (s *Service) person(ctx context.Context, userID string) (Person, error) {
-	p := Person{UserID: userID, Interests: []string{}}
+	p := Person{UserID: userID, Interests: []string{}, Photos: []string{}}
+	if ph, err := photos.IDs(ctx, s.DB, []string{userID}); err != nil {
+		return Person{}, err
+	} else if ph[userID] != nil {
+		p.Photos = ph[userID]
+	}
 	var birth time.Time
 	var prompts []byte
 	err := s.DB.QueryRow(ctx, `SELECT p.display_name, u.birth_date, coalesce(p.about, ''), p.prompts

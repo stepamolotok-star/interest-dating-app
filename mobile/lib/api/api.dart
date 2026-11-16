@@ -1,3 +1,7 @@
+import 'dart:typed_data';
+
+import 'package:material_ui/material_ui.dart' show ImageProvider;
+
 import '../models.dart';
 
 /// Ошибка API с текстом, который можно показать человеку.
@@ -37,6 +41,10 @@ abstract class Api {
   /// Токен текущей сессии; null — не вошли.
   String? token;
 
+  /// Событие для уведомления на телефоне. В демо — свои события (ответ собеседника,
+  /// взаимный интерес позже); с сервером сюда придут push, когда подключим RuStore.
+  void Function(PushEvent e)? onPush;
+
   /// Вызывается, когда сервер ответил «аккаунт заблокирован» на любой запрос.
   void Function(ApiException e)? onBlocked;
 
@@ -53,6 +61,13 @@ abstract class Api {
   Future<Session> oauthFinish(String provider, {required String state, required String code, String deviceId = ''});
   Future<void> logout();
   Future<Me> me();
+
+  Future<NotificationSettings> notificationSettings();
+  Future<void> setNotificationSettings(NotificationSettings s);
+
+  /// Токен устройства для push; при выходе — отвязать.
+  Future<void> registerPushToken(String token);
+  Future<void> unregisterPushToken(String token);
 
   /// Человек прочитал предупреждение модератора — больше не показываем.
   Future<void> ackWarning();
@@ -109,6 +124,19 @@ abstract class Api {
   Future<void> clearContacts();
 
   Future<ProfileFields> profile();
+
+  /// Свои фото по порядку.
+  Future<List<MyPhoto>> myPhotos();
+
+  /// Загрузить фото (JPEG/PNG/WebP как есть; сервер сам уменьшит и уберёт метаданные).
+  Future<MyPhoto> uploadPhoto(Uint8List bytes);
+  Future<void> deletePhoto(String id);
+
+  /// Новый порядок: все свои фото, первое станет главным.
+  Future<void> reorderPhotos(List<String> ids);
+
+  /// Картинка фото по id — своего или чужого (сервер проверит, можно ли).
+  ImageProvider photo(String id);
 
   /// Сохраняет анкету. [grantSpecial] — человек только что дал отдельное согласие
   /// на обработку религиозных убеждений (ст. 10 152-ФЗ).

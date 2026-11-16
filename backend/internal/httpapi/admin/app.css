@@ -70,3 +70,8 @@ label { display: block; font-weight: 600; margin: 12px 0 4px; }
 .actions textarea { min-height: 70px; }
 .resolved { background: var(--accent-tint); border-radius: 12px; padding: 10px 14px; }
 @media (max-width: 720px) { .queue { max-width: none; } }
+
+.photos { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.photos figure { margin: 0; width: 140px; }
+.photos img { width: 140px; height: 186px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: block; background: var(--line); }
+.photos button.small { margin-top: 6px; width: 100%; padding: 6px 8px; font-size: 13px; }

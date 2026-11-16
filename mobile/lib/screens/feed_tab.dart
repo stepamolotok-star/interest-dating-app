@@ -7,6 +7,7 @@ import '../app.dart';
 import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/photos.dart';
 import '../widgets/profile_blocks.dart';
 import '../widgets/safety.dart' show Avatar;
 import 'filters_screen.dart';
@@ -307,7 +308,7 @@ class _ReminderState extends State<_Reminder> {
     final state = AppScope.of(context);
     final f = state.profile;
     final noInterests = state.interests.isEmpty;
-    final thinProfile = f != null && profileCompletion(f) < 40;
+    final thinProfile = f != null && profileCompletion(f, photos: state.photos.isNotEmpty) < 40;
     if (_hidden || (!noInterests && !thinProfile)) return const SizedBox.shrink();
     final text = noInterests
         ? 'Выберите интересы — без них подбор почти случайный'
@@ -404,6 +405,7 @@ class _PersonCardState extends State<PersonCard> {
       ?dietLabels[card.diet],
       ?zodiacLabels[card.zodiac],
     ];
+    final showPhotos = !card.photosHidden && card.photos.isNotEmpty;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -414,21 +416,29 @@ class _PersonCardState extends State<PersonCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Есть фото — крупно сверху; скрыты до взаимности — силуэт с замком; нет фото — буква имени.
+          // Имя — поверх фото, чтобы под ним сразу было видно, что у вас общего.
+          if (showPhotos) ...[
+            PhotoCarousel(
+              photos: card.photos,
+              screenShare: 0.36,
+              caption: [card.name, if (card.ageLabel.isNotEmpty) card.ageLabel].join(', '),
+            ),
+            const SizedBox(height: 12),
+          ],
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Фото в приложении пока нет: открытая карточка — аватар с буквой имени,
-              // скрытая до взаимности — силуэт с замком.
               if (card.photosHidden || card.name.isEmpty)
                 HiddenAvatar(goal: card.goal)
-              else
+              else if (!showPhotos)
                 Avatar(name: card.name, goal: card.goal, size: 64),
-              const SizedBox(width: 14),
+              if (!showPhotos || card.photosHidden) const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (card.name.isNotEmpty) ...[
+                    if (card.name.isNotEmpty && !showPhotos) ...[
                       Text(
                         [card.name, if (card.ageLabel.isNotEmpty) card.ageLabel].join(', '),
                         style: t.titleLarge?.copyWith(fontWeight: FontWeight.w800, fontSize: 22),
@@ -535,7 +545,7 @@ class _Empty extends StatelessWidget {
 }
 
 /// Заглушка вместо фото: силуэт в цвете цели и замок. Настоящее фото человек
-/// увидит после взаимного интереса (а пока фото в приложении нет — аватар с буквой имени).
+/// увидит после взаимного интереса.
 class HiddenAvatar extends StatelessWidget {
   const HiddenAvatar({super.key, required this.goal, this.size = 64});
 

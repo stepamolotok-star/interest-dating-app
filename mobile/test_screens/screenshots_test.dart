@@ -41,6 +41,9 @@ void main() {
 
     Future<void> shot(String name) async {
       await tester.pumpAndSettle();
+      // Фото (картинки из assets и памяти) декодируются по-настоящему асинхронно — дать им время.
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+      await tester.pumpAndSettle();
       final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(root));
       await tester.runAsync(() async {
         final image = await boundary.toImage(pixelRatio: 2);

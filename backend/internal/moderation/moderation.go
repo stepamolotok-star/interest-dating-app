@@ -16,6 +16,7 @@ import (
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/photos"
 )
 
 // Решения модератора по жалобе.
@@ -124,6 +125,8 @@ type Detail struct {
 	Messages     []Message `json:"messages"`
 	OtherReports []Report  `json:"other_reports"`
 	History      []Action  `json:"history"`
+	// Photos — фото нарушителя (id); смотреть и убирать через /admin/api/photos.
+	Photos []string `json:"photos"`
 }
 
 const reportSelect = `
@@ -194,6 +197,14 @@ func (s *Service) Get(ctx context.Context, id int64) (Detail, error) {
 		return Detail{}, ErrNotFound
 	}
 	d := Detail{Report: list[0], Messages: []Message{}, History: []Action{}}
+	ph, err := photos.IDs(ctx, s.DB, []string{d.Target.ID})
+	if err != nil {
+		return Detail{}, err
+	}
+	d.Photos = ph[d.Target.ID]
+	if d.Photos == nil {
+		d.Photos = []string{}
+	}
 
 	// Переписка только этой пары — модератор не видит чужих разговоров.
 	mrows, err := s.DB.Query(ctx, `
@@ -355,6 +366,13 @@ func (s *Service) Resolve(ctx context.Context, reportID int64, moderator, action
 		return s.Nearby.Disappear(ctx, target)
 	}
 	return nil
+}
+
+// PhotoRemoved записывает в журнал, что модератор убрал фото.
+func (s *Service) PhotoRemoved(ctx context.Context, target, moderator, note string) error {
+	_, err := s.DB.Exec(ctx, `INSERT INTO moderation_actions (target, action, moderator, note) VALUES ($1, 'hide_photo', $2, $3)`,
+		target, moderator, note)
+	return err
 }
 
 // Unban снимает блокировку (навсегда или временную) и возвращает номер.

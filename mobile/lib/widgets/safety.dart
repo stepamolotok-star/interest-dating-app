@@ -4,18 +4,28 @@ import '../app.dart';
 import '../models.dart';
 import '../theme.dart';
 import 'common.dart';
+import 'photos.dart';
 
-/// Круглая аватарка с первой буквой имени (фото подключим позже).
+/// Круглая аватарка: главное фото, а если его нет — первая буква имени.
 class Avatar extends StatelessWidget {
-  const Avatar({super.key, required this.name, required this.goal, this.size = 48});
+  const Avatar({super.key, required this.name, required this.goal, this.size = 48, this.photo});
 
   final String name;
   final String goal;
   final double size;
 
+  /// id главного фото; null — фото нет.
+  final String? photo;
+
   @override
   Widget build(BuildContext context) {
     final g = goalInfo(goal);
+    final ph = photo;
+    if (ph != null) {
+      return ClipOval(
+        child: SizedBox(width: size, height: size, child: PhotoView(ph)),
+      );
+    }
     return Container(
       width: size,
       height: size,
@@ -58,9 +68,10 @@ Future<void> showPersonSheet(BuildContext context, Match match) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (p.photos.isNotEmpty) ...[PhotoCarousel(photos: p.photos), const SizedBox(height: 16)],
             Row(
               children: [
-                Avatar(name: p.name, goal: match.goal, size: 64),
+                if (p.photos.isEmpty) Avatar(name: p.name, goal: match.goal, size: 64),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(

@@ -6,6 +6,7 @@ import 'api/api.dart';
 import 'api/demo_api.dart';
 import 'api/http_api.dart';
 import 'app.dart';
+import 'notifications.dart';
 import 'state.dart';
 
 /// Адрес сервера задаётся при сборке: --dart-define=API_URL=https://...
@@ -16,7 +17,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _highRefreshRate();
   final Api api = apiUrl.isEmpty ? DemoApi() : HttpApi(apiUrl);
-  final state = AppState(api);
+  final state = AppState(api, notifier: kIsWeb ? null : LocalNotifier());
   await state.loadThemeMode();
   runApp(SvoiApp(state: state..start()));
 }

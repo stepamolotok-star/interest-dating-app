@@ -3,11 +3,12 @@ import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:svoi/api/demo_api.dart';
 import 'package:svoi/models.dart';
+import 'package:svoi/notifications.dart';
 import 'package:svoi/state.dart';
 
 /// Уже зарегистрированный человек в демо-режиме: цель «Дружба», три интереса.
 /// Вызывать внутри tester.runAsync — демо-API делает настоящие паузы.
-Future<AppState> registered() async {
+Future<AppState> registered({Notifier? notifier}) async {
   SharedPreferences.setMockInitialValues({});
   final api = DemoApi();
   await api.verify('+79123456789', DemoApi.demoCode);
@@ -31,7 +32,7 @@ Future<AppState> registered() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('session_token', api.token!);
   await prefs.setBool('onboarding_done', true);
-  return AppState(api);
+  return AppState(api, notifier: notifier);
 }
 
 /// Находит элемент в длинном ленивом списке: сначала наверх, потом вниз, пока не появится.

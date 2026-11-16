@@ -47,9 +47,12 @@ String? blockSummary(ProfileBlock b, ProfileFields f) {
   return text.trim().isEmpty ? null : text.trim();
 }
 
-/// Заполненность анкеты в процентах.
-int profileCompletion(ProfileFields f) =>
-    (completionBlocks.where((b) => blockSummary(b, f) != null).length * 100 / completionBlocks.length).round();
+/// Заполненность анкеты в процентах; фото считаются как ещё один блок.
+int profileCompletion(ProfileFields f, {bool photos = false}) =>
+    ((completionBlocks.where((b) => blockSummary(b, f) != null).length + (photos ? 1 : 0)) *
+            100 /
+            (completionBlocks.length + 1))
+        .round();
 
 /// Черновик анкеты: поля, видимость и текстовые контроллеры. Владелец вызывает [dispose].
 class ProfileDraft {

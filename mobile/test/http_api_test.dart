@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:material_ui/material_ui.dart' show NetworkImage;
 import 'package:svoi/api/api.dart';
 import 'package:svoi/api/http_api.dart';
 import 'package:svoi/models.dart';
@@ -173,5 +175,43 @@ void main() {
       api.send('m1', 'привет'),
       throwsA(isA<ApiException>().having((e) => e.message, 'message', contains('передохните'))),
     );
+  });
+
+  test('фото: файл уходит телом запроса, картинка — с токеном', () async {
+    late http.Request seen;
+    final api = HttpApi(
+      'https://api.test',
+      client: MockClient((req) async {
+        seen = req;
+        return json({'id': 'p1', 'position': 0});
+      }),
+    )..token = 't0k';
+    final p = await api.uploadPhoto(Uint8List.fromList([0xFF, 0xD8, 1, 2, 3]));
+    expect((p.id, p.position), ('p1', 0));
+    expect(seen.method, 'POST');
+    expect(seen.url.path, '/v1/me/photos');
+    expect(seen.bodyBytes, [0xFF, 0xD8, 1, 2, 3]);
+    expect(seen.headers['Content-Type'], 'application/octet-stream');
+    final img = api.photo('p1') as NetworkImage;
+    expect(img.url, 'https://api.test/v1/photos/p1');
+    expect(img.headers?['Authorization'], 'Bearer t0k');
+  });
+
+  test('уведомления: настройки и токен устройства', () async {
+    final calls = <String>[];
+    final api = HttpApi(
+      'https://api.test',
+      client: MockClient((req) async {
+        calls.add('${req.method} ${req.url.path} ${req.body}');
+        if (req.method == 'GET') return json({'matches': true, 'messages': false, 'nearby': true, 'show_text': true});
+        return http.Response('', 204);
+      }),
+    )..token = 't0k';
+    final s = await api.notificationSettings();
+    expect((s.matches, s.messages, s.showText), (true, false, true));
+    await api.setNotificationSettings(s..nearby = false);
+    await api.registerPushToken('dev-1');
+    expect(calls[1], contains('"nearby":false'));
+    expect(calls[2], 'PUT /v1/me/push-token {"token":"dev-1","provider":"rustore"}');
   });
 }

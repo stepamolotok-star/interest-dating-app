@@ -9,6 +9,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/limits"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/matching"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/photos"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 )
 
@@ -142,6 +143,9 @@ func (s *Server) postInterest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res, err := s.feed.Interest(r.Context(), uid(r), r.PathValue("user_id"), req.Goal, req.InterestID)
+	if err == nil && res.Matched && s.notify != nil {
+		s.notify.Matched(r.Context(), res.MatchID, uid(r))
+	}
 	s.respond(w, res, err)
 }
 
@@ -159,9 +163,12 @@ func (s *Server) postSkip(w http.ResponseWriter, r *http.Request) {
 func (s *Server) respond(w http.ResponseWriter, v any, err error) {
 	var invalid *profile.ValidationError
 	var limit *limits.Error
+	var photoErr *photos.Error
 	switch {
 	case errors.As(err, &limit):
 		writeError(w, http.StatusTooManyRequests, limit.Message)
+	case errors.As(err, &photoErr):
+		writeError(w, http.StatusBadRequest, photoErr.Message)
 	case err == nil && v == nil:
 		w.WriteHeader(http.StatusNoContent)
 	case err == nil:
@@ -175,7 +182,8 @@ func (s *Server) respond(w http.ResponseWriter, v any, err error) {
 		writeError(w, http.StatusUnprocessableEntity, err.Error())
 	case errors.Is(err, chat.ErrEmpty), errors.Is(err, chat.ErrTooLong), errors.Is(err, chat.ErrBadReason):
 		writeError(w, http.StatusBadRequest, err.Error())
-	case errors.Is(err, profile.ErrNotFound), errors.Is(err, feed.ErrNotAvailable), errors.Is(err, chat.ErrNotFound):
+	case errors.Is(err, profile.ErrNotFound), errors.Is(err, feed.ErrNotAvailable), errors.Is(err, chat.ErrNotFound),
+		errors.Is(err, photos.ErrNotFound):
 		writeError(w, http.StatusNotFound, err.Error())
 	default:
 		s.log.Error("ошибка запроса", "err", err)
@@ -202,6 +210,9 @@ func (s *Server) postMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	m, err := s.chat.Send(r.Context(), uid(r), r.PathValue("id"), req.Body)
+	if err == nil && s.notify != nil {
+		s.notify.MessageSent(r.Context(), r.PathValue("id"), uid(r), m.Body)
+	}
 	s.respond(w, m, err)
 }
 

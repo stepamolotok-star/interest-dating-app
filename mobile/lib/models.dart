@@ -206,6 +206,7 @@ class FeedCard {
     this.age = 0,
     this.name = '',
     this.photosHidden = false,
+    this.photos = const [],
     required this.goal,
     required this.score,
     required this.explanation,
@@ -228,6 +229,7 @@ class FeedCard {
     age: j['age'] as int? ?? 0,
     name: j['name'] as String? ?? '',
     photosHidden: j['photos_hidden'] as bool? ?? false,
+    photos: ((j['photos'] as List?) ?? const []).cast<String>(),
     goal: j['goal'] as String? ?? '',
     score: j['score'] as int? ?? 0,
     explanation: j['explanation'] as String? ?? '',
@@ -256,6 +258,9 @@ class FeedCard {
 
   /// Фото размыто до взаимного интереса: так решил человек, это «Без обязательств» или «Рядом».
   final bool photosHidden;
+
+  /// id фото по порядку (первое — главное); пусто, если фото нет или они скрыты.
+  final List<String> photos;
 
   /// «27 лет» или «28–32 лет», если человек скрыл точный возраст.
   String get ageLabel => age > 0 ? '$age ${yearsWord(age)}' : (ageRange.isEmpty ? '' : '$ageRange лет');
@@ -296,6 +301,7 @@ class Person {
     this.about = '',
     this.prompts = const [],
     this.interests = const [],
+    this.photos = const [],
   });
 
   factory Person.fromJson(Map<String, dynamic> j) => Person(
@@ -305,6 +311,7 @@ class Person {
     about: j['about'] as String? ?? '',
     prompts: ((j['prompts'] as List?) ?? const []).map((e) => Prompt.fromJson(e as Map<String, dynamic>)).toList(),
     interests: ((j['interests'] as List?) ?? const []).cast<String>(),
+    photos: ((j['photos'] as List?) ?? const []).cast<String>(),
   );
 
   final String userId;
@@ -313,6 +320,9 @@ class Person {
   final String about;
   final List<Prompt> prompts;
   final List<String> interests;
+
+  /// id фото: после совпадения их видно всегда.
+  final List<String> photos;
 
   Map<String, dynamic> toJson() => {
     'user_id': userId,
@@ -323,7 +333,18 @@ class Person {
       for (final p in prompts) {'question': p.question, 'answer': p.answer},
     ],
     'interests': interests,
+    'photos': photos,
   };
+}
+
+/// Своё фото в анкете; первое по порядку — главное.
+class MyPhoto {
+  const MyPhoto(this.id, this.position);
+
+  factory MyPhoto.fromJson(Map<String, dynamic> j) => MyPhoto(j['id'] as String, j['position'] as int? ?? 0);
+
+  final String id;
+  final int position;
 }
 
 class Message {
@@ -712,4 +733,45 @@ String yearsWord(int n) {
   if (m10 == 1 && m100 != 11) return 'год';
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'года';
   return 'лет';
+}
+
+/// Что присылать в уведомлениях. Без настроек — всё, но без имени и текста.
+class NotificationSettings {
+  NotificationSettings({this.matches = true, this.messages = true, this.nearby = true, this.showText = false});
+
+  factory NotificationSettings.fromJson(Map<String, dynamic> j) => NotificationSettings(
+    matches: j['matches'] as bool? ?? true,
+    messages: j['messages'] as bool? ?? true,
+    nearby: j['nearby'] as bool? ?? true,
+    showText: j['show_text'] as bool? ?? false,
+  );
+
+  bool matches;
+  bool messages;
+  bool nearby;
+
+  /// Имя и текст сообщения прямо в уведомлении.
+  bool showText;
+
+  Map<String, dynamic> toJson() => {'matches': matches, 'messages': messages, 'nearby': nearby, 'show_text': showText};
+}
+
+/// Событие для уведомления: взаимный интерес или сообщение.
+class PushEvent {
+  const PushEvent({
+    required this.kind,
+    required this.title,
+    required this.body,
+    this.matchId = '',
+    this.private = true,
+  });
+
+  /// match / message / nearby
+  final String kind;
+  final String title;
+  final String body;
+  final String matchId;
+
+  /// Без подробностей — на экране блокировки только «Новое сообщение».
+  final bool private;
 }

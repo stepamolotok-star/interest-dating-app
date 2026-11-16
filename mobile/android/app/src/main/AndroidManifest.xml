@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Уведомления о взаимном интересе и сообщениях (Android 13+ спрашивает разрешение). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- «Рядом»: только пока приложение открыто. Сервер округляет позицию до ~150 м. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />

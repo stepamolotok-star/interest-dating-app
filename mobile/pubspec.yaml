@@ -1,7 +1,7 @@
 name: svoi
 description: "Свои — найди своих людей по интересам."
 publish_to: 'none'
-version: 0.1.15+16
+version: 0.1.16+17
 
 environment:
   sdk: ^3.14.0
@@ -12,9 +12,11 @@ dependencies:
     sdk: flutter
   flutter_contacts: ^2.6.0
   flutter_displaymode: ^0.7.0
+  flutter_local_notifications: ^23.0.2
   flutter_web_auth_2: ^5.1.0
   geolocator: ^14.1.2
   http: ^1.6.0
+  image_picker: ^1.2.4
   material_ui: ^1.1.0
   phone_state: ^4.0.1
   shared_preferences: ^2.5.6
@@ -29,6 +31,7 @@ flutter:
   assets:
     - assets/data/catalog.json
     - assets/data/cities.json
+    - assets/demo/
 
   fonts:
     - family: Manrope

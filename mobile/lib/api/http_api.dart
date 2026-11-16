@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:material_ui/material_ui.dart' show ImageProvider, NetworkImage;
 
 import '../models.dart';
 import 'api.dart';
@@ -14,19 +16,28 @@ class HttpApi extends Api {
 
   static const _timeout = Duration(seconds: 15);
 
-  Future<dynamic> _call(String method, String path, {Object? body, Map<String, String>? query}) async {
+  Future<dynamic> _call(
+    String method,
+    String path, {
+    Object? body,
+    Map<String, String>? query,
+    Uint8List? bytes,
+    Duration timeout = _timeout,
+  }) async {
     final uri = Uri.parse('$baseUrl$path').replace(queryParameters: query);
     final headers = <String, String>{
       'Accept': 'application/json',
       if (body != null) 'Content-Type': 'application/json; charset=utf-8',
+      if (bytes != null) 'Content-Type': 'application/octet-stream',
       if (token != null) 'Authorization': 'Bearer $token',
     };
     final req = http.Request(method, uri)..headers.addAll(headers);
     if (body != null) req.body = jsonEncode(body);
+    if (bytes != null) req.bodyBytes = bytes;
 
     http.Response res;
     try {
-      res = await http.Response.fromStream(await _client.send(req).timeout(_timeout));
+      res = await http.Response.fromStream(await _client.send(req).timeout(timeout));
     } on Exception {
       throw const ApiException(0, 'Нет связи с сервером. Проверьте интернет и попробуйте ещё раз.');
     }
@@ -72,6 +83,42 @@ class HttpApi extends Api {
 
   @override
   Future<void> ackWarning() => _call('POST', '/v1/me/warning/ack');
+
+  @override
+  Future<NotificationSettings> notificationSettings() async =>
+      NotificationSettings.fromJson(await _call('GET', '/v1/me/notifications') as Map<String, dynamic>);
+
+  @override
+  Future<void> setNotificationSettings(NotificationSettings s) =>
+      _call('PUT', '/v1/me/notifications', body: s.toJson());
+
+  @override
+  Future<void> registerPushToken(String token) =>
+      _call('PUT', '/v1/me/push-token', body: {'token': token, 'provider': 'rustore'});
+
+  @override
+  Future<void> unregisterPushToken(String token) => _call('DELETE', '/v1/me/push-token', body: {'token': token});
+
+  @override
+  Future<List<MyPhoto>> myPhotos() async => _items(await _call('GET', '/v1/me/photos')).map(MyPhoto.fromJson).toList();
+
+  @override
+  Future<MyPhoto> uploadPhoto(Uint8List bytes) async => MyPhoto.fromJson(
+    // Фото весит больше обычного запроса — на медленном интернете даём больше времени.
+    await _call('POST', '/v1/me/photos', bytes: bytes, timeout: const Duration(seconds: 90)),
+  );
+
+  @override
+  Future<void> deletePhoto(String id) => _call('DELETE', '/v1/me/photos/${Uri.encodeComponent(id)}');
+
+  @override
+  Future<void> reorderPhotos(List<String> ids) => _call('PUT', '/v1/me/photos/order', body: {'ids': ids});
+
+  @override
+  ImageProvider photo(String id) => NetworkImage(
+    '$baseUrl/v1/photos/${Uri.encodeComponent(id)}',
+    headers: {if (token != null) 'Authorization': 'Bearer $token'},
+  );
 
   @override
   Future<List<InterestNode>> categories() async =>

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:material_ui/material_ui.dart' show AssetImage, ImageProvider, MemoryImage;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../cities.dart';
@@ -32,7 +34,8 @@ class DemoApi extends Api {
   int _nextMessageId = 1;
 
   /// Задержка ответа собеседника в демо.
-  static const replyDelay = Duration(seconds: 2);
+  /// Подольше, чтобы успеть выйти из переписки и увидеть уведомление.
+  static Duration replyDelay = const Duration(seconds: 6);
   static const _myId = 'demo-me';
 
   NearbyVisibility _visibility = const NearbyVisibility();
@@ -60,17 +63,87 @@ class DemoApi extends Api {
   bool get isDemo => true;
 
   static const _storeKey = 'demo_state_v1';
+  static const _photosKey = 'demo_photos_v1';
+
+  /// Свои фото в демо: id → байты (хранятся отдельно от остального состояния — они тяжёлые).
+  final List<(String, Uint8List)> _myPhotos = [];
+  int _photoSeq = 0;
 
   /// Поднимает сохранённое состояние демо-режима.
   @override
   Future<void> init() async {
-    final raw = (await SharedPreferences.getInstance()).getString(_storeKey);
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      for (final e in (jsonDecode(prefs.getString(_photosKey) ?? '[]') as List).cast<Map<String, dynamic>>()) {
+        _myPhotos.add((e['id'] as String, base64Decode(e['data'] as String)));
+      }
+      _photoSeq = _myPhotos.length;
+    } catch (_) {
+      _myPhotos.clear();
+    }
+    final raw = prefs.getString(_storeKey);
     if (raw == null) return;
     try {
       _restore(jsonDecode(raw) as Map<String, dynamic>);
     } catch (_) {
       // Формат поменялся между версиями — начинаем с чистого листа.
     }
+  }
+
+  void _savePhotos() {
+    final data = jsonEncode([
+      for (final (id, bytes) in _myPhotos) {'id': id, 'data': base64Encode(bytes)},
+    ]);
+    SharedPreferences.getInstance().then((p) => p.setString(_photosKey, data)).catchError((_) => false);
+  }
+
+  @override
+  Future<List<MyPhoto>> myPhotos() async {
+    _needUser();
+    return [for (var i = 0; i < _myPhotos.length; i++) MyPhoto(_myPhotos[i].$1, i)];
+  }
+
+  @override
+  Future<MyPhoto> uploadPhoto(Uint8List bytes) async {
+    _needUser();
+    await _pause();
+    if (_myPhotos.length >= 6) {
+      throw const ApiException(400, 'В анкете может быть до 6 фото — удалите какое-нибудь, чтобы добавить новое.');
+    }
+    final id = 'my-${DateTime.now().microsecondsSinceEpoch}-${_photoSeq++}';
+    _myPhotos.add((id, bytes));
+    _savePhotos();
+    return MyPhoto(id, _myPhotos.length - 1);
+  }
+
+  @override
+  Future<void> deletePhoto(String id) async {
+    _needUser();
+    _myPhotos.removeWhere((p) => p.$1 == id);
+    _savePhotos();
+  }
+
+  @override
+  Future<void> reorderPhotos(List<String> ids) async {
+    _needUser();
+    final byId = {for (final p in _myPhotos) p.$1: p};
+    if (ids.length != byId.length || !ids.every(byId.containsKey)) {
+      throw const ApiException(400, 'Порядок фото не совпадает с анкетой — обновите экран.');
+    }
+    _myPhotos
+      ..clear()
+      ..addAll(ids.map((id) => byId[id]!));
+    _savePhotos();
+  }
+
+  /// Чужие «фото» в демо — рисованные пейзажи из assets/demo, свои — то, что загрузили.
+  @override
+  ImageProvider photo(String id) {
+    if (id.startsWith('demo:')) return AssetImage('assets/demo/${id.substring(5)}.jpg');
+    for (final (pid, bytes) in _myPhotos) {
+      if (pid == id) return MemoryImage(bytes);
+    }
+    return const AssetImage('assets/demo/lake.jpg');
   }
 
   void _save() {
@@ -94,6 +167,7 @@ class DemoApi extends Api {
       for (final i in _interests) {...i.toJson(), 'name': i.name},
     ],
     'seen': _seen.toList(),
+    'notifications': _notif.toJson(),
     'likes': _likes,
     'matches': [for (final m in _matches) m.toJson()],
     'messages': {
@@ -118,6 +192,7 @@ class DemoApi extends Api {
   void _restore(Map<String, dynamic> j) {
     List<Map<String, dynamic>> list(String k) => ((j[k] as List?) ?? const []).cast<Map<String, dynamic>>();
     _registered = j['registered'] as bool? ?? false;
+    _notif = NotificationSettings.fromJson(((j['notifications'] as Map?) ?? const {}).cast<String, dynamic>());
     final reg = j['reg'] as Map<String, dynamic>?;
     if (reg != null) {
       _reg = Registration(
@@ -400,6 +475,7 @@ class DemoApi extends Api {
             return SharedInterest(iid, name, rare: k == 0 && p.isEven);
           }(),
       ];
+      final hidden = goal == 'casual' || person.photosAfterMatch || _fieldVisibility['photos'] == 'after_match';
       cards.add(
         _cards[id] = FeedCard(
           userId: id,
@@ -407,7 +483,8 @@ class DemoApi extends Api {
           age: person.age,
           name: person.name,
           // Кто прячет свои фото до взаимности, не видит и чужие — как на сервере.
-          photosHidden: goal == 'casual' || person.photosAfterMatch || _fieldVisibility['photos'] == 'after_match',
+          photosHidden: hidden,
+          photos: hidden ? const [] : [for (final ph in person.photos) 'demo:$ph'],
           goal: goal,
           score: 92 - p * 7,
           explanation: _explain(shared),
@@ -437,12 +514,63 @@ class DemoApi extends Api {
     await _pause();
     _seen.add(userId);
     _likes++;
-    // В демо каждый второй интерес взаимный — чтобы увидеть экран совпадения.
+    // В демо каждый второй интерес взаимный сразу — чтобы увидеть экран совпадения,
+    // а остальные отвечают взаимностью чуть позже — чтобы увидеть уведомление.
     final matched = _likes.isOdd;
     if (!matched) {
       _save();
+      Future<void>.delayed(laterMatchDelay, () {
+        if (token == null || _messages.containsKey('match-$userId')) return;
+        final matchId = _createMatch(userId, goal);
+        final name = _people[int.parse(userId.split('-').last)].name;
+        _emit(
+          'match',
+          matchId,
+          title: 'Взаимный интерес',
+          body: _notif.showText ? '$name — можно начать разговор' : 'Можно начать разговор',
+        );
+      });
       return const InterestResult(false, '');
     }
+    return InterestResult(true, _createMatch(userId, goal));
+  }
+
+  /// Через сколько в демо «отвечает взаимностью» человек, которому интерес не совпал сразу.
+  static Duration laterMatchDelay = const Duration(seconds: 20);
+
+  NotificationSettings _notif = NotificationSettings();
+
+  @override
+  Future<NotificationSettings> notificationSettings() async {
+    _needUser();
+    return NotificationSettings.fromJson(_notif.toJson());
+  }
+
+  @override
+  Future<void> setNotificationSettings(NotificationSettings s) async {
+    _needUser();
+    _notif = NotificationSettings.fromJson(s.toJson());
+    _save();
+  }
+
+  @override
+  Future<void> registerPushToken(String token) async {}
+
+  @override
+  Future<void> unregisterPushToken(String token) async {}
+
+  /// Демо-событие для уведомления — с учётом настроек, как на сервере.
+  void _emit(String kind, String matchId, {required String title, required String body}) {
+    final on = switch (kind) {
+      'match' => _notif.matches,
+      'message' => _notif.messages,
+      _ => _notif.nearby,
+    };
+    if (!on) return;
+    onPush?.call(PushEvent(kind: kind, title: title, body: body, matchId: matchId, private: !_notif.showText));
+  }
+
+  String _createMatch(String userId, String goal) {
     final p = int.parse(userId.split('-').last);
     final person = _people[p];
     final card = _cards[userId];
@@ -460,12 +588,13 @@ class DemoApi extends Api {
           about: person.about,
           prompts: person.prompts,
           interests: [...?card?.shared.map((s) => s.name), ...person.extraInterests],
+          photos: [for (final ph in person.photos) 'demo:$ph'],
         ),
       ),
     );
     _messages[matchId] = [];
     _save();
-    return InterestResult(true, matchId);
+    return matchId;
   }
 
   @override
@@ -522,18 +651,25 @@ class DemoApi extends Api {
       final topic = match.other.interests.isEmpty ? 'это' : match.other.interests.first.toLowerCase();
       Future<void>.delayed(replyDelay, () {
         if (!_messages.containsKey(matchId)) return;
+        final reply =
+            'Привет! ${person.female ? 'Рада' : 'Рад'}, что совпали. Про $topic могу говорить часами. '
+            'А ты как к этому пришёл(ла)?';
         list.add(
           Message(
             id: _nextMessageId++,
             sender: match.other.userId,
             kind: 'text',
-            body:
-                'Привет! ${person.female ? 'Рада' : 'Рад'}, что совпали. Про $topic могу говорить часами. '
-                'А ты как к этому пришёл(ла)?',
+            body: reply,
             createdAt: DateTime.now(),
           ),
         );
         _save();
+        _emit(
+          'message',
+          matchId,
+          title: _notif.showText ? person.name : 'Новое сообщение',
+          body: _notif.showText ? reply : 'Откройте, чтобы прочитать',
+        );
       });
     }
     _save();
@@ -877,7 +1013,11 @@ class _Person {
     this.diet = '',
     this.extraInterests = const [],
     this.photosAfterMatch = false,
+    this.photos = const [],
   });
+
+  /// Рисованные «фото» из assets/demo (имя файла без .jpg).
+  final List<String> photos;
 
   /// Человек сам решил открывать фото только после взаимного интереса.
   final bool photosAfterMatch;
@@ -908,6 +1048,7 @@ const _people = [
     prompts: [Prompt('Идеальная суббота', 'Утром поход, вечером настолки с друзьями')],
     habits: {'smoking': 'no', 'sport': 'regular'},
     extraInterests: ['Походы', 'Настольные игры'],
+    photos: ['mountains', 'night'],
   ),
   _Person(
     'Денис',
@@ -920,6 +1061,7 @@ const _people = [
     habits: {'smoking': 'no', 'chronotype': 'owl'},
     diet: 'vegetarian',
     extraInterests: ['Электроника', 'Велосипед'],
+    photos: ['city'],
   ),
   _Person(
     'Ольга',
@@ -932,6 +1074,7 @@ const _people = [
     verified: true,
     habits: {'alcohol': 'sometimes'},
     extraInterests: ['Путешествия'],
+    photos: ['sea', 'lake', 'forest'],
   ),
   _Person(
     'Сергей',
@@ -943,6 +1086,7 @@ const _people = [
     prompts: [Prompt('Лучший совет, который я получал', 'Не откладывать на понедельник')],
     photosAfterMatch: true,
     extraInterests: ['Рыбалка', 'Кулинария'],
+    photos: ['forest', 'mountains'],
   ),
   _Person(
     'Вика',
@@ -955,6 +1099,7 @@ const _people = [
     verified: true,
     habits: {'smoking': 'no', 'sport': 'sometimes'},
     extraInterests: ['Рисование'],
+    photos: ['lake', 'sea'],
   ),
   _Person(
     'Андрей',

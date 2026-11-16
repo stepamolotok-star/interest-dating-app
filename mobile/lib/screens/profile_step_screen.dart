@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../app.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/photos.dart';
 import '../widgets/profile_blocks.dart';
 
 /// Последний шаг регистрации: анкета на одном экране. Всё необязательно —
@@ -75,7 +76,21 @@ class _ProfileStepScreenState extends State<ProfileStepScreen> {
                     : TextButton(onPressed: _load, child: const Text('Не загрузилось. Повторить')),
               ),
             )
-          : ProfileBlocksForm(draft: d, blocks: ProfileStepScreen.blocks),
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Фото', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 4),
+                Text(
+                  'Главное — где хорошо видно лицо. Можно добавить и потом.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.muted),
+                ),
+                const SizedBox(height: 10),
+                const PhotosEditor(),
+                const SizedBox(height: 24),
+                ProfileBlocksForm(draft: d, blocks: ProfileStepScreen.blocks),
+              ],
+            ),
     );
   }
 }

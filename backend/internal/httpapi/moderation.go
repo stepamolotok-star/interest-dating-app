@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/moderation"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/photos"
 )
 
 //go:embed admin/*
@@ -24,7 +25,7 @@ func (s *Server) registerAdmin(mux *http.ServeMux) {
 	files := http.StripPrefix("/admin/", http.FileServer(http.FS(static)))
 	page := func(w http.ResponseWriter, r *http.Request) {
 		// Страница без внешних скриптов и стилей; не открывается во фрейме; не кэшируется.
-		w.Header().Set("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
+		w.Header().Set("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("Cache-Control", "no-store")
@@ -65,6 +66,37 @@ func (s *Server) registerAdmin(mux *http.ServeMux) {
 		err := s.moderation.Resolve(r.Context(), id, moderator(r), req.Action, req.Days, req.Note)
 		s.adminRespond(w, nil, err)
 	})
+	if s.photos != nil {
+		h("GET /admin/api/photos/{id}", func(w http.ResponseWriter, r *http.Request) {
+			data, err := s.photos.Raw(r.Context(), r.PathValue("id"))
+			if errors.Is(err, photos.ErrNotFound) {
+				writeError(w, http.StatusNotFound, err.Error())
+				return
+			}
+			if err != nil {
+				s.adminRespond(w, nil, err)
+				return
+			}
+			writeImage(w, data)
+		})
+		h("POST /admin/api/photos/{id}/remove", func(w http.ResponseWriter, r *http.Request) {
+			var req struct {
+				Note string `json:"note"`
+			}
+			if !decode(w, r, &req) {
+				return
+			}
+			owner, err := s.photos.Remove(r.Context(), r.PathValue("id"))
+			if errors.Is(err, photos.ErrNotFound) {
+				writeError(w, http.StatusNotFound, err.Error())
+				return
+			}
+			if err == nil {
+				err = s.moderation.PhotoRemoved(r.Context(), owner, moderator(r), req.Note)
+			}
+			s.adminRespond(w, nil, err)
+		})
+	}
 	h("POST /admin/api/users/{id}/unban", func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
 			Note string `json:"note"`

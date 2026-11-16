@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Значок уведомлений берётся по имени из Dart — без этого сборка выбросит его как «неиспользуемый». -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_svoi" />

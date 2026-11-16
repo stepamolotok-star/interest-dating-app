@@ -6,10 +6,13 @@ plugins {
 
 android {
     namespace = "ru.svoi.svoi"
-    compileSdk = flutter.compileSdkVersion
+    // 37: этого требуют flutter_local_notifications и androidx.core. targetSdk остаётся от Flutter.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Нужно для flutter_local_notifications (новые API Java на старых Android).
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -50,4 +53,8 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

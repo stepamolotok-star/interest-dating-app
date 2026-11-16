@@ -7,7 +7,7 @@ const REASONS = {
   fake: 'Фейк', spam: 'Спам или реклама', paid_services: 'Платные услуги', explicit: 'Непристойное', other: 'Другое',
 };
 const RESOLUTIONS = { dismiss: 'Отклонена', warn: 'Предупреждение', suspend: 'Временная блокировка', ban: 'Блокировка навсегда' };
-const ACTIONS = { ...RESOLUTIONS, unban: 'Разблокирован', hold: 'Скрыт до проверки', release: 'Возвращён в ленту' };
+const ACTIONS = { ...RESOLUTIONS, unban: 'Разблокирован', hold: 'Скрыт до проверки', release: 'Возвращён в ленту', hide_photo: 'Убрано фото' };
 
 const store = {
   get token() { try { return sessionStorage.getItem('mod_token') || ''; } catch { return ''; } },
@@ -47,6 +47,14 @@ async function api(path, opts = {}) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Ошибка ' + res.status);
   return data;
+}
+
+// Фото грузим с ключом модератора и показываем через blob: — в img нельзя передать заголовок.
+async function photo(id) {
+  const img = el('img', { alt: 'Фото анкеты', loading: 'lazy' });
+  const res = await fetch('/admin/api/photos/' + encodeURIComponent(id), { headers: { Authorization: 'Bearer ' + token() } });
+  if (res.ok) img.src = URL.createObjectURL(await res.blob());
+  return img;
 }
 
 const fmt = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
@@ -142,6 +150,19 @@ async function open(id) {
       box.querySelectorAll('button').forEach((b) => { b.disabled = false; });
     }
   }
+  async function removePhoto(pid) {
+    if (!window.confirm('Убрать это фото из анкеты? Вернуть его будет нельзя.')) return;
+    try {
+      await api(`/photos/${pid}/remove`, { method: 'POST', body: { note: note.value } });
+      await open(id);
+    } catch (e) { err.textContent = e.message; }
+  }
+  const photos = d.photos.length
+    ? el('div', { class: 'photos' }, await Promise.all(d.photos.map(async (pid) => el('figure', {},
+        await photo(pid),
+        el('button', { type: 'button', class: 'danger small', onclick: () => removePhoto(pid), text: 'Убрать фото' })))))
+    : el('p', { class: 'muted', text: 'Фото нет' });
+
   async function unban() {
     try {
       await api(`/users/${t.id}/unban`, { method: 'POST', body: { note: note.value } });
@@ -160,6 +181,7 @@ async function open(id) {
       ' от ', el('b', { text: d.reporter.name }), ' · ', fmtDate(d.created_at)),
     d.comment ? el('div', { class: 'comment', text: d.comment }) : el('p', { class: 'muted', text: 'Без комментария' }),
     el('h3', { text: 'Анкета' }),
+    photos,
     el('div', { class: 'profile' },
       el('p', { text: t.about || 'О себе не заполнено' }),
       (t.prompts || []).map((p) => el('div', { class: 'prompt' }, el('div', { class: 'q', text: p.question }), el('div', { text: p.answer })))),

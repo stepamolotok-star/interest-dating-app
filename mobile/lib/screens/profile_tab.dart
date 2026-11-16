@@ -5,6 +5,7 @@ import '../contacts.dart';
 import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/photos.dart';
 import '../widgets/profile_blocks.dart';
 import '../widgets/safety.dart' show confirm;
 import 'goals_screen.dart';
@@ -60,6 +61,22 @@ class _ProfileTabState extends State<ProfileTab> {
           const SizedBox(height: 20),
           const _Completion(),
           const SizedBox(height: 24),
+          _Section(
+            title: 'Фото',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const PhotosEditor(),
+                const SizedBox(height: 8),
+                Text(
+                  state.photos.isEmpty
+                      ? 'С фото отвечают охотнее. Главное — где хорошо видно лицо, остальные — увлечения и места.'
+                      : 'Нажмите на фото, чтобы сделать его главным или удалить.',
+                  style: t.bodySmall?.copyWith(color: AppColors.muted),
+                ),
+              ],
+            ),
+          ),
           const _ProfileBlocks(),
           _Section(
             title: 'Цели',
@@ -98,6 +115,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
           ),
           const _Privacy(),
+          const _Notifications(),
           const _Appearance(),
           const SizedBox(height: 16),
           _Support(),
@@ -182,7 +200,7 @@ class _Completion extends StatelessWidget {
   Widget build(BuildContext context) {
     final f = AppScope.of(context).profile;
     final t = Theme.of(context).textTheme;
-    final pct = f == null ? null : profileCompletion(f);
+    final pct = f == null ? null : profileCompletion(f, photos: AppScope.of(context).photos.isNotEmpty);
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
       decoration: BoxDecoration(
@@ -329,6 +347,111 @@ class _Appearance extends StatelessWidget {
 
 /// Кто что видит: фото, возраст, знак зодиака, контакты, «Рядом».
 /// Переключатели сохраняются сразу.
+/// Что присылать в уведомлениях и показывать ли подробности на экране блокировки.
+class _Notifications extends StatefulWidget {
+  const _Notifications();
+
+  @override
+  State<_Notifications> createState() => _NotificationsState();
+}
+
+class _NotificationsState extends State<_Notifications> {
+  NotificationSettings? _s;
+  bool _system = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(_load);
+  }
+
+  Future<void> _load() async {
+    final state = AppScope.read(context);
+    final system = await state.notifier.enabled();
+    try {
+      final s = await state.api.notificationSettings();
+      if (mounted) {
+        setState(() {
+          _s = s;
+          _system = system;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _s = NotificationSettings();
+          _system = system;
+        });
+      }
+    }
+  }
+
+  Future<void> _change(void Function(NotificationSettings s) fn) async {
+    final s = _s;
+    if (s == null) return;
+    setState(() => fn(s));
+    try {
+      await AppScope.read(context).api.setNotificationSettings(s);
+    } catch (e) {
+      if (mounted) showError(context, e);
+      await _load();
+    }
+  }
+
+  Future<void> _allow() async {
+    final ok = await AppScope.read(context).askNotifications();
+    if (mounted) setState(() => _system = ok);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = _s;
+    final t = Theme.of(context).textTheme;
+    Widget sw(String key, String title, bool value, void Function(bool v) set, {String? subtitle}) => SwitchListTile(
+      key: Key(key),
+      contentPadding: EdgeInsets.zero,
+      value: value,
+      onChanged: s == null ? null : (v) => _change((_) => set(v)),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+      subtitle: subtitle == null ? null : Text(subtitle, style: t.bodySmall),
+    );
+    return _Section(
+      title: 'Уведомления',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (!_system) ...[
+            _Nudge(
+              key: const Key('notif-allow'),
+              icon: Icons.notifications_off_outlined,
+              text: 'Уведомления выключены на телефоне — нажмите, чтобы разрешить.',
+              onTap: _allow,
+            ),
+            const SizedBox(height: 10),
+          ],
+          _Card(
+            children: [
+              sw('notif-matches', 'Взаимный интерес', s?.matches ?? true, (v) => s!.matches = v),
+              Divider(height: 1, color: AppColors.line),
+              sw('notif-messages', 'Новые сообщения', s?.messages ?? true, (v) => s!.messages = v),
+              Divider(height: 1, color: AppColors.line),
+              sw('notif-nearby', 'Свои люди рядом', s?.nearby ?? true, (v) => s!.nearby = v),
+              Divider(height: 1, color: AppColors.line),
+              sw(
+                'notif-text',
+                'Показывать имя и текст',
+                s?.showText ?? false,
+                (v) => s!.showText = v,
+                subtitle: 'Иначе в уведомлении только «Новое сообщение» — телефон могут увидеть другие.',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _Privacy extends StatefulWidget {
   const _Privacy();
 

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart' show ThemeMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api/api.dart';
+import 'notifications.dart';
 
 import 'dart:convert';
 
@@ -18,15 +19,60 @@ enum Stage { loading, phone, code, about, goals, interests, profile, home, block
 
 /// Состояние приложения: сессия, шаг регистрации и данные профиля.
 class AppState extends ChangeNotifier {
-  AppState(this.api, {LocationSource? location, ContactsSource? contacts, AuthBrowser? browser, CodeAutofill? autofill})
-    : autofill = autofill ?? (api.isDemo ? const DemoCodeAutofill() : DeviceCodeAutofill()),
-      browser = browser ?? (api.isDemo ? const DemoAuthBrowser() : DeviceAuthBrowser()),
-      location = location ?? (api.isDemo ? const FixedLocation() : DeviceLocation()),
-      contacts = contacts ?? (api.isDemo ? const DemoContacts() : DeviceContacts()) {
+  AppState(
+    this.api, {
+    LocationSource? location,
+    ContactsSource? contacts,
+    AuthBrowser? browser,
+    CodeAutofill? autofill,
+    Notifier? notifier,
+  }) : notifier = notifier ?? SilentNotifier(),
+       autofill = autofill ?? (api.isDemo ? const DemoCodeAutofill() : DeviceCodeAutofill()),
+       browser = browser ?? (api.isDemo ? const DemoAuthBrowser() : DeviceAuthBrowser()),
+       location = location ?? (api.isDemo ? const FixedLocation() : DeviceLocation()),
+       contacts = contacts ?? (api.isDemo ? const DemoContacts() : DeviceContacts()) {
     api.onBlocked = _blocked;
+    api.onPush = _onPush;
   }
 
   final Api api;
+
+  /// Системные уведомления. По умолчанию молчат (тесты); в приложении — LocalNotifier.
+  final Notifier notifier;
+
+  /// Открытая сейчас переписка: о сообщениях в ней не уведомляем.
+  String? openChatId;
+
+  /// Нажали на уведомление — какую переписку открыть (забирает главный экран).
+  String? pendingChat;
+
+  static const _notifAskedKey = 'notifications_asked';
+
+  void _onPush(PushEvent e) {
+    if (e.kind == 'message' && e.matchId == openChatId) return;
+    notifier.show(e);
+    // Списки «Взаимно» и «Чаты» обновятся сами — бейдж появится сразу.
+    if (stage == Stage.home) loadMatches().catchError((_) {});
+  }
+
+  void _openFromNotification(String matchId) {
+    pendingChat = matchId;
+    notifyListeners();
+  }
+
+  /// Спросить разрешение на уведомления — один раз, при первом входе на главный экран.
+  Future<bool> shouldAskNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_notifAskedKey) ?? false) return false;
+    return !(await notifier.enabled());
+  }
+
+  Future<bool> askNotifications() async {
+    await (await SharedPreferences.getInstance()).setBool(_notifAskedKey, true);
+    return notifier.requestPermission();
+  }
+
+  Future<void> declineNotifications() async => (await SharedPreferences.getInstance()).setBool(_notifAskedKey, true);
 
   /// Автоподстановка кода из звонка или SMS. В демо «звонок» приходит сам через 2 секунды.
   final CodeAutofill autofill;
@@ -85,6 +131,9 @@ class AppState extends ChangeNotifier {
 
   /// Анкета; null — ещё не загружали или не загрузилась.
   ProfileFields? profile;
+
+  /// Свои фото по порядку; первое — главное.
+  List<MyPhoto> photos = [];
 
   /// Взаимные интересы; null — ещё не загружали.
   List<Match>? matches;
@@ -151,6 +200,12 @@ class AppState extends ChangeNotifier {
   /// При запуске: восстанавливаем сессию и понимаем, на каком шаге человек остановился.
   Future<void> start() async {
     await api.init();
+    try {
+      await notifier.init(_openFromNotification);
+      pendingChat = await notifier.launchMatch();
+    } catch (_) {
+      // Без уведомлений приложение работает как обычно.
+    }
     final prefs = await SharedPreferences.getInstance();
     api.token = prefs.getString(_tokenKey);
     if (api.token == null) return _go(Stage.phone);
@@ -179,7 +234,8 @@ class AppState extends ChangeNotifier {
     final p = profile;
     // Вход на новом телефоне: если интересы и анкета уже есть, шаги не повторяем.
     final done =
-        (prefs.getBool(_onboardedKey) ?? false) || (interests.isNotEmpty && p != null && profileCompletion(p) > 0);
+        (prefs.getBool(_onboardedKey) ?? false) ||
+        (interests.isNotEmpty && p != null && profileCompletion(p, photos: photos.isNotEmpty) > 0);
     if (!done) {
       return _go(interests.isEmpty ? Stage.interests : Stage.profile);
     }
@@ -190,10 +246,36 @@ class AppState extends ChangeNotifier {
   Future<void> loadProfile() async {
     try {
       profile = await api.profile();
+      photos = await api.myPhotos();
       notifyListeners();
     } on ApiException {
       // Без анкеты просто не покажем процент заполненности.
     }
+  }
+
+  /// Добавляет фото в конец анкеты.
+  Future<void> addPhoto(Uint8List bytes) async {
+    final p = await api.uploadPhoto(bytes);
+    photos = [...photos, p];
+    notifyListeners();
+  }
+
+  Future<void> deletePhoto(String id) async {
+    await api.deletePhoto(id);
+    photos = [for (final (i, p) in photos.where((p) => p.id != id).indexed) MyPhoto(p.id, i)];
+    notifyListeners();
+  }
+
+  /// Делает фото главным (первым), остальные сохраняют порядок.
+  Future<void> makeMainPhoto(String id) async {
+    final ids = [
+      id,
+      for (final p in photos)
+        if (p.id != id) p.id,
+    ];
+    await api.reorderPhotos(ids);
+    photos = [for (final (i, pid) in ids.indexed) MyPhoto(pid, i)];
+    notifyListeners();
   }
 
   void setProfile(ProfileFields f) {
@@ -295,6 +377,7 @@ class AppState extends ChangeNotifier {
     }
     await _forget();
     me = null;
+    photos = [];
     block = null;
     warning = '';
     goals = [];

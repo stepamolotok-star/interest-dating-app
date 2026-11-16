@@ -20,6 +20,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/cities"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/moderation"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/photos"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
 	"github.com/stepamolotok-star/interest-dating-app/backend/migrations"
 )
@@ -58,6 +59,7 @@ func moderationServer(t *testing.T) (*httptest.Server, *pgxpool.Pool) {
 		Feed:       &feed.Service{DB: db, Catalog: cat},
 		Chat:       &chat.Service{DB: db, Catalog: cat},
 		Moderation: &moderation.Service{DB: db, PhoneSecret: secret},
+		Photos:     &photos.Service{DB: db, Store: photos.DiskStore{Dir: t.TempDir()}},
 		AdminToken: testAdminToken,
 	}))
 	t.Cleanup(srv.Close)
