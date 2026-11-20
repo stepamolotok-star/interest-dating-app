@@ -441,6 +441,8 @@ type Stats struct {
 	OnHold  int `json:"on_hold"`
 	Banned  int `json:"banned"`
 	Blocked int `json:"suspended"`
+	// Verifications — селфи ждут проверки.
+	Verifications int `json:"verifications"`
 }
 
 func (s *Service) Stats(ctx context.Context) (Stats, error) {
@@ -450,8 +452,9 @@ func (s *Service) Stats(ctx context.Context) (Stats, error) {
 		       (SELECT count(*) FROM reports WHERE status IN ('open','in_review') AND urgent),
 		       (SELECT count(*) FROM users WHERE on_hold),
 		       (SELECT count(*) FROM users WHERE banned_at IS NOT NULL),
-		       (SELECT count(*) FROM users WHERE suspended_until > now())`).
-		Scan(&st.Open, &st.Urgent, &st.OnHold, &st.Banned, &st.Blocked)
+		       (SELECT count(*) FROM users WHERE suspended_until > now()),
+		       (SELECT count(*) FROM photo_verifications WHERE status = 'pending')`).
+		Scan(&st.Open, &st.Urgent, &st.OnHold, &st.Banned, &st.Blocked, &st.Verifications)
 	return st, err
 }
 

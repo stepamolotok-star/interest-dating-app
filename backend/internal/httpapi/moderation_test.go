@@ -22,6 +22,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/moderation"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/photos"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/verify"
 	"github.com/stepamolotok-star/interest-dating-app/backend/migrations"
 )
 
@@ -39,6 +40,7 @@ func moderationServer(t *testing.T) (*httptest.Server, *pgxpool.Pool) {
 		t.Fatal(err)
 	}
 	t.Cleanup(db.Close)
+	store := photos.DiskStore{Dir: t.TempDir()}
 	if _, err := migrations.Apply(ctx, db); err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +61,8 @@ func moderationServer(t *testing.T) (*httptest.Server, *pgxpool.Pool) {
 		Feed:       &feed.Service{DB: db, Catalog: cat},
 		Chat:       &chat.Service{DB: db, Catalog: cat},
 		Moderation: &moderation.Service{DB: db, PhoneSecret: secret},
-		Photos:     &photos.Service{DB: db, Store: photos.DiskStore{Dir: t.TempDir()}},
+		Photos:     &photos.Service{DB: db, Store: store},
+		Verify:     &verify.Service{DB: db, Store: store},
 		AdminToken: testAdminToken,
 	}))
 	t.Cleanup(srv.Close)

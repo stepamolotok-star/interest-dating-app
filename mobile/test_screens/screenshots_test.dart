@@ -12,7 +12,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:svoi/api/demo_api.dart';
 import 'package:svoi/app.dart';
 import 'package:svoi/code_autofill.dart';
+import 'package:svoi/screens/verify_screen.dart';
 import 'package:svoi/state.dart';
+import 'package:svoi/widgets/photos.dart';
 
 Future<void> _loadFonts() async {
   final manrope = FontLoader('Manrope');
@@ -23,12 +25,15 @@ Future<void> _loadFonts() async {
   await (FontLoader('Unbounded')..addFont(rootBundle.load('assets/fonts/Unbounded-700.ttf'))).load();
   final flutterRoot = Platform.environment['FLUTTER_ROOT'] ?? '/opt/flutter';
   final icons = File('$flutterRoot/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf');
-  await (FontLoader(
-    'MaterialIcons',
-  )..addFont(Future.value(ByteData.sublistView(icons.readAsBytesSync())))).load();
+  await (FontLoader('MaterialIcons')..addFont(Future.value(ByteData.sublistView(icons.readAsBytesSync())))).load();
 }
 
 void main() {
+  setUp(() {
+    PhotosEditor.pick = (_) async => _demoPhoto();
+    VerifyScreen.takeSelfie = () async => _demoPhoto('forest');
+  });
+
   const root = Key('root');
 
   testWidgets('снимки экранов', (tester) async {
@@ -106,11 +111,7 @@ void main() {
     await shot('04_goals');
     await tap(find.text('Дальше'));
 
-    for (final id in [
-      'fitness.strength.yoga',
-      'society.inner.meditation',
-      'society.inner.self_development',
-    ]) {
+    for (final id in ['fitness.strength.yoga', 'society.inner.meditation', 'society.inner.self_development']) {
       await tester.enterText(
         find.byKey(const Key('interest-search')),
         id.split('.').last == 'yoga'
@@ -165,10 +166,7 @@ void main() {
     await tap(find.byKey(const Key('use-hint')));
     await tap(find.byKey(const Key('send')));
     await tester.pump(DemoApi.replyDelay + const Duration(seconds: 3));
-    await tester.enterText(
-      find.byKey(const Key('message')),
-      'С универа! Давай как-нибудь сходим на занятие вместе?',
-    );
+    await tester.enterText(find.byKey(const Key('message')), 'С универа! Давай как-нибудь сходим на занятие вместе?');
     await tester.pump();
     await tap(find.byKey(const Key('send')));
     await shot('10_chat');
@@ -196,10 +194,7 @@ void main() {
     await tap(find.byKey(const Key('block-prompts')));
     await tap(find.byKey(const Key('add-prompt')));
     await tap(find.text('Чему могу научить'));
-    await tester.enterText(
-      find.byKey(const Key('prompt-answer')),
-      'Стоять на голове и ставить палатку под дождём',
-    );
+    await tester.enterText(find.byKey(const Key('prompt-answer')), 'Стоять на голове и ставить палатку под дождём');
     await tap(find.text('Готово'));
     await shot('14b_profile_block');
     await tap(find.text('Сохранить'));
@@ -244,5 +239,25 @@ void main() {
     await tester.drag(filters, const Offset(0, 180));
     await tester.pumpAndSettle();
     await shot('20_filters_more');
+
+    // Фото и проверка по селфи.
+    await tester.tap(find.byTooltip('Назад'));
+    await tester.pumpAndSettle();
+    await tap(find.text('Профиль'));
+    for (var i = 0; i < 2; i++) {
+      await tap(find.byKey(Key('photo-slot-$i')));
+      await tap(find.byKey(const Key('photo-gallery')));
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 600)));
+      await tester.pumpAndSettle();
+    }
+    await tester.ensureVisible(find.byKey(const Key('verify-start')));
+    await shot('21_profile_photos');
+    await tap(find.byKey(const Key('verify-start')));
+    await shot('22_verify');
+    await tap(find.byKey(const Key('take-selfie')));
+    await shot('23_verify_selfie');
   });
 }
+
+/// «Фото» для снимков экрана — рисованные пейзажи из демо.
+Future<Uint8List> _demoPhoto([String name = 'lake']) async => File('assets/demo/$name.jpg').readAsBytesSync();

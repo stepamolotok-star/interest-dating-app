@@ -295,6 +295,11 @@ func (s *Service) remove(ctx context.Context, photoID, userID string) (string, e
 		WHERE p.id = o.id`, userID); err != nil {
 		return "", err
 	}
+	// Проверка по селфи подтверждает, что фото анкеты — твои. Удалили все фото — значок снимается.
+	if _, err := tx.Exec(ctx, `UPDATE users SET photo_verified_at = NULL
+		WHERE id = $1 AND NOT EXISTS (SELECT 1 FROM photos WHERE user_id = $1)`, userID); err != nil {
+		return "", err
+	}
 	return key, tx.Commit(ctx)
 }
 

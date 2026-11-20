@@ -20,6 +20,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/oauth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/photos"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/verify"
 )
 
 // Deps — зависимости HTTP-слоя. Auth может быть nil (тогда вход, профиль
@@ -36,6 +37,7 @@ type Deps struct {
 	Cities   *cities.Catalog
 	Photos   *photos.Service
 	Notify   *notify.Service
+	Verify   *verify.Service
 	Log      *slog.Logger
 
 	// Moderation и AdminToken включают страницу модератора /admin.
@@ -56,6 +58,7 @@ type Server struct {
 	cities   *cities.Catalog
 	photos   *photos.Service
 	notify   *notify.Service
+	verify   *verify.Service
 	log      *slog.Logger
 
 	moderation *moderation.Service
@@ -64,7 +67,7 @@ type Server struct {
 
 // New возвращает готовый http.Handler.
 func New(d Deps) http.Handler {
-	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, contacts: d.Contacts, oauth: d.OAuth, cities: d.Cities, photos: d.Photos, notify: d.Notify, log: d.Log,
+	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, contacts: d.Contacts, oauth: d.OAuth, cities: d.Cities, photos: d.Photos, notify: d.Notify, verify: d.Verify, log: d.Log,
 		moderation: d.Moderation, adminToken: d.AdminToken}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.health)
@@ -84,6 +87,9 @@ func New(d Deps) http.Handler {
 		}
 		if s.notify != nil {
 			s.registerNotify(mux)
+		}
+		if s.verify != nil {
+			s.registerVerify(mux)
 		}
 		if s.contacts != nil {
 			s.registerContacts(mux)

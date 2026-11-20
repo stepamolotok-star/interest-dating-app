@@ -87,10 +87,73 @@ async function loadStats() {
     el('span', { class: 'stat' }, 'Открытых: ', el('b', { text: String(s.open) })),
     el('span', { class: 'stat' }, 'Скрыто до проверки: ', el('b', { text: String(s.on_hold) })),
     el('span', { class: 'stat' }, 'Заблокировано: ', el('b', { text: String(s.banned + s.suspended) })),
+    el('span', { class: 'stat' + (s.verifications ? ' hot' : '') }, 'Селфи на проверке: ', el('b', { text: String(s.verifications) })),
+  );
+}
+
+// Селфи для значка «Фото проверено»: сравнить лицо с фото анкеты и проверить жест.
+let verifyItems = [];
+
+async function loadVerifications() {
+  const { items, reasons } = await api('/verifications');
+  verifyItems = items;
+  const list = $('list');
+  list.replaceChildren(...items.map((v) => el('li', {
+    class: 'item', tabindex: '0', role: 'button', 'aria-current': current === v.id ? 'true' : 'false',
+    onclick: () => openVerification(v, reasons),
+    onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVerification(v, reasons); } },
+  },
+  el('div', { class: 'row' },
+    el('span', { class: 'name', text: `${v.name}, ${v.age}` }),
+    el('span', { class: 'time', text: ago(v.submitted_at) })),
+  el('div', {}, el('span', { class: 'tag', text: 'Проверка фото' })))));
+  $('empty').textContent = 'Селфи на проверке нет';
+  $('empty').hidden = items.length > 0;
+}
+
+async function selfie(id) {
+  const img = el('img', { alt: 'Селфи', class: 'selfie' });
+  const res = await fetch('/admin/api/verifications/' + encodeURIComponent(id) + '/selfie', { headers: { Authorization: 'Bearer ' + token() } });
+  if (res.ok) img.src = URL.createObjectURL(await res.blob());
+  return img;
+}
+
+async function openVerification(v, reasons) {
+  current = v.id;
+  document.querySelectorAll('.item').forEach((n) => n.setAttribute('aria-current', 'false'));
+  const box = $('detail');
+  box.replaceChildren(el('p', { class: 'muted center', text: 'Загрузка…' }));
+  const err = el('p', { class: 'error', role: 'alert' });
+  const reason = el('select', { id: 'reject-reason' }, ...reasons.map((r) => el('option', { value: r, text: r })));
+  async function decide(approve) {
+    try {
+      await api(`/verifications/${v.id}/decide`, { method: 'POST', body: { approve, note: approve ? '' : reason.value } });
+      box.replaceChildren(el('p', { class: 'muted center', text: approve ? 'Фото подтверждено' : 'Отказано: ' + reason.value }));
+      current = null;
+      await refresh();
+    } catch (e) { err.textContent = e.message; }
+  }
+  const photos = await Promise.all(v.photos.map((pid) => photo(pid)));
+  box.replaceChildren(
+    el('h2', { text: `${v.name}, ${v.age}` }),
+    el('p', { class: 'muted', text: 'Отправлено ' + fmtDate(v.submitted_at) }),
+    el('div', { class: 'gesture' }, 'Жест: ', el('b', { text: v.gesture })),
+    el('div', { class: 'compare' },
+      el('figure', {}, await selfie(v.id), el('figcaption', { text: 'Селфи' })),
+      el('div', { class: 'photos' }, ...photos.map((img, i) => el('figure', {}, img, el('figcaption', { text: i === 0 ? 'Главное фото' : 'Фото ' + (i + 1) }))))),
+    el('p', { class: 'muted', text: 'Подтверждайте, только если это тот же человек, что на фото анкеты, и жест совпадает. Селфи удалится после решения.' }),
+    el('div', { class: 'actions' },
+      el('button', { type: 'button', class: 'primary', onclick: () => decide(true), text: 'Подтвердить' }),
+      el('label', { for: 'reject-reason', class: 'muted', text: 'или отказать:' }),
+      reason,
+      el('button', { type: 'button', class: 'danger', onclick: () => decide(false), text: 'Отказать' })),
+    err,
   );
 }
 
 async function loadList() {
+  if (status === 'verify') return loadVerifications();
+  $('empty').textContent = 'Жалоб нет';
   const { items } = await api('/reports?status=' + status);
   const list = $('list');
   list.replaceChildren(...items.map((r) => {
@@ -245,6 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
   $('refresh').addEventListener('click', refresh);
   document.querySelectorAll('[role="tab"]').forEach((b) => b.addEventListener('click', () => {
     status = b.dataset.status;
+    current = null;
+    $('detail').replaceChildren(el('p', { class: 'muted center', text: status === 'verify' ? 'Выберите селфи слева' : 'Выберите жалобу слева' }));
     document.querySelectorAll('[role="tab"]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
     refresh();
   }));

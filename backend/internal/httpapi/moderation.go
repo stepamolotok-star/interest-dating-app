@@ -97,6 +97,9 @@ func (s *Server) registerAdmin(mux *http.ServeMux) {
 			s.adminRespond(w, nil, err)
 		})
 	}
+	if s.verify != nil {
+		s.registerVerifyAdmin(h)
+	}
 	h("POST /admin/api/users/{id}/unban", func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
 			Note string `json:"note"`

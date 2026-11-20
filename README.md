@@ -79,6 +79,9 @@ Push-уведомления: `RUSTORE_PROJECT_ID` и `RUSTORE_PUSH_TOKEN` из �
 | GET | `/v1/photos/{id}` | Картинка JPEG, если её можно видеть (правила как в ленте) |
 | GET/PUT | `/v1/me/notifications` | `{matches, messages, nearby, show_text}` |
 | PUT/DELETE | `/v1/me/push-token` | `{token, provider: "rustore"}` — устройство для push |
+| GET | `/v1/me/verification` | Проверка по селфи: `none`, `requested` (+ `gesture`), `pending`, `approved`, `rejected` (+ `note`) |
+| POST | `/v1/me/verification` | Выдать жест (нужно хотя бы одно фото; до 5 попыток в сутки) |
+| POST | `/v1/me/verification/{id}/selfie` | Селфи с жестом — тело запроса, как у фото |
 | GET/PUT | `/v1/me/profile` | Поля профиля; религия — только с `consents.special_category` |
 | GET/PUT/DELETE | `/v1/me/contacts` | «Скрыть меня от контактов»: `PUT {"hashes": [SHA-256 номеров +79…]}` включает, `DELETE` выключает и удаляет всё |
 | GET/PUT | `/v1/me/visibility` | Видимость полей: `anonymous`, `after_match`, `matching_only`, `hidden` |
@@ -109,6 +112,9 @@ Push-уведомления: `RUSTORE_PROJECT_ID` и `RUSTORE_PUSH_TOKEN` из �
 | POST | `/admin/api/users/{id}/unban` | Снять блокировку |
 | GET | `/admin/api/photos/{id}` | Фото из жалобы |
 | POST | `/admin/api/photos/{id}/remove` | `{note?}` — убрать фото из анкеты |
+| GET | `/admin/api/verifications` | Селфи на проверке и причины отказа |
+| GET | `/admin/api/verifications/{id}/selfie` | Само селфи (до решения) |
+| POST | `/admin/api/verifications/{id}/decide` | `{approve, note?}` — подтвердить или отказать |
 
 ### Режим «Рядом» (нужен `REDIS_URL`)
 

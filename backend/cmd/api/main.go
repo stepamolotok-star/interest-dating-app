@@ -36,6 +36,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/oauth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/photos"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/verify"
 	"github.com/stepamolotok-star/interest-dating-app/backend/migrations"
 )
 
@@ -83,6 +84,8 @@ func run(log *slog.Logger) error {
 		// Фото пока лежат в папке на сервере; потом — объектное хранилище в России.
 		photoDir := envOr("PHOTOS_DIR", "data/photos")
 		deps.Photos = &photos.Service{DB: db, Store: photos.DiskStore{Dir: photoDir}}
+		// Селфи для проверки — в той же папке (подпапка verify/), удаляются после решения модератора.
+		deps.Verify = &verify.Service{DB: db, Store: photos.DiskStore{Dir: photoDir}}
 		log.Info("фото хранятся в папке", "dir", photoDir)
 
 		// Push: RuStore, если заданы проект и сервисный токен; иначе — только в журнал.

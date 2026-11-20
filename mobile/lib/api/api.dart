@@ -135,6 +135,11 @@ abstract class Api {
   /// Новый порядок: все свои фото, первое станет главным.
   Future<void> reorderPhotos(List<String> ids);
 
+  /// Проверка фото по селфи: состояние, выдать жест, отправить селфи.
+  Future<Verification> verification();
+  Future<Verification> startVerification();
+  Future<Verification> submitSelfie(String id, Uint8List bytes);
+
   /// Картинка фото по id — своего или чужого (сервер проверит, можно ли).
   ImageProvider photo(String id);
 

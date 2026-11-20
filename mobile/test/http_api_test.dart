@@ -214,4 +214,26 @@ void main() {
     expect(calls[1], contains('"nearby":false'));
     expect(calls[2], 'PUT /v1/me/push-token {"token":"dev-1","provider":"rustore"}');
   });
+
+  test('проверка по селфи: жест, отправка, статус', () async {
+    final calls = <String>[];
+    final api = HttpApi(
+      'https://api.test',
+      client: MockClient((req) async {
+        calls.add('${req.method} ${req.url.path}');
+        if (req.url.path.endsWith('/selfie')) {
+          expect(req.bodyBytes, [1, 2, 3]);
+          return json({'status': 'pending', 'id': 'v1'});
+        }
+        if (req.method == 'POST') return json({'status': 'requested', 'id': 'v1', 'gesture': 'Коснитесь уха рукой'});
+        return json({'status': 'rejected', 'id': 'v1', 'note': 'На селфи другой жест'});
+      }),
+    )..token = 't0k';
+    final s = await api.startVerification();
+    expect((s.status, s.id, s.gesture), ('requested', 'v1', 'Коснитесь уха рукой'));
+    expect((await api.submitSelfie('v1', Uint8List.fromList([1, 2, 3]))).status, 'pending');
+    final v = await api.verification();
+    expect((v.status, v.note), ('rejected', 'На селфи другой жест'));
+    expect(calls, ['POST /v1/me/verification', 'POST /v1/me/verification/v1/selfie', 'GET /v1/me/verification']);
+  });
 }

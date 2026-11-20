@@ -30,10 +30,11 @@
     <div class="who"><span id="who"></span> <button id="logout" type="button" class="link">Выйти</button></div>
   </header>
   <div class="layout">
-    <section class="queue" aria-label="Жалобы">
+    <section class="queue" aria-label="Очередь">
       <div class="tabs" role="tablist">
         <button type="button" role="tab" data-status="open" aria-selected="true">Открытые</button>
         <button type="button" role="tab" data-status="closed" aria-selected="false">Решённые</button>
+        <button type="button" role="tab" data-status="verify" aria-selected="false">Селфи</button>
         <button type="button" id="refresh" class="link" aria-label="Обновить">Обновить</button>
       </div>
       <ul id="list" class="list"></ul>

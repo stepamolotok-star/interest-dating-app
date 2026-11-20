@@ -168,6 +168,7 @@ class DemoApi extends Api {
     ],
     'seen': _seen.toList(),
     'notifications': _notif.toJson(),
+    'verified': _verification.status == 'approved',
     'likes': _likes,
     'matches': [for (final m in _matches) m.toJson()],
     'messages': {
@@ -193,6 +194,7 @@ class DemoApi extends Api {
     List<Map<String, dynamic>> list(String k) => ((j[k] as List?) ?? const []).cast<Map<String, dynamic>>();
     _registered = j['registered'] as bool? ?? false;
     _notif = NotificationSettings.fromJson(((j['notifications'] as Map?) ?? const {}).cast<String, dynamic>());
+    if (j['verified'] == true) _verification = const Verification(status: 'approved');
     final reg = j['reg'] as Map<String, dynamic>?;
     if (reg != null) {
       _reg = Registration(
@@ -359,7 +361,63 @@ class DemoApi extends Api {
       region: city?.region ?? '',
       age: age,
       warning: warning,
+      photoVerified: _verification.status == 'approved',
     );
+  }
+
+  /// В демо селфи «проверяет модератор» через столько времени — и всегда подтверждает.
+  static Duration verifyDelay = const Duration(seconds: 8);
+
+  static const _gestures = [
+    'Покажите два пальца — «победа» — рядом с лицом',
+    'Поднимите большой палец вверх рядом с лицом',
+    'Коснитесь подбородка указательным пальцем',
+    'Приложите открытую ладонь к щеке',
+  ];
+
+  Verification _verification = const Verification();
+
+  @override
+  Future<Verification> verification() async {
+    _needUser();
+    // Удалили все фото — значок снимается, как на сервере.
+    if (_verification.status == 'approved' && _myPhotos.isEmpty) _verification = const Verification();
+    return _verification;
+  }
+
+  @override
+  Future<Verification> startVerification() async {
+    _needUser();
+    if (_myPhotos.isEmpty) {
+      throw const ApiException(400, 'Сначала добавьте фото в анкету — с ними модератор сравнит селфи.');
+    }
+    if (_verification.status case 'approved' || 'pending' || 'requested') return _verification;
+    _verification = Verification(
+      status: 'requested',
+      id: 'verify-${DateTime.now().millisecondsSinceEpoch}',
+      gesture: _gestures[math.Random().nextInt(_gestures.length)],
+    );
+    return _verification;
+  }
+
+  @override
+  Future<Verification> submitSelfie(String id, Uint8List bytes) async {
+    _needUser();
+    await _pause();
+    if (_verification.status != 'requested' || _verification.id != id) {
+      throw const ApiException(400, 'Эта попытка уже отправлена — обновите экран.');
+    }
+    _verification = Verification(status: 'pending', id: id);
+    Future<void>.delayed(verifyDelay, () {
+      if (_verification.id != id || _verification.status != 'pending') return;
+      _verification = const Verification(status: 'approved');
+      _save();
+      onPush?.call(
+        const PushEvent(kind: 'verify', title: 'Фото проверено', body: 'Теперь у анкеты есть значок проверки'),
+      );
+    });
+    _save();
+    return _verification;
   }
 
   @override

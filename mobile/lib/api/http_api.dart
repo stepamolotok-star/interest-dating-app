@@ -115,6 +115,24 @@ class HttpApi extends Api {
   Future<void> reorderPhotos(List<String> ids) => _call('PUT', '/v1/me/photos/order', body: {'ids': ids});
 
   @override
+  Future<Verification> verification() async =>
+      Verification.fromJson(await _call('GET', '/v1/me/verification') as Map<String, dynamic>);
+
+  @override
+  Future<Verification> startVerification() async =>
+      Verification.fromJson(await _call('POST', '/v1/me/verification') as Map<String, dynamic>);
+
+  @override
+  Future<Verification> submitSelfie(String id, Uint8List bytes) async => Verification.fromJson(
+    await _call(
+      'POST',
+      '/v1/me/verification/${Uri.encodeComponent(id)}/selfie',
+      bytes: bytes,
+      timeout: const Duration(seconds: 90),
+    ) as Map<String, dynamic>,
+  );
+
+  @override
   ImageProvider photo(String id) => NetworkImage(
     '$baseUrl/v1/photos/${Uri.encodeComponent(id)}',
     headers: {if (token != null) 'Authorization': 'Bearer $token'},

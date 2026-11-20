@@ -11,6 +11,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/matching"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/photos"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/verify"
 )
 
 func (s *Server) registerProfile(mux *http.ServeMux) {
@@ -183,7 +184,8 @@ func (s *Server) respond(w http.ResponseWriter, v any, err error) {
 	case errors.Is(err, chat.ErrEmpty), errors.Is(err, chat.ErrTooLong), errors.Is(err, chat.ErrBadReason):
 		writeError(w, http.StatusBadRequest, err.Error())
 	case errors.Is(err, profile.ErrNotFound), errors.Is(err, feed.ErrNotAvailable), errors.Is(err, chat.ErrNotFound),
-		errors.Is(err, photos.ErrNotFound):
+		errors.Is(err, photos.ErrNotFound),
+		errors.Is(err, verify.ErrNotFound):
 		writeError(w, http.StatusNotFound, err.Error())
 	default:
 		s.log.Error("ошибка запроса", "err", err)

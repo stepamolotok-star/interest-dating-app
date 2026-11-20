@@ -23,6 +23,7 @@ const (
 	KindMatch   Kind = "match"
 	KindMessage Kind = "message"
 	KindNearby  Kind = "nearby"
+	KindVerify  Kind = "verify"
 )
 
 // Message — одно уведомление. Data приложение получает при нажатии (куда открыть).
@@ -184,6 +185,20 @@ func (s *Service) MessageSent(ctx context.Context, matchID, senderID, text strin
 				Data: map[string]string{"type": "message", "match_id": matchID}}
 			if st.ShowText {
 				m.Title, m.Body = name, cut(text, 120)
+			}
+			return m
+		})
+	})
+}
+
+// Verified — итог проверки по селфи. Приходит всегда: человек ждёт ответа.
+func (s *Service) Verified(ctx context.Context, userID string, approved bool) {
+	s.run(ctx, func(ctx context.Context) error {
+		return s.deliver(ctx, userID, func(Settings) *Message {
+			m := &Message{Kind: KindVerify, Title: "Фото проверено", Body: "Теперь у анкеты есть значок проверки",
+				Data: map[string]string{"type": "verify"}}
+			if !approved {
+				m.Title, m.Body = "Проверка фото не пройдена", "Откройте профиль — там причина и новая попытка"
 			}
 			return m
 		})

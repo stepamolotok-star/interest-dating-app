@@ -51,6 +51,10 @@ class AppState extends ChangeNotifier {
   void _onPush(PushEvent e) {
     if (e.kind == 'message' && e.matchId == openChatId) return;
     notifier.show(e);
+    if (e.kind == 'verify') {
+      loadVerification().catchError((_) {});
+      return;
+    }
     // Списки «Взаимно» и «Чаты» обновятся сами — бейдж появится сразу.
     if (stage == Stage.home) loadMatches().catchError((_) {});
   }
@@ -134,6 +138,9 @@ class AppState extends ChangeNotifier {
 
   /// Свои фото по порядку; первое — главное.
   List<MyPhoto> photos = [];
+
+  /// Проверка фото по селфи.
+  Verification verification = const Verification();
 
   /// Взаимные интересы; null — ещё не загружали.
   List<Match>? matches;
@@ -247,6 +254,7 @@ class AppState extends ChangeNotifier {
     try {
       profile = await api.profile();
       photos = await api.myPhotos();
+      verification = await api.verification();
       notifyListeners();
     } on ApiException {
       // Без анкеты просто не покажем процент заполненности.
@@ -263,6 +271,28 @@ class AppState extends ChangeNotifier {
   Future<void> deletePhoto(String id) async {
     await api.deletePhoto(id);
     photos = [for (final (i, p) in photos.where((p) => p.id != id).indexed) MyPhoto(p.id, i)];
+    notifyListeners();
+    // Удалили последнее фото — сервер снял значок проверки.
+    if (photos.isEmpty) await loadVerification().catchError((_) {});
+  }
+
+  /// Обновляет состояние проверки; подтвердили — перечитываем аккаунт (значок «Фото проверено»).
+  Future<void> loadVerification() async {
+    verification = await api.verification();
+    if (verification.status == 'approved' && !(me?.photoVerified ?? true)) me = await api.me();
+    if (verification.status != 'approved' && (me?.photoVerified ?? false)) me = await api.me();
+    notifyListeners();
+  }
+
+  /// Выдать жест (или продолжить с уже выданным).
+  Future<Verification> startVerification() async {
+    verification = await api.startVerification();
+    notifyListeners();
+    return verification;
+  }
+
+  Future<void> submitSelfie(Uint8List bytes) async {
+    verification = await api.submitSelfie(verification.id, bytes);
     notifyListeners();
   }
 
@@ -378,6 +408,7 @@ class AppState extends ChangeNotifier {
     await _forget();
     me = null;
     photos = [];
+    verification = const Verification();
     block = null;
     warning = '';
     goals = [];

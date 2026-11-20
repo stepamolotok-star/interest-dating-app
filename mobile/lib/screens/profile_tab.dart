@@ -13,6 +13,7 @@ import 'interests_screen.dart';
 import 'nearby_settings_screen.dart';
 import 'profile_edit_screen.dart';
 import 'profile_preview_screen.dart';
+import 'verify_screen.dart';
 
 /// Профиль: заполненность и анкета по блокам, цели, интересы, приватность, поддержка, выход.
 class ProfileTab extends StatefulWidget {
@@ -56,6 +57,8 @@ class _ProfileTabState extends State<ProfileTab> {
                 Tag('Возраст подтверждён', icon: Icons.verified_outlined, color: AppColors.accent)
               else
                 const Tag('Возраст не подтверждён', icon: Icons.info_outline),
+              if (me?.photoVerified ?? false)
+                Tag('Фото проверено', icon: Icons.photo_camera_outlined, color: AppColors.accent),
             ],
           ),
           const SizedBox(height: 20),
@@ -74,6 +77,7 @@ class _ProfileTabState extends State<ProfileTab> {
                       : 'Нажмите на фото, чтобы сделать его главным или удалить.',
                   style: t.bodySmall?.copyWith(color: AppColors.muted),
                 ),
+                if (state.photos.isNotEmpty) ...[const SizedBox(height: 12), const _Verification()],
               ],
             ),
           ),
@@ -157,6 +161,51 @@ class _Section extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Проверка фото по селфи: призыв, «на проверке», отказ с причиной или «проверено».
+class _Verification extends StatelessWidget {
+  const _Verification();
+
+  @override
+  Widget build(BuildContext context) {
+    final v = AppScope.of(context).verification;
+    final t = Theme.of(context).textTheme;
+    void open() => openScreen(context, const VerifyScreen());
+    Widget line(IconData icon, String text, Color color) => Row(
+      key: Key('verify-${v.status}'),
+      children: [
+        Icon(icon, color: color),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: t.bodyMedium?.copyWith(color: color, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
+    return switch (v.status) {
+      'approved' => line(Icons.verified_outlined, 'Фото проверено — у анкеты есть значок', AppColors.accent),
+      'pending' => line(
+        Icons.hourglass_top,
+        'Селфи на проверке — обычно до суток, пришлём уведомление',
+        AppColors.muted,
+      ),
+      'rejected' => _Nudge(
+        key: const Key('verify-rejected'),
+        icon: Icons.error_outline,
+        text: 'Проверка не пройдена: ${v.note}. Попробовать ещё раз',
+        onTap: open,
+      ),
+      _ => _Nudge(
+        key: const Key('verify-start'),
+        icon: Icons.verified_user_outlined,
+        text: 'Подтвердите, что на фото вы, — появится значок «Фото проверено». Нужно одно селфи.',
+        onTap: open,
+      ),
+    };
   }
 }
 

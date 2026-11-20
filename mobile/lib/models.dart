@@ -775,3 +775,24 @@ class PushEvent {
   /// Без подробностей — на экране блокировки только «Новое сообщение».
   final bool private;
 }
+
+/// Проверка фото по селфи.
+class Verification {
+  const Verification({this.status = 'none', this.id = '', this.gesture = '', this.note = ''});
+
+  factory Verification.fromJson(Map<String, dynamic> j) => Verification(
+    status: j['status'] as String? ?? 'none',
+    id: j['id'] as String? ?? '',
+    gesture: j['gesture'] as String? ?? '',
+    note: j['note'] as String? ?? '',
+  );
+
+  /// none — не проверялись; requested — выдан жест; pending — у модератора;
+  /// approved — фото проверено; rejected — отказ, причина в [note].
+  final String status;
+  final String id;
+
+  /// Что показать на селфи: «Коснитесь подбородка указательным пальцем».
+  final String gesture;
+  final String note;
+}

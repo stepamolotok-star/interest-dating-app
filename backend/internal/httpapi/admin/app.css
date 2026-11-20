@@ -39,7 +39,7 @@ label { display: block; font-weight: 600; margin: 12px 0 4px; }
 .layout { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px; padding: 16px; max-width: 1400px; margin: 0 auto; }
 .queue { flex: 1 1 340px; max-width: 480px; min-width: 0; }
 .detail { flex: 999 1 520px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
-.tabs { display: flex; gap: 6px; align-items: center; margin-bottom: 10px; }
+.tabs { flex-wrap: wrap; display: flex; gap: 6px; align-items: center; margin-bottom: 10px; }
 .tabs [aria-selected="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
 .tabs .link { margin-left: auto; }
 
@@ -75,3 +75,11 @@ label { display: block; font-weight: 600; margin: 12px 0 4px; }
 .photos figure { margin: 0; width: 140px; }
 .photos img { width: 140px; height: 186px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: block; background: var(--line); }
 .photos button.small { margin-top: 6px; width: 100%; padding: 6px 8px; font-size: 13px; }
+
+.gesture { margin: 8px 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--accent-tint); }
+.compare { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 12px; }
+.compare figure { margin: 0; }
+.compare figcaption { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.selfie { width: 240px; height: 320px; object-fit: cover; border-radius: 12px; border: 2px solid var(--accent); display: block; background: var(--line); }
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.actions select { padding: 8px; border-radius: 8px; border: 1px solid var(--line); max-width: 320px; font: inherit; }
