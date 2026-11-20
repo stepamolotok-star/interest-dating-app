@@ -344,6 +344,26 @@ class DemoApi extends Api {
     token = null;
   }
 
+  /// В демо — как на сервере: всё стирается, номер можно зарегистрировать заново.
+  @override
+  Future<void> deleteAccount() async {
+    _needUser();
+    _seen.clear();
+    _matches.clear();
+    _messages.clear();
+    _zones.clear();
+    _fieldVisibility.clear();
+    _prefs.clear();
+    _myPhotos.clear();
+    _reg = null;
+    _verification = const Verification();
+    _restore(const {});
+    token = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_storeKey);
+    await prefs.remove(_photosKey);
+  }
+
   @override
   Future<Me> me() async {
     _needUser();

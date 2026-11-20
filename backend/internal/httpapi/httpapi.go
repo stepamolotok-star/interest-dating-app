@@ -8,12 +8,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/account"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/cities"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/legal"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/moderation"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/nearby"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/notify"
@@ -38,7 +40,11 @@ type Deps struct {
 	Photos   *photos.Service
 	Notify   *notify.Service
 	Verify   *verify.Service
+	Account  *account.Service
 	Log      *slog.Logger
+
+	// Legal — данные оператора для документов (/legal/…).
+	Legal legal.Vars
 
 	// Moderation и AdminToken включают страницу модератора /admin.
 	Moderation *moderation.Service
@@ -59,6 +65,8 @@ type Server struct {
 	photos   *photos.Service
 	notify   *notify.Service
 	verify   *verify.Service
+	account  *account.Service
+	legal    legal.Vars
 	log      *slog.Logger
 
 	moderation *moderation.Service
@@ -67,10 +75,11 @@ type Server struct {
 
 // New возвращает готовый http.Handler.
 func New(d Deps) http.Handler {
-	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, contacts: d.Contacts, oauth: d.OAuth, cities: d.Cities, photos: d.Photos, notify: d.Notify, verify: d.Verify, log: d.Log,
+	s := &Server{cat: d.Catalog, auth: d.Auth, profile: d.Profile, feed: d.Feed, chat: d.Chat, nearby: d.Nearby, contacts: d.Contacts, oauth: d.OAuth, cities: d.Cities, photos: d.Photos, notify: d.Notify, verify: d.Verify, account: d.Account, legal: d.Legal, log: d.Log,
 		moderation: d.Moderation, adminToken: d.AdminToken}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.health)
+	s.registerLegal(mux)
 	mux.HandleFunc("GET /v1/interests/categories", s.categories)
 	mux.HandleFunc("GET /v1/interests/search", s.search)
 	mux.HandleFunc("GET /v1/interests/{id}/children", s.children)
@@ -90,6 +99,9 @@ func New(d Deps) http.Handler {
 		}
 		if s.verify != nil {
 			s.registerVerify(mux)
+		}
+		if s.account != nil {
+			mux.Handle("DELETE /v1/me", s.withUser(http.HandlerFunc(s.deleteAccount)))
 		}
 		if s.contacts != nil {
 			s.registerContacts(mux)

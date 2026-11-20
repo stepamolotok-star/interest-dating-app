@@ -23,6 +23,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/account"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
@@ -30,6 +31,7 @@ import (
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/contacts"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/httpapi"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/legal"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/moderation"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/nearby"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/notify"
@@ -61,7 +63,16 @@ func run(log *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("справочник городов: %w", err)
 	}
-	deps := httpapi.Deps{Catalog: cat, Cities: cityCat, Log: log}
+	deps := httpapi.Deps{Catalog: cat, Cities: cityCat, Log: log, Legal: legal.Vars{
+		// Данные оператора для документов. Пока не заданы — в текстах видны метки «[…]».
+		App:        envOr("APP_NAME", "Свои"),
+		Operator:   os.Getenv("LEGAL_OPERATOR"),
+		OperatorID: os.Getenv("LEGAL_OPERATOR_ID"),
+		Email:      os.Getenv("LEGAL_EMAIL"),
+	}}
+	if deps.Legal.Operator == "" || deps.Legal.Email == "" {
+		log.Warn("LEGAL_OPERATOR / LEGAL_EMAIL не заданы — в документах метки вместо данных оператора")
+	}
 
 	if dsn := os.Getenv("DATABASE_URL"); dsn != "" {
 		db, err := pgxpool.New(ctx, dsn)
@@ -133,8 +144,10 @@ func run(log *slog.Logger) error {
 		deps.Contacts = &contacts.Service{DB: db, Secret: []byte(contactsSecret)}
 		deps.OAuth = &oauth.Service{DB: db, Providers: oauthProviders()}
 		deps.Moderation = &moderation.Service{DB: db, PhoneSecret: []byte(contactsSecret)}
+		deps.Account = &account.Service{DB: db, Store: photos.DiskStore{Dir: photoDir}}
 		if deps.Nearby != nil {
 			deps.Moderation.Nearby = deps.Nearby
+			deps.Account.Nearby = deps.Nearby
 		}
 		// Страница модератора /admin — только с длинным случайным ключом.
 		if t := os.Getenv("ADMIN_TOKEN"); len(t) >= 24 {

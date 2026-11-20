@@ -1,11 +1,14 @@
+import 'package:flutter/gestures.dart' show TapGestureRecognizer;
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../app.dart';
 import '../cities.dart';
+import '../legal.dart';
 import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import 'legal_screen.dart';
 
 /// «О себе»: имя, дата рождения, пол, город и два отдельных согласия (152-ФЗ).
 class AboutScreen extends StatefulWidget {
@@ -199,14 +202,18 @@ class _AboutScreenState extends State<AboutScreen> {
             error: _tried && !_terms,
             value: _terms,
             onChanged: (v) => setState(() => _terms = v),
-            text: 'Принимаю пользовательское соглашение',
+            prefix: 'Принимаю ',
+            link: 'пользовательское соглашение',
+            doc: LegalDoc.terms,
           ),
           _Consent(
             key: const Key('personal_data'),
             error: _tried && !_personalData,
             value: _personalData,
             onChanged: (v) => setState(() => _personalData = v),
-            text: 'Даю согласие на обработку персональных данных',
+            prefix: 'Даю ',
+            link: 'согласие на обработку персональных данных',
+            doc: LegalDoc.personalData,
           ),
           if (_tried && (!_terms || !_personalData))
             const Padding(
@@ -218,6 +225,17 @@ class _AboutScreenState extends State<AboutScreen> {
             child: Text(
               'Это два разных документа — так требует закон. Данные хранятся в России.',
               style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 40),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                key: const Key('privacy-link'),
+                onPressed: () => openLegal(context, LegalDoc.privacy),
+                child: const Text('Как мы обрабатываем данные'),
+              ),
             ),
           ),
         ],
@@ -279,26 +297,69 @@ class _Choice extends StatelessWidget {
   }
 }
 
-class _Consent extends StatelessWidget {
-  const _Consent({super.key, required this.value, required this.onChanged, required this.text, this.error = false});
+/// Галочка согласия: нажатие на строку ставит галочку, на подчёркнутое название — открывает документ.
+class _Consent extends StatefulWidget {
+  const _Consent({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    required this.prefix,
+    required this.link,
+    required this.doc,
+    this.error = false,
+  });
 
   final bool error;
   final bool value;
   final ValueChanged<bool> onChanged;
-  final String text;
+  final String prefix;
+  final String link;
+  final LegalDoc doc;
+
+  @override
+  State<_Consent> createState() => _ConsentState();
+}
+
+class _ConsentState extends State<_Consent> {
+  late final _tap = TapGestureRecognizer()..onTap = () => openLegal(context, widget.doc);
+
+  @override
+  void dispose() {
+    _tap.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodyMedium;
     return InkWell(
-      onTap: () => onChanged(!value),
+      onTap: () => widget.onChanged(!widget.value),
       borderRadius: BorderRadius.circular(10),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           children: [
-            Checkbox(value: value, isError: error, onChanged: (v) => onChanged(v ?? false)),
+            Checkbox(value: widget.value, isError: widget.error, onChanged: (v) => widget.onChanged(v ?? false)),
             const SizedBox(width: 4),
-            Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: widget.prefix),
+                    TextSpan(
+                      text: widget.link,
+                      recognizer: _tap,
+                      style: TextStyle(
+                        color: AppColors.accent,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColors.accent,
+                      ),
+                    ),
+                  ],
+                ),
+                style: style,
+              ),
+            ),
           ],
         ),
       ),

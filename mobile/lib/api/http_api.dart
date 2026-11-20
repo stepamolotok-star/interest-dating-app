@@ -79,6 +79,9 @@ class HttpApi extends Api {
   Future<void> logout() => _call('POST', '/v1/auth/logout');
 
   @override
+  Future<void> deleteAccount() => _call('DELETE', '/v1/me');
+
+  @override
   Future<Me> me() async => Me.fromJson(await _call('GET', '/v1/me'));
 
   @override

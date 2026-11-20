@@ -98,8 +98,8 @@ void main() {
     await tester.enterText(find.byKey(const Key('city-search')), 'Чита');
     await tester.pumpAndSettle();
     await tap(find.byKey(const Key('city-2d9abaa6-85a6-4f1f-a1bd-14b76ec17d9c')));
-    await tap(find.byKey(const Key('terms')));
-    await tap(find.byKey(const Key('personal_data')));
+    await tap(find.descendant(of: find.byKey(const Key('terms')), matching: find.byType(Checkbox)));
+    await tap(find.descendant(of: find.byKey(const Key('personal_data')), matching: find.byType(Checkbox)));
     await tester.drag(find.byType(SingleChildScrollView).first, const Offset(0, 300));
     await shot('03_about');
     await tap(find.text('Дальше'));
@@ -256,6 +256,25 @@ void main() {
     await shot('22_verify');
     await tap(find.byKey(const Key('take-selfie')));
     await shot('23_verify_selfie');
+
+    // Документы и удаление аккаунта.
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    final docs = find.byKey(const Key('doc-privacy'));
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('delete-account')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await shot('24_profile_documents');
+    await tap(docs);
+    await shot('25_privacy');
+    await tester.tap(find.byTooltip('Назад'));
+    await tester.pumpAndSettle();
+    await tap(find.text('Лента'));
+    await tap(find.byKey(const Key('how-feed-works')));
+    await shot('26_recommendations');
   });
 }
 

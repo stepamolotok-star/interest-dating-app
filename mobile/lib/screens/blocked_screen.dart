@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../app.dart';
+import '../legal.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import 'chat_screen.dart' show dayLabel;
@@ -59,7 +60,9 @@ class _BlockedScreenState extends State<BlockedScreen> {
             ],
             const SizedBox(height: 12),
             Text(
-              'Если считаете, что это ошибка, напишите в поддержку — модератор посмотрит ещё раз.',
+              supportEmail.isEmpty
+                  ? 'Если считаете, что это ошибка, напишите в поддержку — модератор посмотрит ещё раз.'
+                  : 'Если считаете, что это ошибка, напишите на $supportEmail — модератор посмотрит ещё раз.',
               style: text.bodyMedium?.copyWith(color: AppColors.muted),
             ),
             const SizedBox(height: 32),

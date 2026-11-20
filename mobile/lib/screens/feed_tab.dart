@@ -6,11 +6,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../app.dart';
 import '../models.dart';
 import '../theme.dart';
+import '../legal.dart';
 import '../widgets/common.dart';
 import '../widgets/photos.dart';
 import '../widgets/profile_blocks.dart';
 import '../widgets/safety.dart' show Avatar;
 import 'filters_screen.dart';
+import 'legal_screen.dart';
 import 'interests_screen.dart';
 import 'profile_edit_screen.dart';
 import 'match_screen.dart';
@@ -155,7 +157,14 @@ class _FeedTabState extends State<FeedTab> {
             padding: const EdgeInsets.fromLTRB(20, 4, 8, 0),
             child: Row(
               children: [
-                Expanded(child: Text('Свои', style: Theme.of(context).textTheme.headlineSmall)),
+                Expanded(child: Text(appName, style: Theme.of(context).textTheme.headlineSmall)),
+                // Закон требует, чтобы человек видел, что лента подбирается рекомендательной системой.
+                IconButton(
+                  key: const Key('how-feed-works'),
+                  tooltip: 'Как подбираем анкеты',
+                  onPressed: () => openLegal(context, LegalDoc.recommendations),
+                  icon: const Icon(Icons.info_outline),
+                ),
                 IconButton(
                   key: const Key('filters'),
                   tooltip: 'Фильтры',
@@ -243,7 +252,13 @@ class _FeedTabState extends State<FeedTab> {
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: PersonCard(key: ValueKey(card.userId), card: card),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PersonCard(key: ValueKey(card.userId), card: card),
+                const _HowItWorks(),
+              ],
+            ),
           ),
         ),
         Padding(
@@ -273,6 +288,23 @@ class _FeedTabState extends State<FeedTab> {
       ],
     );
   }
+}
+
+/// Под карточкой: лента подбирается рекомендательной системой — и ссылка на правила.
+class _HowItWorks extends StatelessWidget {
+  const _HowItWorks();
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 6),
+    child: TextButton.icon(
+      key: const Key('recommendations-note'),
+      onPressed: () => openLegal(context, LegalDoc.recommendations),
+      icon: const Icon(Icons.auto_awesome_outlined, size: 18),
+      label: const Text('Анкеты подобраны по общим интересам и анкете — как это работает'),
+      style: TextButton.styleFrom(foregroundColor: AppColors.muted, alignment: Alignment.centerLeft),
+    ),
+  );
 }
 
 /// Ненавязчивое напоминание над карточкой: выбрать интересы или рассказать о себе.

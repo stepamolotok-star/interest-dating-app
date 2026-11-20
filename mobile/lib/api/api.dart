@@ -62,6 +62,9 @@ abstract class Api {
   Future<void> logout();
   Future<Me> me();
 
+  /// Удалить аккаунт целиком (это же — отзыв согласия на обработку ПДн).
+  Future<void> deleteAccount();
+
   Future<NotificationSettings> notificationSettings();
   Future<void> setNotificationSettings(NotificationSettings s);
 

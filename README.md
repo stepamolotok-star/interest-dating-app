@@ -49,6 +49,9 @@ TEST_REDIS_URL=redis://localhost:6379/15 go test -p 1 ./...
 Push-уведомления: `RUSTORE_PROJECT_ID` и `RUSTORE_PUSH_TOKEN` из консоли RuStore
 (приложение → Push-уведомления → Проекты); без них уведомления только пишутся в журнал.
 
+Документы (соглашение, политика, согласия, правила) — страницы `/legal/…`; данные оператора:
+`LEGAL_OPERATOR`, `LEGAL_OPERATOR_ID`, `LEGAL_EMAIL`, `APP_NAME` (см. `docs/legal-notes.md`).
+
 Модерация: задайте `ADMIN_TOKEN` (не короче 24 символов) — появится страница
 `http://localhost:8080/admin/` для разбора жалоб. Без токена страницы нет.
 
@@ -71,6 +74,7 @@ Push-уведомления: `RUSTORE_PROJECT_ID` и `RUSTORE_PUSH_TOKEN` из �
 | POST | `/v1/auth/register` | Имя, дата рождения, пол, город, согласия (нужен токен) |
 | POST | `/v1/auth/logout` | Выход |
 | GET | `/v1/me` | Свой аккаунт; `warning` — непрочитанное предупреждение модератора |
+| DELETE | `/v1/me` | Удалить аккаунт целиком (это же — отзыв согласия на обработку ПДн) |
 | POST | `/v1/me/warning/ack` | Предупреждение прочитано |
 | GET | `/v1/me/photos` | Свои фото по порядку (первое — главное) |
 | POST | `/v1/me/photos` | Загрузить фото: тело — сам файл (JPEG, PNG, WebP, до 15 МБ, до 6 фото) |
@@ -99,6 +103,13 @@ Push-уведомления: `RUSTORE_PROJECT_ID` и `RUSTORE_PUSH_TOKEN` из �
 
 Заблокированный аккаунт на любой запрос получает `403 {"error", "blocked": true, "until"?}`.
 Лимиты (сообщения, «Интересно», жалобы) отвечают `429` с текстом для человека.
+
+### Документы (без входа)
+
+| Метод | Путь | Что делает |
+| --- | --- | --- |
+| GET | `/legal/` | Список документов |
+| GET | `/legal/{terms,privacy,personal-data,special-category,rules,recommendations}` | Документ страницей |
 
 ### Модерация (нужен `ADMIN_TOKEN`, заголовок `Authorization: Bearer <токен>`)
 

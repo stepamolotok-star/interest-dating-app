@@ -11,10 +11,11 @@ import (
 	"time"
 
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/legal"
 )
 
-// DocVersion — текущая версия соглашения и согласия на обработку ПДн.
-const DocVersion = "2026-11"
+// DocVersion — редакция документов, которую человек принимает; пишется в consents.
+const DocVersion = legal.Version
 
 type ctxKey struct{}
 

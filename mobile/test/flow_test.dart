@@ -21,6 +21,14 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Галочка согласия: нажимаем именно на неё, а не на ссылку в тексте.
+  Future<void> tapConsent(WidgetTester tester, String key) async {
+    final f = find.descendant(of: find.byKey(Key(key)), matching: find.byType(Checkbox));
+    await tester.ensureVisible(f);
+    await tester.tap(f);
+    await tester.pumpAndSettle();
+  }
+
   Future<void> tapKey(WidgetTester tester, String key) async {
     final f = find.byKey(Key(key));
     await tester.ensureVisible(f);
@@ -81,12 +89,20 @@ void main() {
     await tester.pumpAndSettle();
     await tapKey(tester, 'city-2d9abaa6-85a6-4f1f-a1bd-14b76ec17d9c');
     expect(find.text('Чита, Забайкальский край'), findsOneWidget);
-    await tapKey(tester, 'terms');
+    // Ссылка в строке согласия открывает сам документ.
+    await tester.ensureVisible(find.byKey(const Key('terms')));
+    await tester.tapOnText(find.textRange.ofSubstring('пользовательское соглашение'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('legal-terms')), findsOneWidget);
+    expect(find.text('1. Общие положения'), findsOneWidget);
+    await tester.tap(find.byTooltip('Назад'));
+    await tester.pumpAndSettle();
+    await tapConsent(tester, 'terms');
     // Без согласия на обработку данных дальше нельзя — и видно, почему.
     await tapText(tester, 'Дальше');
     expect(find.text('О себе'), findsOneWidget);
     expect(find.text('Без этих двух согласий зарегистрироваться нельзя'), findsOneWidget);
-    await tapKey(tester, 'personal_data');
+    await tapConsent(tester, 'personal_data');
     await tapText(tester, 'Дальше');
 
     // Цели: «Без обязательств» закрыта, пока возраст не подтверждён.

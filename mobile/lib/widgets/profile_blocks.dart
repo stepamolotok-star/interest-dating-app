@@ -2,7 +2,9 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../api/api.dart';
+import '../legal.dart';
 import '../models.dart';
+import '../screens/legal_screen.dart';
 import '../theme.dart';
 
 /// Блоки анкеты. Одни и те же — при регистрации и в профиле.
@@ -147,6 +149,11 @@ class _ProfileBlocksFormState extends State<ProfileBlocksForm> {
             'можно учитывать её только в подборе. Отозвать согласие можно в любой момент, убрав религию.',
           ),
           actions: [
+            TextButton(
+              key: const Key('special-consent-doc'),
+              onPressed: () => openLegal(ctx, LegalDoc.specialCategory),
+              child: const Text('Текст согласия'),
+            ),
             TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Не указывать')),
             TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Даю согласие')),
           ],

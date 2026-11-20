@@ -14,11 +14,13 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/account"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/auth"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/catalog"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/chat"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/cities"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/feed"
+	"github.com/stepamolotok-star/interest-dating-app/backend/internal/legal"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/moderation"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/photos"
 	"github.com/stepamolotok-star/interest-dating-app/backend/internal/profile"
@@ -40,7 +42,8 @@ func moderationServer(t *testing.T) (*httptest.Server, *pgxpool.Pool) {
 		t.Fatal(err)
 	}
 	t.Cleanup(db.Close)
-	store := photos.DiskStore{Dir: t.TempDir()}
+	testStoreDir = t.TempDir()
+	store := photos.DiskStore{Dir: testStoreDir}
 	if _, err := migrations.Apply(ctx, db); err != nil {
 		t.Fatal(err)
 	}
@@ -63,11 +66,16 @@ func moderationServer(t *testing.T) (*httptest.Server, *pgxpool.Pool) {
 		Moderation: &moderation.Service{DB: db, PhoneSecret: secret},
 		Photos:     &photos.Service{DB: db, Store: store},
 		Verify:     &verify.Service{DB: db, Store: store},
+		Account:    &account.Service{DB: db, Store: store},
+		Legal:      legal.Vars{Operator: "Иванов Иван Иванович", Email: "help@example.ru"},
 		AdminToken: testAdminToken,
 	}))
 	t.Cleanup(srv.Close)
 	return srv, db
 }
+
+// testStoreDir — папка с файлами последнего тестового сервера (тесты пакета идут по очереди).
+var testStoreDir string
 
 // signUp проходит вход и регистрацию, возвращает токен и id.
 func signUp(t *testing.T, srv *httptest.Server, phone, name string) (token, id string) {

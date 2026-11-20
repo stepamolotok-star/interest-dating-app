@@ -399,12 +399,22 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Удаляет аккаунт на сервере и всё на устройстве. Ошибку пробрасываем: аккаунт не удалён.
+  Future<void> deleteAccount() async {
+    await api.deleteAccount();
+    await _reset();
+  }
+
   Future<void> logout() async {
     try {
       await api.logout();
     } on ApiException {
       // Сессию всё равно забываем на устройстве.
     }
+    await _reset();
+  }
+
+  Future<void> _reset() async {
     await _forget();
     me = null;
     photos = [];

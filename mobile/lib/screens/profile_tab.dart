@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../app.dart';
 import '../contacts.dart';
+import '../legal.dart';
 import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -10,6 +11,7 @@ import '../widgets/profile_blocks.dart';
 import '../widgets/safety.dart' show confirm;
 import 'goals_screen.dart';
 import 'interests_screen.dart';
+import 'legal_screen.dart';
 import 'nearby_settings_screen.dart';
 import 'profile_edit_screen.dart';
 import 'profile_preview_screen.dart';
@@ -123,8 +125,11 @@ class _ProfileTabState extends State<ProfileTab> {
           const _Appearance(),
           const SizedBox(height: 16),
           _Support(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
+          const _Documents(),
           OutlinedButton(onPressed: () => AppScope.read(context).logout(), child: const Text('Выйти')),
+          const SizedBox(height: 8),
+          const _DeleteAccount(),
         ],
       ),
     );
@@ -639,6 +644,85 @@ class _Card extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 4, 12, 4),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
     ),
+  );
+}
+
+/// Соглашение, политика, согласия и правила — всегда под рукой.
+class _Documents extends StatelessWidget {
+  const _Documents();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return _Section(
+      title: 'Документы',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Card(
+            children: [
+              for (final (i, d) in LegalDoc.values.indexed) ...[
+                if (i > 0) Divider(height: 1, color: AppColors.line),
+                ListTile(
+                  key: Key('doc-${d.file}'),
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(d.title, style: t.bodyLarge),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => openLegal(context, d),
+                ),
+              ],
+            ],
+          ),
+          if (supportEmail.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            SelectableText('Поддержка и вопросы о данных: $supportEmail', style: t.bodySmall),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Удаление аккаунта — с честным предупреждением, что восстановить нельзя.
+class _DeleteAccount extends StatefulWidget {
+  const _DeleteAccount();
+
+  @override
+  State<_DeleteAccount> createState() => _DeleteAccountState();
+}
+
+class _DeleteAccountState extends State<_DeleteAccount> {
+  bool _busy = false;
+
+  Future<void> _delete() async {
+    final ok = await confirm(
+      context,
+      title: 'Удалить аккаунт?',
+      text:
+          'Анкета, фото, переписки и совпадения удалятся сразу и навсегда — восстановить их будет нельзя. '
+          'Собеседники больше не увидят ваших сообщений. Это же — отзыв согласия на обработку данных.',
+      ok: 'Удалить навсегда',
+    );
+    if (!ok || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      await AppScope.read(context).deleteAccount();
+    } catch (e) {
+      if (mounted) {
+        setState(() => _busy = false);
+        showError(context, e);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => TextButton(
+    key: const Key('delete-account'),
+    onPressed: _busy ? null : _delete,
+    style: TextButton.styleFrom(foregroundColor: AppColors.error),
+    child: _busy
+        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+        : const Text('Удалить аккаунт'),
   );
 }
 
