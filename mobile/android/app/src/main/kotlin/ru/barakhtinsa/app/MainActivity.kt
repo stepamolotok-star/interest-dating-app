@@ -1,4 +1,4 @@
-package ru.svoi.svoi
+package ru.barakhtinsa.app
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -20,7 +20,7 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "ru.svoi/call_permission")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "ru.barakhtinsa.app/call_permission")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "has" -> result.success(granted())

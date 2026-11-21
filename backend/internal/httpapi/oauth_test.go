@@ -88,7 +88,7 @@ func oauthServer(t *testing.T, fake *fakeProvider) *httptest.Server {
 	svc := &auth.Service{DB: db, Caller: fixedCaller{}, SMS: fixedCaller{}, Secret: []byte("s"), Cities: cityCat}
 	o := &oauth.Service{DB: db, Providers: []oauth.Provider{
 		oauth.VKID{ClientID: "42", Redirect: "vk42://vk.ru/blank.html", BaseURL: prov.URL},
-		oauth.YandexID{ClientID: "ya", Redirect: "ru.svoi://oauth/yandex", OAuthURL: prov.URL, LoginURL: prov.URL},
+		oauth.YandexID{ClientID: "ya", Redirect: "ru.barakhtinsa.app://oauth/yandex", OAuthURL: prov.URL, LoginURL: prov.URL},
 	}}
 	srv := httptest.NewServer(New(Deps{Catalog: cat, Cities: cityCat, Auth: svc, OAuth: o, Log: slog.New(slog.NewTextHandler(io.Discard, nil))}))
 	t.Cleanup(srv.Close)

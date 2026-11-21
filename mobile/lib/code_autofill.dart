@@ -40,7 +40,7 @@ class DeviceCodeAutofill implements CodeAutofill {
 
   /// Разрешения «Телефон» и «Журнал звонков» — без них Android не отдаёт номер входящего звонка.
   /// Запрос — в MainActivity.kt.
-  static const _channel = MethodChannel('ru.svoi/call_permission');
+  static const _channel = MethodChannel('ru.barakhtinsa.app/call_permission');
 
   @override
   Future<bool> hasCallPermission() async {

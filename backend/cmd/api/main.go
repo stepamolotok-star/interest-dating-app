@@ -231,7 +231,7 @@ func oauthProviders() []oauth.Provider {
 		out = append(out, oauth.VKID{ClientID: id, Redirect: envOr("VKID_REDIRECT_URI", "vk"+id+"://vk.ru/blank.html")})
 	}
 	if id := os.Getenv("YANDEX_CLIENT_ID"); id != "" {
-		out = append(out, oauth.YandexID{ClientID: id, Redirect: envOr("YANDEX_REDIRECT_URI", "ru.svoi://oauth/yandex")})
+		out = append(out, oauth.YandexID{ClientID: id, Redirect: envOr("YANDEX_REDIRECT_URI", "ru.barakhtinsa.app://oauth/yandex")})
 	}
 	return out
 }

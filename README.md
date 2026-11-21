@@ -38,7 +38,7 @@ TEST_REDIS_URL=redis://localhost:6379/15 go test -p 1 ./...
 
 Вход через VK ID и Яндекс ID включается ключами: `VKID_CLIENT_ID` (и при необходимости
 `VKID_REDIRECT_URI`, по умолчанию `vk<ID>://vk.ru/blank.html`), `YANDEX_CLIENT_ID`
-(`YANDEX_REDIRECT_URI`, по умолчанию `ru.svoi://oauth/yandex`). Без ключей кнопок в приложении нет.
+(`YANDEX_REDIRECT_URI`, по умолчанию `ru.barakhtinsa.app://oauth/yandex`). Без ключей кнопок в приложении нет.
 У провайдеров запрашивается только номер телефона (`phone`, `login:default_phone`).
 
 Секреты: `AUTH_SECRET` — для кодов входа, `CONTACTS_SECRET` — для хешей контактов (если не задан,
@@ -160,3 +160,5 @@ Push-уведомления: `RUSTORE_PROJECT_ID` и `RUSTORE_PUSH_TOKEN` из �
 5. **Цель «Без обязательств»** доступна только с подтверждённым возрастом 18+
    через Госуслуги и проверенным фото.
 6. **Данные граждан РФ хранятся на серверах в России** (152-ФЗ).
+
+Подпись и выпуск приложения: `docs/release.md`.

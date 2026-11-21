@@ -1,11 +1,22 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Ключ подписи релизов. В GitHub Actions — переменные окружения из секретов,
+// на своём компьютере — android/key.properties (в git не попадает, см. docs/release.md).
+val keyProps = Properties().apply {
+    val f = rootProject.file("key.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+val releaseStore: String? = System.getenv("ANDROID_KEYSTORE_PATH") ?: keyProps.getProperty("storeFile")
+val releasePassword: String? = System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: keyProps.getProperty("storePassword")
+
 android {
-    namespace = "ru.svoi.svoi"
+    namespace = "ru.barakhtinsa.app"
     // 37: этого требуют flutter_local_notifications и androidx.core. targetSdk остаётся от Flutter.
     compileSdk = 37
     ndkVersion = flutter.ndkVersion
@@ -18,8 +29,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "ru.svoi.svoi"
+        // Имя пакета — навсегда: после публикации его не поменять. Не связано с названием приложения.
+        applicationId = "ru.barakhtinsa.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -36,11 +47,25 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (releaseStore != null && releasePassword != null) {
+            create("release") {
+                storeFile = file(releaseStore)
+                storePassword = releasePassword
+                keyAlias = "release"
+                keyPassword = releasePassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Без ключа — отладочная подпись: такой APK годится для проверки, но не для RuStore.
+            val release = signingConfigs.findByName("release")
+            if (release == null) {
+                logger.warn("Ключ подписи не найден — релиз подписан отладочным ключом (не для публикации)")
+            }
+            signingConfig = release ?: signingConfigs.getByName("debug")
         }
     }
 }

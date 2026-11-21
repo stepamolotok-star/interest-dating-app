@@ -63,12 +63,12 @@ void main() {
     });
 
     test('чужой state — отказ', () async {
-      final state = await withBrowser((_) => Uri.parse('ru.svoi://oauth?code=c&state=подмена'));
+      final state = await withBrowser((_) => Uri.parse('ru.barakhtinsa.app://oauth?code=c&state=подмена'));
       expect(() => state.loginWith('yandex'), throwsA(isA<ApiException>()));
     });
 
     test('отказ у провайдера — понятная ошибка', () async {
-      final state = await withBrowser((url) => Uri.parse('ru.svoi://oauth?error=access_denied'));
+      final state = await withBrowser((url) => Uri.parse('ru.barakhtinsa.app://oauth?error=access_denied'));
       expect(
         () => state.loginWith('yandex'),
         throwsA(isA<ApiException>().having((e) => e.message, 'message', contains('войдите по звонку'))),

@@ -1011,7 +1011,7 @@ class DemoApi extends Api {
   Future<OAuthStart> oauthStart(String provider) async {
     final state = 'demo-${DateTime.now().microsecondsSinceEpoch}';
     _oauthStates.add(state);
-    return OAuthStart('https://demo.invalid/$provider/authorize?state=$state', state, 'ru.svoi://oauth/$provider');
+    return OAuthStart('https://demo.invalid/$provider/authorize?state=$state', state, 'ru.barakhtinsa.app://oauth/$provider');
   }
 
   @override
